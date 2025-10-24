@@ -1,0 +1,1 @@
+<ul class="list-group">	<li class="list-group-item {x2;if:$method == 'course'} active{x2;endif}">		<a href="index.php?course-teach">课程管理</a>	</li></ul>
