@@ -19,5 +19,6 @@ class app
 	}
 }
 require PEPATH."/lib/system.func.php";
-
+$app = new app();
+$app->run();
 ?>

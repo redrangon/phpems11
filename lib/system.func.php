@@ -12,4 +12,3 @@ function R($message){
 	ginkgo::R($message);
 }
 ginkgo::loadMoudle();
-ginkgo::run();

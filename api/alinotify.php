@@ -12,10 +12,17 @@ class app
 {
 	public function run()
 	{
-		$orderid = M('ev')->get('out_trade_no');
+        $time = microtime(true);
+        $orderid = M('ev')->get('out_trade_no');
 		$order = M('orders','bank')->getOrderById($orderid);
-		$verify_result = M('alipay')->alinotify();
-		if($verify_result)
+        $time = microtime(true);
+        $alipay = M('alipay');
+        echo microtime(true) - $time;
+        echo "<br />";
+        $verify_result = $alipay->alinotify();
+        echo microtime(true) - $time;
+        echo "<br />";
+        if($verify_result)
 		{
 			if(M('ev')->get('trade_status') == 'TRADE_FINISHED' || M('ev')->get('trade_status') == 'TRADE_SUCCESS')
 			{
@@ -41,5 +48,6 @@ class app
 	}
 }
 require PEPATH."/lib/system.func.php";
-
+$app = new app();
+$app->run();
 ?>
