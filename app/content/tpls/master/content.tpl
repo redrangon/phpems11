@@ -189,7 +189,7 @@
 	</div>
 </div>
 <script>
-	$.getJSON('index.php?course-master-course-catsmenu&catid={x2;$catid}',function(treeData){
+	$.getJSON('index.php?content-master-contents-catsmenu&catid={x2;$catid}',function(treeData){
 		$('#catsmenu').treeview({
 			levels: {x2;$catlevel},
 			expandIcon: 'glyphicon glyphicon-chevron-right',

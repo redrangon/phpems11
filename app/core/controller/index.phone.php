@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -29,12 +29,12 @@ class action extends app
         $topimgs = $this->position->getPosContentList(array(array("AND","pcposid = 4")),1,5);
         $topnews = $this->position->getPosContentList(array(array("AND","pcposid = 2")),1,10);
         $notices = $this->content->getContentList(array(array("AND","contentcatid = 26")),1,10);
-        $this->tpl->assign('notices',$notices);
-        $this->tpl->assign('courses',$courses);
-        $this->tpl->assign('basics',$basics);
-        $this->tpl->assign('topimgs',$topimgs);
-        $this->tpl->assign('topnews',$topnews);
-		$this->tpl->display('index');
+        M('tpl')->assign('notices',$notices);
+        M('tpl')->assign('courses',$courses);
+        M('tpl')->assign('basics',$basics);
+        M('tpl')->assign('topimgs',$topimgs);
+        M('tpl')->assign('topnews',$topnews);
+		M('tpl')->display('index');
 	}
 }
 

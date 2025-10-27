@@ -19,7 +19,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -30,10 +30,10 @@ class action extends app
 	{
 		exit();//启用时请注释或删除本行
 		$this->sc = 'JOAa4HeKdq52b7jJZYXo';//密钥，需修改双方一致
-		$sign = $this->ev->get('sign');
-		$username = $this->ev->get('username');
-		$ts = $this->ev->get('ts');
-		if($this->ev->get('checkyes'))
+		$sign = M('ev')->get('sign');
+		$username = M('ev')->get('username');
+		$ts = M('ev')->get('ts');
+		if(M('ev')->get('checkyes'))
 		{
 			$rand =rand(1,6);
 			if($rand == 5)
@@ -49,14 +49,14 @@ class action extends app
 					$u = $user->getUserByUserName($username);
 					if(!$u)
 					{
-						$defaultgroup = $this->user->getDefaultGroup();
+						$defaultgroup = M('user','user')->getDefaultGroup();
 						$pass = md5(rand(1000,9999));
-						$id = $this->user->insertUser(array('username' => $username,'usergroupid' => $defaultgroup['groupid'],'userpassword' => md5($pass),'useremail' => $username.EP));
-						$this->session->setSessionUser(array('sessionuserid'=>$id,'sessionpassword'=>md5($pass),'sessionip'=>$this->ev->getClientIp(),'sessiongroupid'=>$defaultgroup,'sessionlogintime'=>TIME,'sessionusername'=>$username));
+						$id = M('user','user')->insertUser(array('username' => $username,'usergroupid' => $defaultgroup['groupid'],'userpassword' => md5($pass),'useremail' => $username.EP));
+						$this->session->setSessionUser(array('sessionuserid'=>$id,'sessionpassword'=>md5($pass),'sessionip'=>M('ev')->getClientIp(),'sessiongroupid'=>$defaultgroup,'sessionlogintime'=>TIME,'sessionusername'=>$username));
 					}
 					else
 					{
-						$args = array('sessionuserid'=>$u['userid'],'sessionpassword'=>$u['userpassword'],'sessionip'=>$this->ev->getClientIp(),'sessiongroupid'=>$u['usergroupid'],'sessionlogintime'=>TIME,'sessionusername'=>$u['username']);
+						$args = array('sessionuserid'=>$u['userid'],'sessionpassword'=>$u['userpassword'],'sessionip'=>M('ev')->getClientIp(),'sessiongroupid'=>$u['usergroupid'],'sessionlogintime'=>TIME,'sessionusername'=>$u['username']);
 						$this->session->setSessionUser($args);
 					}
 					header("location:".'index.php?'.\PHPEMS\ginkgo::$app.'-app');

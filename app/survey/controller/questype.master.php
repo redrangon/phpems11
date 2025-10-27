@@ -10,17 +10,17 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
-		$this->search = $this->ev->get('search');
+		$action = M('ev')->url(3);
+		$this->search = M('ev')->get('search');
 		if($this->search)
 		{
 			$this->u = '';
-			$this->tpl->assign('search',$this->search);
+			M('tpl')->assign('search',$this->search);
 			foreach($this->search as $key => $arg)
 			{
 				$this->u .= "&search[{$key}]={$arg}";
 			}
-			$this->tpl->assign('u',$this->u);
+			M('tpl')->assign('u',$this->u);
 		}
 		if(!method_exists($this,$action))
 		$action = "index";
@@ -30,10 +30,10 @@ class action extends app
 
 	private function add()
 	{
-		if($this->ev->get('addquestype'))
+		if(M('ev')->get('addquestype'))
 		{
-			$args = $this->ev->get('args');
-			$this->survey->addQuestype($args);
+			$args = M('ev')->get('args');
+			M('survey','survey')->addQuestype($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -44,17 +44,17 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->display('questype_add');
+			M('tpl')->display('questype_add');
 		}
 	}
 
 	private function modify()
 	{
-		if($this->ev->get('modifyquestype'))
+		if(M('ev')->get('modifyquestype'))
 		{
-			$args = $this->ev->get('args');
-			$questid = $this->ev->get('questid');
-			$this->survey->modifyQuestype($questid,$args);
+			$args = M('ev')->get('args');
+			$questid = M('ev')->get('questid');
+			M('survey','survey')->modifyQuestype($questid,$args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -65,17 +65,17 @@ class action extends app
 		}
 		else
 		{
-			$questid = $this->ev->get('questid');
-			$quest = $this->survey->getQuestypeById($questid);
-			$this->tpl->assign('quest',$quest);
-			$this->tpl->display('questype_modify');
+			$questid = M('ev')->get('questid');
+			$quest = M('survey','survey')->getQuestypeById($questid);
+			M('tpl')->assign('quest',$quest);
+			M('tpl')->display('questype_modify');
 		}
 	}
 
 	private function del()
 	{
-		$questid = $this->ev->get('questid');
-		$this->survey->delQuestype($questid);
+		$questid = M('ev')->get('questid');
+		M('survey','survey')->delQuestype($questid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -87,9 +87,9 @@ class action extends app
 
 	private function index()
 	{
-		$questypes = $this->survey->getQuestypeList();
-		$this->tpl->assign('questypes',$questypes);
-		$this->tpl->display('questype');
+		$questypes = M('survey','survey')->getQuestypeList();
+		M('tpl')->assign('questypes',$questypes);
+		M('tpl')->display('questype');
 	}
 }
 

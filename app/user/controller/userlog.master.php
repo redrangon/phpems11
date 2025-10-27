@@ -11,8 +11,8 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
-		$this->search = $this->ev->get('search');
+		$action = M('ev')->url(3);
+		$this->search = M('ev')->get('search');
 		$this->u = '';
 		if($this->search)
 		{
@@ -20,9 +20,9 @@ class action extends app
 			{
 				$this->u .= "&search[{$key}]={$arg}";
 			}
-			$this->tpl->assign('u',$this->u);
+			M('tpl')->assign('u',$this->u);
 		}
-		$this->tpl->assign('search',$this->search);
+		M('tpl')->assign('search',$this->search);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -31,9 +31,9 @@ class action extends app
 
 	private function del()
 	{
-		$page = $this->ev->get('page');
-		$ulid = $this->ev->get('ulid');
-		$this->user->delUserLogById($ulid);
+		$page = M('ev')->get('page');
+		$ulid = M('ev')->get('ulid');
+		M('user','user')->delUserLogById($ulid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -47,12 +47,12 @@ class action extends app
 
 	private function clearlog()
 	{
-		$stime = $this->ev->get('stime');
-		$etime = $this->ev->get('etime');
+		$stime = M('ev')->get('stime');
+		$etime = M('ev')->get('etime');
 		$args = array();
 		if($stime)$args[] = array('AND',"ultime >= :stime",'stime',strtotime($stime));
 		if($etime)$args[] = array('AND',"ultime <= :etime",'etime',strtotime($etime));
-		$this->user->clearUserLogByArgs($args);
+		M('user','user')->clearUserLogByArgs($args);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -64,12 +64,12 @@ class action extends app
 
 	private function batdel()
 	{
-		if($this->ev->get('action') == 'delete')
+		if(M('ev')->get('action') == 'delete')
 		{
-			$page = $this->ev->get('page');
-			$delids = $this->ev->get('delids');
+			$page = M('ev')->get('page');
+			$delids = M('ev')->get('delids');
 			foreach($delids as $ulid => $p)
-			$this->user->delUserLogById($ulid);
+			M('user','user')->delUserLogById($ulid);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -82,9 +82,9 @@ class action extends app
 
 	private function index()
 	{
-		$page = $this->ev->get('page')?$this->ev->get('page'):1;
+		$page = M('ev')->get('page')?M('ev')->get('page'):1;
 		$args = array();
-		$userid = $this->ev->get('userid');
+		$userid = M('ev')->get('userid');
 		if($userid)$args[] = array('AND',"uluserid = :userid",'userid',$userid);
 		if($this->search['userid'])$args[] = array('AND',"uluserid = :userid",'userid',$this->search['userid']);
 		if($this->search['username'])$args[] = array('AND',"username LIKE :username",'username','%'.$this->search['username'].'%');
@@ -96,11 +96,11 @@ class action extends app
 			$etime = strtotime($this->search['etime']);
 			$args[] = array('AND',"ultime <= :ultime",'ultime',$etime);
 		}
-		$userlogs = $this->user->getUserLogList($args,$page,50);
-		$this->tpl->assign('userlogs',$userlogs);
-		$this->tpl->assign('page',$page);
-		$this->tpl->assign('userid',$userid);
-		$this->tpl->display('userlog');
+		$userlogs = M('user','user')->getUserLogList($args,$page,50);
+		M('tpl')->assign('userlogs',$userlogs);
+		M('tpl')->assign('page',$page);
+		M('tpl')->assign('userid',$userid);
+		M('tpl')->display('userlog');
 	}
 }
 

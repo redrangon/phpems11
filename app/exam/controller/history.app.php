@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
         if($this->data['currentbasic']['basicexam']['model'] == 2)
 		{
 			if(!in_array($action,array('makescore','stats')))
@@ -27,14 +27,14 @@ class action extends app
 
     private function wrongs()
     {
-        $ehid = $this->ev->get('ehid');
-        $eh = $this->favor->getExamHistoryById($ehid);
+        $ehid = M('ev')->get('ehid');
+        $eh = M('favor','exam')->getExamHistoryById($ehid);
         if(!$eh['ehstatus'] && ($eh['ehtype'] == 1 || $eh['ehsetting']['examdecide']))
         {
             header("location:index.php?exam-app-history-makescore&ehid=".$ehid);
             exit;
         }
-        $questype = $this->basic->getQuestypeList();
+        $questype = M('basic','exam')->getQuestypeList();
         $sessionvars = array(
         	'examsession' => $eh['ehexam'],
 			'examsessionscorelist' => $eh['ehscorelist'],
@@ -46,25 +46,25 @@ class action extends app
 		{
 			$sessionvars['examsessionsetting']['examsetting']['questypelite'] = $questype;
 		}
-        $this->tpl->assign('sessionvars',$sessionvars);
-        $this->tpl->assign('eh',$eh);
-        $this->tpl->assign('questype',$questype);
-        $this->tpl->display('history_examwrongs');
+        M('tpl')->assign('sessionvars',$sessionvars);
+        M('tpl')->assign('eh',$eh);
+        M('tpl')->assign('questype',$questype);
+        M('tpl')->display('history_examwrongs');
     }
 
 
 	private function makescore()
 	{
-        $ehid = $this->ev->get('ehid');
-        $eh = $this->favor->getExamHistoryById($ehid);
+        $ehid = M('ev')->get('ehid');
+        $eh = M('favor','exam')->getExamHistoryById($ehid);
         if($eh['ehstatus'] || ($eh['ehsetting']['examdecide'] && $eh['ehtype'] == 2))
         {
             header("location:index.php?exam-app-history-stats&ehid={$ehid}");
             exit;
         }
-		if($this->ev->get('makescore'))
+		if(M('ev')->get('makescore'))
 		{
-            $score = $this->ev->get('score');
+            $score = M('ev')->get('score');
             $scorelist = $eh['ehscorelist'];
             foreach($score as $key => $p)
 			{
@@ -78,7 +78,7 @@ class action extends app
 			{
                 $args['ehispass'] = $args['ehscore'] >= $eh['ehsetting']['examsetting']['passscore']?1:0;
 			}
-            $this->favor->modifyExamHistory($ehid,$args);
+            M('favor','exam')->modifyExamHistory($ehid,$args);
             $message = array(
                 'statusCode' => 200,
                 "message" => "判分成功",
@@ -89,7 +89,7 @@ class action extends app
 		}
 		else
 		{
-			$questype = $this->basic->getQuestypeList();
+			$questype = M('basic','exam')->getQuestypeList();
 			foreach($questype as $quest)
 			{
 				$needhand = 0;
@@ -112,16 +112,16 @@ class action extends app
 				}
 				if(!$needhand)unset($eh['ehquestion']['questionrows'][$quest['questid']]);
 			}
-			$this->tpl->assign('eh',$eh);
-			$this->tpl->assign('questype',$questype);
-			$this->tpl->display('history_mkscore');
+			M('tpl')->assign('eh',$eh);
+			M('tpl')->assign('questype',$questype);
+			M('tpl')->display('history_mkscore');
         }
 	}
 
 	public function stats()
 	{
-        $ehid = $this->ev->get('ehid');
-        $eh = $this->favor->getExamHistoryById($ehid);
+        $ehid = M('ev')->get('ehid');
+        $eh = M('favor','exam')->getExamHistoryById($ehid);
         $sessionvars = array(
             'examsession' => $eh['ehexam'],
             'examsessiontype'=> $eh['ehtype'] == 2?1:$eh['ehtype'],
@@ -139,7 +139,7 @@ class action extends app
         $score = array();
         $allnumber = 0;
         $allright = 0;
-        $questype = $this->basic->getQuestypeList();
+        $questype = M('basic','exam')->getQuestypeList();
         foreach($questype as $key => $q)
         {
             $number[$key] = 0;
@@ -231,25 +231,25 @@ class action extends app
             }
         }
 
-        $this->tpl->assign('stats',$stats);
-        $this->tpl->assign('ehid',$ehid);
-        $this->tpl->assign('eh',$eh);
-        $this->tpl->assign('allright',$allright);
-        $this->tpl->assign('allnumber',$allnumber);
-        $this->tpl->assign('right',$right);
-        $this->tpl->assign('score',$score);
-        $this->tpl->assign('number',$number);
-        $this->tpl->assign('questype',$questype);
-        $this->tpl->assign('sessionvars',$sessionvars);
-        $this->tpl->display('history_stats');
+        M('tpl')->assign('stats',$stats);
+        M('tpl')->assign('ehid',$ehid);
+        M('tpl')->assign('eh',$eh);
+        M('tpl')->assign('allright',$allright);
+        M('tpl')->assign('allnumber',$allnumber);
+        M('tpl')->assign('right',$right);
+        M('tpl')->assign('score',$score);
+        M('tpl')->assign('number',$number);
+        M('tpl')->assign('questype',$questype);
+        M('tpl')->assign('sessionvars',$sessionvars);
+        M('tpl')->display('history_stats');
 	}
 
 	private function del()
 	{
-		$ehid = $this->ev->get('ehid');
-		$ehtype = $this->ev->get('ehtype');
-		$page = $this->ev->get('page');
-		$this->favor->delExamHistory($ehid,$this->_user['sessionuserid']);
+		$ehid = M('ev')->get('ehid');
+		$ehtype = M('ev')->get('ehtype');
+		$page = M('ev')->get('page');
+		M('favor','exam')->delExamHistory($ehid,$this->user['userid']);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -261,27 +261,27 @@ class action extends app
 
 	private function batdelexercise()
 	{
-		$exercise = $this->ev->get('exercise');
+		$exercise = M('ev')->get('exercise');
 		foreach($exercise as $p)
-		$this->favor->delExamHistory($p,$this->_user['sessionuserid']);
+		M('favor','exam')->delExamHistory($p,$this->user['userid']);
 		header("location:index.php?exam-app-history");
 		exit;
 	}
 
 	private function batdelexam()
 	{
-		$exam = $this->ev->get('exam');
+		$exam = M('ev')->get('exam');
 		foreach($exam as $p)
-		$this->favor->delExamHistory($p,$this->_user['sessionuserid']);
+		M('favor','exam')->delExamHistory($p,$this->user['userid']);
 		header("location:index.php?exam-app-history");
 		exit;
 	}
 
 	private function view()
 	{
-		$ehid = $this->ev->get('ehid');
-		$eh = $this->favor->getExamHistoryById($ehid);
-		if($eh['ehuserid'] != $this->_user['sessionuserid'] || $eh['ehbasicid'] != $this->_user['sessioncurrent'])
+		$ehid = M('ev')->get('ehid');
+		$eh = M('favor','exam')->getExamHistoryById($ehid);
+		if($eh['ehuserid'] != $this->user['userid'] || $eh['ehbasicid'] != $this->user['sessioncurrent'])
 		{
 			header("location:index.php?exam-app");
 			exit;
@@ -291,26 +291,26 @@ class action extends app
             header("location:index.php?exam-app-history-makescore&ehid=".$ehid);
             exit;
 		}
-		$questype = $this->basic->getQuestypeList();
+		$questype = M('basic','exam')->getQuestypeList();
 		$sessionvars = array('examsession'=>$eh['ehexam'],'examsessiontimelist'=>$eh['ehtimelist'],'examsessionscore'=>$eh['ehscore'],'examsessionscorelist'=>$eh['ehscorelist'],'examsessionsetting'=>$eh['ehsetting'],'examsessionquestion'=>$eh['ehquestion'],'examsessionuseranswer'=>$eh['ehuseranswer']);
-		$this->tpl->assign('sessionvars',$sessionvars);
-		$this->tpl->assign('questype',$questype);
-		$this->tpl->assign('eh',$eh);
-		$this->tpl->assign('ehtype',$eh['ehtype']);
+		M('tpl')->assign('sessionvars',$sessionvars);
+		M('tpl')->assign('questype',$questype);
+		M('tpl')->assign('eh',$eh);
+		M('tpl')->assign('ehtype',$eh['ehtype']);
 		if($eh['ehtype'])
-		$this->tpl->display('history_examview');
+		M('tpl')->display('history_examview');
 		else
-		$this->tpl->display('history_exerciseview');
+		M('tpl')->display('history_exerciseview');
 	}
 
 	private function redo()
 	{
-		$ehid = $this->ev->get('ehid');
-		$eh = $this->favor->getExamHistoryById($ehid);
+		$ehid = M('ev')->get('ehid');
+		$eh = M('favor','exam')->getExamHistoryById($ehid);
 		$args = array(
             'examsession' => $eh['ehexam'].'重做',
             'examsessiontype'=>$eh['ehtype'] == 2?1:$eh['ehtype'],
-            'examsessionuserid' => $this->_user['sessionuserid'],
+            'examsessionuserid' => $this->user['userid'],
             'examsessionkey' => $eh['examid'],
             'examsessionsetting'=>$eh['ehsetting'],
             'examsessionbasic'=>$eh['ehbasicid'],
@@ -325,8 +325,8 @@ class action extends app
         );
 		$args['examsessiontoken'] = uniqid();
 		$args['examsessionid'] = md5(serialize($args));
-		$token = md5($args['examsessionid'].'-'.$this->_user['sessionuserid'].'-'.$args['examsessiontoken']);
-		$this->exam->insertExamSession($args);
+		$token = md5($args['examsessionid'].'-'.$this->user['userid'].'-'.$args['examsessiontoken']);
+		M('exam','exam')->insertExamSession($args);
 		if($eh['ehtype'])
 		$message = array(
 			'statusCode' => 200,
@@ -346,16 +346,16 @@ class action extends app
 
 	private function index()
 	{
-		$page = $this->ev->get('page');
-		$ehtype = intval($this->ev->get('ehtype'));
+		$page = M('ev')->get('page');
+		$ehtype = intval(M('ev')->get('ehtype'));
 		$page = $page > 0?$page:1;
 		$basicid = $this->data['currentbasic']['basicid'];
 		$args = array(
-		    array("AND","ehuserid = :ehuserid",'ehuserid',$this->_user['sessionuserid']),
+		    array("AND","ehuserid = :ehuserid",'ehuserid',$this->user['userid']),
             array("AND","ehbasicid = :ehbasicid",'ehbasicid',$basicid),
             array("AND","ehtype = :ehtype",'ehtype',$ehtype)
         );
-		$exams = $this->favor->getExamHistoryListByArgs($args,$page,20,false,'ehid desc');
+		$exams = M('favor','exam')->getExamHistoryListByArgs($args,$page,20,false,'ehid desc');
 		foreach($exams['data'] as $key => $p)
 		{
 			$exams['data'][$key]['errornumber'] = 0;
@@ -411,12 +411,12 @@ class action extends app
 				}
 			}
 		}
-		$avgscore = floatval($this->favor->getAvgScore(array(array("AND","ehuserid = :ehuserid",'ehuserid',$this->_user['sessionuserid']),array("AND","ehbasicid = :ehbasicid",'ehbasicid',$basicid),array("AND","ehtype = :ehtype",'ehtype',$ehtype))));
-		$this->tpl->assign('ehtype',$ehtype);
-		$this->tpl->assign('page',$page);
-		$this->tpl->assign('exams',$exams);
-		$this->tpl->assign('avgscore',$avgscore);
-		$this->tpl->display('history');
+		$avgscore = floatval(M('favor','exam')->getAvgScore(array(array("AND","ehuserid = :ehuserid",'ehuserid',$this->user['userid']),array("AND","ehbasicid = :ehbasicid",'ehbasicid',$basicid),array("AND","ehtype = :ehtype",'ehtype',$ehtype))));
+		M('tpl')->assign('ehtype',$ehtype);
+		M('tpl')->assign('page',$page);
+		M('tpl')->assign('exams',$exams);
+		M('tpl')->assign('avgscore',$avgscore);
+		M('tpl')->display('history');
 	}
 }
 

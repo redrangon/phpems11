@@ -4,19 +4,15 @@ namespace PHPEMS;
 
 class app
 {
-	public $G;
+    public $user;
+    public $session;
 
-	public function __construct()
-	{
-				
-		$this->ev = M('ev');
-		$this->tpl = M('tpl');
-		$this->session = M('session');
-		$this->user = M('user','user');
-		$this->_user = $_user = $this->session->getSessionUser();
-		if($this->_user['sessionuserid'])
-		$this->tpl->assign('_user',$this->user->getUserById($this->_user['sessionuserid']));
-        $this->tpl->assign('navs',M('nav','core')->getWebNavs());
-	}
+    public function __construct()
+    {
+        $this->session = M('session')->getSessionUser();
+        $this->user = M('user','user')->getUserById($this->session['sessionuserid']);
+        M('tpl')->assign('_user',$this->user);
+        M('tpl')->assign('navs',M('nav','core')->getWebNavs());
+    }
 }
 ?>

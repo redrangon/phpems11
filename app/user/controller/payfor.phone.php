@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,13 +19,13 @@ class action extends app
 
 	private function gomorder()
 	{
-		if($this->_user['sessiongroupid'])
+		if($this->user['sessiongroupid'])
 		{
-			$page = $this->ev->get('page');
+			$page = M('ev')->get('page');
 			$args = array();
-			$orders = $this->order->getOrderList($args,$page);
-			$this->tpl->assign('orders',$orders);
-			$this->tpl->display('payfor_gorder');
+			$orders = M('orders','bank')->getOrderList($args,$page);
+			M('tpl')->assign('orders',$orders);
+			M('tpl')->display('payfor_gorder');
 		}
 		else
 		{
@@ -39,12 +39,12 @@ class action extends app
 
 	private function morder()
 	{
-		if($this->_user['sessiongroupid'])
+		if($this->user['sessiongroupid'])
 		{
-			$ordersn = $this->ev->get('ordersn');
-			$order = $this->order->getOrderById($ordersn);
-			$this->tpl->assign('order',$order);
-			$this->tpl->display('payfor_morder');
+			$ordersn = M('ev')->get('ordersn');
+			$order = M('orders','bank')->getOrderById($ordersn);
+			M('tpl')->assign('order',$order);
+			M('tpl')->display('payfor_morder');
 		}
 		else
 		{
@@ -58,11 +58,11 @@ class action extends app
 
 	private function finish()
 	{
-		$ordersn = $this->ev->get('ordersn');
-		$order = $this->order->getOrderById($ordersn,$this->_user['sessionuserid']);
+		$ordersn = M('ev')->get('ordersn');
+		$order = M('orders','bank')->getOrderById($ordersn,$this->user['userid']);
 		if($order['orderstatus'] == 3)
 		{
-			$this->order->modifyOrder($ordersn,array('orderstatus' => 4));
+			M('orders','bank')->modifyOrder($ordersn,array('orderstatus' => 4));
 			$message = array(
 				'statusCode' => 200,
 				"message" => "订单设置成功",
@@ -83,34 +83,34 @@ class action extends app
 
 	private function wxpay()
 	{
-		$ordersn = $this->ev->get('ordersn');
-		$order = $this->order->getOrderById($ordersn,$this->_user['sessionuserid']);
-		$agent = $this->ev->isWeixin();
+		$ordersn = M('ev')->get('ordersn');
+		$order = M('orders','bank')->getOrderById($ordersn,$this->user['userid']);
+		$agent = M('ev')->isWeixin();
 		if($order['orderapp'] == 'item')
 		{
-			$modules = $this->module->getModulesByApp('item');
+			$modules = M('module')->getModulesByApp('item');
 			$mfields = array();
 			foreach($modules as $p)
 			{
-				$mfields[$p['moduleid']] = $this->module->getMoudleFields($p['moduleid'],1,false,'item');
+				$mfields[$p['moduleid']] = M('module')->getMoudleFields($p['moduleid'],1,false,'item');
 			}
-			$this->tpl->assign('mfields',$mfields);
+			M('tpl')->assign('mfields',$mfields);
 		}
 		if($order['orderstatus'] == 1 && $agent == 'wxapp')
 		{
 			$wxpay = M('wxpay');
 			$result = $wxpay->outJsPay($order);
-			$this->tpl->assign('jsApiParameters', $result);
+			M('tpl')->assign('jsApiParameters', $result);
 		}
-		$this->tpl->assign('agent',$agent);
-		$this->tpl->assign('order',$order);
-		$this->tpl->display('payfor_wxpay');
+		M('tpl')->assign('agent',$agent);
+		M('tpl')->assign('order',$order);
+		M('tpl')->display('payfor_wxpay');
 	}
 
 	private function ispayfor()
 	{
-		$ordersn = $this->ev->get('ordersn');
-		$order = $this->order->getOrderById($ordersn,$this->_user['sessionuserid']);
+		$ordersn = M('ev')->get('ordersn');
+		$order = M('orders','bank')->getOrderById($ordersn,$this->user['userid']);
 		if($order['orderstatus'] == 2)
 		{
 			$message = array(
@@ -130,11 +130,11 @@ class action extends app
 
 	private function remove()
 	{
-		$oid = $this->ev->get('ordersn');
-		$order = $this->order->getOrderById($oid,$this->_user['sessionuserid']);
+		$oid = M('ev')->get('ordersn');
+		$order = M('orders','bank')->getOrderById($oid,$this->user['userid']);
 		if($order['orderstatus'] == 1)
 		{
-			$this->order->delOrder($oid);
+			M('orders','bank')->delOrder($oid);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "订单删除成功",
@@ -152,7 +152,7 @@ class action extends app
 	
 	public function orderdetail()
 	{
-		$oid = $this->ev->get('ordersn');
+		$oid = M('ev')->get('ordersn');
 		if(!$oid)
 		{
 			$message = array(
@@ -161,8 +161,8 @@ class action extends app
 			);
 			\PHPEMS\ginkgo::R($message);
 		}
-		$order = $this->order->getOrderById($oid,$this->_user['sessionuserid']);
-		if(WXPAY && $this->ev->isWeixin() && $order['orderstatus'] == 1)
+		$order = M('orders','bank')->getOrderById($oid,$this->user['userid']);
+		if(WXPAY && M('ev')->isWeixin() && $order['orderstatus'] == 1)
 		{
 			$message = array(
 				'statusCode' => 200,
@@ -173,13 +173,13 @@ class action extends app
 		}
 		if($order['orderapp'] == 'item')
 		{
-			$modules = $this->module->getModulesByApp('item');
+			$modules = M('module')->getModulesByApp('item');
 			$mfields = array();
 			foreach($modules as $p)
 			{
-				$mfields[$p['moduleid']] = $this->module->getMoudleFields($p['moduleid'],1,false,'item');
+				$mfields[$p['moduleid']] = M('module')->getMoudleFields($p['moduleid'],1,false,'item');
 			}
-			$this->tpl->assign('mfields',$mfields);
+			M('tpl')->assign('mfields',$mfields);
 		}
 		if($order['orderstatus'] == 1)
 		{
@@ -187,29 +187,29 @@ class action extends app
 			{
 				$alipay = M('alipay');
 				$payforurl = $alipay->createWapPayLink($order,WP.'/api/alinotify.php',WP.'/api/alireturn.php');
-				$this->tpl->assign('payforurl',$payforurl);
+				M('tpl')->assign('payforurl',$payforurl);
 			}
 			if(WXPAY)
 			{
 				$wxpay = M('wxpay');
 				$result = $wxpay->outMwebUrl($order);
-				$this->tpl->assign('result',$result);
+				M('tpl')->assign('result',$result);
 			}
 		}
-		$this->tpl->assign('order',$order);
-		$this->tpl->display('payfor_detail');
+		M('tpl')->assign('order',$order);
+		M('tpl')->display('payfor_detail');
 	}
 
 	public function orders()
 	{
-		$search = $this->ev->get('search');
-		$page = $this->ev->get('page');
-		$args = array(array("AND","orderuserid = :orderuserid",'orderuserid',$this->_user['sessionuserid']));
+		$search = M('ev')->get('search');
+		$page = M('ev')->get('page');
+		$args = array(array("AND","orderuserid = :orderuserid",'orderuserid',$this->user['userid']));
 		if($search['ordersn'])
 		{
 			$args[] = array("AND","ordersn = :ordersn",'ordersn',$search['ordersn']);
 		}
-		$myorders = $this->order->getOrderList($args,$page);
+		$myorders = M('orders','bank')->getOrderList($args,$page);
 		if($myorders['number'] < 1)
 		{
 			$message = array(
@@ -218,17 +218,17 @@ class action extends app
 			);
 			\PHPEMS\ginkgo::R($message);
 		}
-		$this->tpl->assign('search',$search);
-		$this->tpl->assign('orders',$myorders);
-		$this->tpl->display('payfor_orders');
+		M('tpl')->assign('search',$search);
+		M('tpl')->assign('orders',$myorders);
+		M('tpl')->display('payfor_orders');
 	}
 
 	public function index()
 	{
-		if($this->ev->get('payforit'))
+		if(M('ev')->get('payforit'))
 		{
-			$money = intval($this->ev->get('money'));
-			$paytype = $this->ev->get('paytype');
+			$money = intval(M('ev')->get('money'));
+			$paytype = M('ev')->get('paytype');
 			if($paytype != 'alipay')$paytype = 'wxpay';
 			if($money < 1)
 			{
@@ -243,11 +243,11 @@ class action extends app
 			$args['ordertitle'] = "考试系统充值 {$args['orderprice']} 元";
 			$args['ordersn'] = date('YmdHis').rand(100,999);
 			$args['orderstatus'] = 1;
-			$args['orderuserid'] = $this->_user['sessionuserid'];
+			$args['orderuserid'] = $this->user['userid'];
 			$args['ordercreatetime'] = TIME;
-			$args['orderuserinfo'] = array('username' => $this->_user['sessionusername']);
-			$this->order->addOrder($args);
-			if($this->ev->isWeixin())
+			$args['orderuserinfo'] = array('username' => $this->user['sessionusername']);
+			M('orders','bank')->addOrder($args);
+			if(M('ev')->isWeixin())
 			{
                 $message = array(
                     'statusCode' => 200,
@@ -292,12 +292,12 @@ class action extends app
 		}
 		else
 		{
-			$page = $this->ev->get('page');
-			$args = array(array("AND","orderuserid = :orderuserid",'orderuserid',$this->_user['sessionuserid']));
-			$myorders = $this->order->getOrderList($args,$page);
-            $this->tpl->assign('iswx',$this->ev->isWeixin());
-			$this->tpl->assign('orders',$myorders);
-			$this->tpl->display('payfor');
+			$page = M('ev')->get('page');
+			$args = array(array("AND","orderuserid = :orderuserid",'orderuserid',$this->user['userid']));
+			$myorders = M('orders','bank')->getOrderList($args,$page);
+            M('tpl')->assign('iswx',M('ev')->isWeixin());
+			M('tpl')->assign('orders',$myorders);
+			M('tpl')->display('payfor');
 		}
 	}
 }

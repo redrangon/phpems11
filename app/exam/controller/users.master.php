@@ -10,32 +10,32 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
-		$search = $this->ev->get('search');
-		$page = $this->ev->get('page');
+		$search = M('ev')->get('search');
+		$page = M('ev')->get('page');
 		if($search)
 		{
-			$this->tpl->assign('search',$search);
+			M('tpl')->assign('search',$search);
 			foreach($search as $key => $arg)
 			{
 				$u .= "&search[{$key}]={$arg}";
 			}
 		}
-		$this->tpl->assign('page',$page);
-		$this->tpl->assign('u',$u);
+		M('tpl')->assign('page',$page);
+		M('tpl')->assign('u',$u);
 		$this->$action();
 		exit;
 	}
 
 	private function basics()
 	{
-		$page = $this->ev->get('page');
-		$search = $this->ev->get('search');
+		$page = M('ev')->get('page');
+		$search = M('ev')->get('search');
 		$page = $page > 1?$page:1;
-		$userid = $this->ev->get('userid');
-		$subjects = $this->basic->getSubjectList();
+		$userid = M('ev')->get('userid');
+		$subjects = M('basic','exam')->getSubjectList();
 		if(!$search)
 		$args = 1;
 		else
@@ -48,23 +48,23 @@ class action extends app
 			if($search['basicsubjectid'])$args[] = array("AND","basicsubjectid = :basicsubjectid",'basicsubjectid',$search['basicsubjectid']);
 			if($search['basicapi'])$args[] = array("AND","basicapi = :basicapi",'basicapi',$search['basicapi']);
 		}
-		$basics = $this->basic->getBasicList($args,$page,10);
-		$areas = $this->area->getAreaList();
-		$openbasics = $this->basic->getOpenBasicsByUserid($userid);
-		$this->tpl->assign('basics',$basics);
-		$this->tpl->assign('openbasics',$openbasics);
-		$this->tpl->assign('areas',$areas);
-		$this->tpl->assign('subjects',$subjects);
-		$this->tpl->assign('basics',$basics);
-		$this->tpl->assign('userid',$userid);
-		$this->tpl->display('users_basic');
+		$basics = M('basic','exam')->getBasicList($args,$page,10);
+		$areas = M('area','exam')->getAreaList();
+		$openbasics = M('basic','exam')->getOpenBasicsByUserid($userid);
+		M('tpl')->assign('basics',$basics);
+		M('tpl')->assign('openbasics',$openbasics);
+		M('tpl')->assign('areas',$areas);
+		M('tpl')->assign('subjects',$subjects);
+		M('tpl')->assign('basics',$basics);
+		M('tpl')->assign('userid',$userid);
+		M('tpl')->display('users_basic');
 	}
 
 	private function openbasics()
 	{
-		$basicid = $this->ev->get('basicid');
-		$userid = $this->ev->get('userid');
-		if($this->basic->getOpenBasicByUseridAndBasicid($userid,$basicid))
+		$basicid = M('ev')->get('basicid');
+		$userid = M('ev')->get('userid');
+		if(M('basic','exam')->getOpenBasicByUseridAndBasicid($userid,$basicid))
 		{
 			$message = array(
 				'statusCode' => 300,
@@ -73,7 +73,7 @@ class action extends app
 		}
 		else
 		{
-			$this->basic->openBasic(array('obuserid'=>$userid,'obbasicid'=>$basicid,'obendtime' => TIME + 30*24*3600));
+			M('basic','exam')->openBasic(array('obuserid'=>$userid,'obbasicid'=>$basicid,'obendtime' => TIME + 30*24*3600));
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -86,10 +86,10 @@ class action extends app
 
 	private function closebasics()
 	{
-		$basicid = $this->ev->get('basicid');
-		$userid = $this->ev->get('userid');
-		$ob = $this->basic->getOpenBasicByUseridAndBasicid($userid,$basicid);
-		$this->basic->delOpenBasic($ob['obid']);
+		$basicid = M('ev')->get('basicid');
+		$userid = M('ev')->get('userid');
+		$ob = M('basic','exam')->getOpenBasicByUseridAndBasicid($userid,$basicid);
+		M('basic','exam')->delOpenBasic($ob['obid']);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -101,13 +101,13 @@ class action extends app
 
 	private function batopen()
 	{
-		if($this->ev->get('batopen'))
+		if(M('ev')->get('batopen'))
 		{
-			$userids = $this->ev->get('userids');
-			$usernames = $this->ev->get('usernames');
-			$usergroupids = $this->ev->get('usergroupids');
-			$basics = $this->ev->get('basics');
-			$days = $this->ev->get('days');
+			$userids = M('ev')->get('userids');
+			$usernames = M('ev')->get('usernames');
+			$usergroupids = M('ev')->get('usergroupids');
+			$basics = M('ev')->get('basics');
+			$days = M('ev')->get('days');
 			if($userids && $basics && $days)
 			{
 				$userids = explode(",",$userids);
@@ -116,7 +116,7 @@ class action extends app
 				{
 					foreach($basics as $basicid)
 					{
-						$this->basic->openBasic(array('obuserid'=>$userid,'obbasicid'=>$basicid,'obendtime' => TIME + $days*24*3600));
+						M('basic','exam')->openBasic(array('obuserid'=>$userid,'obbasicid'=>$basicid,'obendtime' => TIME + $days*24*3600));
 					}
 				}
 				$message = array(
@@ -128,12 +128,12 @@ class action extends app
 			{
 				$usernames = implode(",",array_unique(explode(",",$usernames)));
 				$basics = explode(",",$basics);
-				$userids = $this->user->getUsersByArgs(array(array("AND","find_in_set(username,:username)",'username',$usernames),array("AND","user.usergroupid = user_group.groupid")),false,false,false);
+				$userids = M('user','user')->getUsersByArgs(array(array("AND","find_in_set(username,:username)",'username',$usernames),array("AND","user.usergroupid = user_group.groupid")),false,false,false);
 				foreach($userids as $user)
 				{
 					foreach($basics as $basicid)
 					{
-						$this->basic->openBasic(array('obuserid'=>$user['userid'],'obbasicid'=>$basicid,'obendtime' => TIME + $days*24*3600));
+						M('basic','exam')->openBasic(array('obuserid'=>$user['userid'],'obbasicid'=>$basicid,'obendtime' => TIME + $days*24*3600));
 					}
 				}
 				$message = array(
@@ -145,12 +145,12 @@ class action extends app
 			{
 				$usergroupids = implode(",",array_unique(explode(",",$usergroupids)));
 				$basics = explode(",",$basics);
-				$userids = $this->user->getUsersByArgs(array(array("AND","find_in_set(usergroupid,:usergroupid)",'usergroupid',$usergroupids),array("AND","user.usergroupid = user_group.groupid")),false,false,false);
+				$userids = M('user','user')->getUsersByArgs(array(array("AND","find_in_set(usergroupid,:usergroupid)",'usergroupid',$usergroupids),array("AND","user.usergroupid = user_group.groupid")),false,false,false);
 				foreach($userids as $user)
 				{
 					foreach($basics as $basicid)
 					{
-						$this->basic->openBasic(array('obuserid'=>$user['userid'],'obbasicid'=>$basicid,'obendtime' => TIME + $days*24*3600));
+						M('basic','exam')->openBasic(array('obuserid'=>$user['userid'],'obbasicid'=>$basicid,'obendtime' => TIME + $days*24*3600));
 					}
 				}
 				$message = array(
@@ -169,16 +169,16 @@ class action extends app
 		}
 		else
 		{
-			$basicid = $this->ev->get('basicid');
-			$this->tpl->assign('basicid',$basicid);
-			$this->tpl->display('user_batopen');
+			$basicid = M('ev')->get('basicid');
+			M('tpl')->assign('basicid',$basicid);
+			M('tpl')->display('user_batopen');
 		}
 	}
 
 	private function index()
 	{
-		$page = $this->ev->get('page')?$this->ev->get('page'):1;
-		$search = $this->ev->get('search');
+		$page = M('ev')->get('page')?M('ev')->get('page'):1;
+		$search = M('ev')->get('search');
 		$u = '';
 		if($search)
 		{
@@ -186,8 +186,8 @@ class action extends app
 			{
 				$u .= "&search[{$key}]={$arg}";
 			}
-            $this->tpl->assign('search',$search);
-            $this->tpl->assign('u',$u);
+            M('tpl')->assign('search',$search);
+            M('tpl')->assign('u',$u);
 		}
         $args = array();
 		if($search['userid'])
@@ -200,11 +200,11 @@ class action extends app
 			if($search['username'])
 			$args[] = array("AND","username LIKE :username",'username',"%{$search['username']}%");
 		}
-		$users = $this->user->getUserList($args,$page,10);
-		$groups = $this->user->getUserGroups();
-		$this->tpl->assign('groups',$groups);
-		$this->tpl->assign('users',$users);
-		$this->tpl->display('user');
+		$users = M('user','user')->getUserList($args,$page,10);
+		$groups = M('user','user')->getUserGroups();
+		M('tpl')->assign('groups',$groups);
+		M('tpl')->assign('users',$users);
+		M('tpl')->display('user');
 	}
 }
 

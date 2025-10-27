@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		if(!$this->_user['sessionuserid'])
+		if(!$this->user['userid'])
 		{
 			$message = array(
 				'statusCode' => 301,
@@ -20,8 +20,8 @@ class action extends app
 			);
 			\PHPEMS\ginkgo::R($message);
 		}
-		$this->tpl->assign('_user',$this->user->getUserById($this->_user['sessionuserid']));
-		$action = $this->ev->url(3);
+		M('tpl')->assign('_user',M('user','user')->getUserById($this->user['userid']));
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -30,7 +30,7 @@ class action extends app
 
 	public function index()
 	{
-		$this->tpl->display('index');
+		M('tpl')->display('index');
 	}
 }
 

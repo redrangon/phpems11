@@ -10,12 +10,6 @@ use function \PHPEMS\M;
 
 class exercise
 {
-	public $db;
-
-	public function __construct()
-	{
-		$this->db = M('pepdo');
-	}
 
 	//根据参数查询
 	public function getExerciseProcessByUser($userid,$basicid,$knowsid = null)
@@ -23,14 +17,14 @@ class exercise
 		if($knowsid)
 		{
 			$data = array(false,'exercise',array(array("AND","exeruserid = :exeruserid",'exeruserid',$userid),array("AND","exerbasicid = :exerbasicid",'exerbasicid',$basicid),array("AND","exerknowsid = :exerknowsid",'exerknowsid',$knowsid)));
-			$sql = $this->db->makeSelect($data);
-			return $this->db->fetch($sql);
+			$sql = M('pepdo')->makeSelect($data);
+			return M('pepdo')->fetch($sql);
         }
         else
 		{
             $data = array(false,'exercise',array(array("AND","exeruserid = :exeruserid",'exeruserid',$userid),array("AND","exerbasicid = :exerbasicid",'exerbasicid',$basicid)),false,false,false);
-            $sql = $this->db->makeSelect($data);
-            return $this->db->fetchAll($sql,'exerknowsid');
+            $sql = M('pepdo')->makeSelect($data);
+            return M('pepdo')->fetchAll($sql,'exerknowsid');
 		}
 	}
 
@@ -43,14 +37,14 @@ class exercise
 		if($r)
 		{
 			$data = array('exercise',$args,array(array("AND","exerid = :exerid",'exerid',$r['exerid'])));
-			$sql = $this->db->makeUpdate($data);
-			$this->db->exec($sql);
+			$sql = M('pepdo')->makeUpdate($data);
+			M('pepdo')->exec($sql);
 		}
 		else
 		{
 			$data = array('exercise',$args);
-			$sql = $this->db->makeInsert($data);
-			$this->db->exec($sql);
+			$sql = M('pepdo')->makeInsert($data);
+			M('pepdo')->exec($sql);
 		}
 		return true;
 	}

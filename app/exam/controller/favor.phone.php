@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,11 +19,11 @@ class action extends app
 
 	private function ajax()
 	{
-		switch($this->ev->url(4))
+		switch(M('ev')->url(4))
 		{
 			//添加一个收藏
 			case 'addfavor':
-			$questionid = $this->ev->get('questionid');
+			$questionid = M('ev')->get('questionid');
 			if(!is_numeric($questionid))
 			{
 				$message = array(
@@ -31,7 +31,7 @@ class action extends app
 					"message" => "即时组卷试题不能收藏！"
 				);
 			}
-			if($this->favor->getFavorByQuestionAndUserId($questionid,$this->_user['sessionuserid']))
+			if(M('favor','exam')->getFavorByQuestionAndUserId($questionid,$this->user['userid']))
 			{
 				$message = array(
 					'statusCode' => 200,
@@ -40,7 +40,7 @@ class action extends app
 			}
 			else
 			{
-				$this->favor->favorQuestion($questionid,$this->_user['sessionuserid'],$this->data['currentbasic']['basicsubjectid']);
+				M('favor','exam')->favorQuestion($questionid,$this->user['userid'],$this->data['currentbasic']['basicsubjectid']);
 				$message = array(
 					'statusCode' => 200,
 					"message" => "收藏成功！"
@@ -51,8 +51,8 @@ class action extends app
 
 			//删除一个收藏
 			case 'delfavor':
-			$favorid = $this->ev->get('favorid');
-			$this->favor->delFavorById($favorid);
+			$favorid = M('ev')->get('favorid');
+			M('favor','exam')->delFavorById($favorid);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -62,26 +62,26 @@ class action extends app
 			break;
 
 			case 'questions':
-				$page = $this->ev->get('page');
+				$page = M('ev')->get('page');
                 $page = $page > 0?$page:1;
 				$args = array(
 					array("AND","favorsubjectid = :favorsubjectid",'favorsubjectid',$this->data['currentbasic']['basicsubjectid']),
-					array("AND","favoruserid = :favoruserid",'favoruserid',$this->_user['sessionuserid'])
+					array("AND","favoruserid = :favoruserid",'favoruserid',$this->user['userid'])
 				);
-				$favors = $this->favor->getFavorListByUserid($args,$page,1);
-				$question = $this->exam->getQuestionByArgs(array(array("AND","questionid = :questionid",'questionid',$favors['data'][0]['favorquestionid'])));
+				$favors = M('favor','exam')->getFavorListByUserid($args,$page,1);
+				$question = M('exam','exam')->getQuestionByArgs(array(array("AND","questionid = :questionid",'questionid',$favors['data'][0]['favorquestionid'])));
 				if($question['questionparent'])
 				{
-					$parent = $this->exam->getQuestionRowsById($question['questionparent'],false,false);
-					$this->tpl->assign('parent',$parent);
+					$parent = M('exam','exam')->getQuestionRowsById($question['questionparent'],false,false);
+					M('tpl')->assign('parent',$parent);
 				}
-				$questypes = $this->basic->getQuestypeList();
-				$this->tpl->assign('favor',$favors['data'][0]);
-                $this->tpl->assign('number',$page);
-				$this->tpl->assign('question',$question);
-				$this->tpl->assign('questype',$questypes[$question['questiontype']]);
-				$this->tpl->assign('allnumber',$favors['number']);
-				$this->tpl->display('favor_ajaxquestion');
+				$questypes = M('basic','exam')->getQuestypeList();
+				M('tpl')->assign('favor',$favors['data'][0]);
+                M('tpl')->assign('number',$page);
+				M('tpl')->assign('question',$question);
+				M('tpl')->assign('questype',$questypes[$question['questiontype']]);
+				M('tpl')->assign('allnumber',$favors['number']);
+				M('tpl')->display('favor_ajaxquestion');
 				break;
 
 			default:
@@ -91,7 +91,7 @@ class action extends app
 
     private function index()
     {
-        $this->tpl->display('favor');
+        M('tpl')->display('favor');
     }
 }
 

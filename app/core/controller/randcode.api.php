@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -20,8 +20,8 @@ class action extends app
 	private function index()
 	{
 		header("Content-type: image/png");
-		$rand = $this->session->setRandCode();
-		echo $this->files->createRandImage($rand,100,42);
+		$rand = M('session')->setRandCode();
+		echo M('files')->createRandImage($rand,100,42);
 	}
 }
 

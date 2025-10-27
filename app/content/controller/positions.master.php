@@ -8,18 +8,22 @@
  */
 class action extends app
 {
+	public $search;
+	public $u;
+
 	public function display()
 	{
-		$action = $this->ev->url(3);
-		$search = $this->ev->get('search');
+		$action = M('ev')->url(3);
+		$this->search = M('ev')->get('search');
 		$this->u = '';
-		if($search)
+		if($this->search)
 		{
-			$this->tpl->assign('search',$search);
-			foreach($search as $key => $arg)
+			M('tpl')->assign('search',$this->search);
+			foreach($this->search as $key => $arg)
 			{
 				$this->u .= "&search[{$key}]={$arg}";
 			}
+			M('tpl')->assign('u',$this->u);
 		}
 		if(!method_exists($this,$action))
 		$action = "index";
@@ -29,10 +33,10 @@ class action extends app
 
 	private function add()
 	{
-		if($this->ev->get('addpos'))
+		if(M('ev')->get('addpos'))
 		{
-			$args = $this->ev->get('args');
-			$this->position->addPos($args);
+			$args = M('ev')->get('args');
+			M('position','content')->addPos($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -43,18 +47,18 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->display('positions_add');
+			M('tpl')->display('positions_add');
 		}
 	}
 
     private function modify()
     {
-        $posid = $this->ev->get('posid');
-        $pos = $this->position->getPosById($posid);
-    	if($this->ev->get('modifypos'))
+        $posid = M('ev')->get('posid');
+        $pos = M('position','content')->getPosById($posid);
+    	if(M('ev')->get('modifypos'))
         {
-            $args = $this->ev->get('args');
-            $this->position->modifyPos($posid,$args);
+            $args = M('ev')->get('args');
+            M('position','content')->modifyPos($posid,$args);
             $message = array(
                 'statusCode' => 200,
                 "message" => "操作成功",
@@ -65,7 +69,7 @@ class action extends app
         }
         else
         {
-            $apps = $this->apps->getAppList();
+            $apps = M('apps','core')->getAppList();
             foreach($apps as $id => $app)
             {
                 $tmp = M('api',$app['appid']);
@@ -74,15 +78,15 @@ class action extends app
                 else
                     unset($apps[$id]);
             }
-            $this->tpl->assign('pos',$pos);
-            $this->tpl->display('positions_modify');
+            M('tpl')->assign('pos',$pos);
+            M('tpl')->display('positions_modify');
         }
     }
 
     private function del()
     {
-        $posid = $this->ev->get('posid');
-        if($this->position->getPosContentNumber($posid))
+        $posid = M('ev')->get('posid');
+        if(M('position','content')->getPosContentNumber($posid))
 		{
             $message = array(
                 'statusCode' => 300,
@@ -91,7 +95,7 @@ class action extends app
 		}
 		else
 		{
-			$this->position->delPos($posid);
+			M('position','content')->delPos($posid);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -104,9 +108,9 @@ class action extends app
 
 	private function delcontent()
 	{
-		$pcid = $this->ev->get('pcid');
-		$page = $this->ev->get('page');
-		$this->position->delPosContent($pcid);
+		$pcid = M('ev')->get('pcid');
+		$page = M('ev')->get('page');
+		M('position','content')->delPosContent($pcid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -118,36 +122,36 @@ class action extends app
 
 	private function poscontent()
 	{
-        $page = $this->ev->get('page');
-	    $posid = $this->ev->get('posid');
-        $pos = $this->position->getPosById($posid);
+        $page = M('ev')->get('page');
+	    $posid = M('ev')->get('posid');
+        $pos = M('position','content')->getPosById($posid);
         $args = array();
         $args[] = array("AND","pcposid = :pcposid","pcposid",$posid);
-        $contents = $this->position->getPosContentList($args,$page,20);
-        $this->tpl->assign('contents',$contents);
-        $this->tpl->assign('pos',$pos);
-        $this->tpl->display('position_content');
+        $contents = M('position','content')->getPosContentList($args,$page,20);
+        M('tpl')->assign('contents',$contents);
+        M('tpl')->assign('pos',$pos);
+        M('tpl')->display('position_content');
 	}
 
 	private function lite()
 	{
-		if($this->ev->get('modifycontentsequence'))
+		if(M('ev')->get('modifycontentsequence'))
 		{
-			$page = $this->ev->get('page');
-			if($this->ev->get('action') == 'delete')
+			$page = M('ev')->get('page');
+			if(M('ev')->get('action') == 'delete')
 			{
-				$ids = $this->ev->get('delids');
+				$ids = M('ev')->get('delids');
 				foreach($ids as $key => $id)
 				{
-					$this->position->delPosContent($key);
+					M('position','content')->delPosContent($key);
 				}
 			}
 			else
 			{
-				$ids = $this->ev->get('ids');
+				$ids = M('ev')->get('ids');
 				foreach($ids as $key => $id)
 				{
-					$this->position->modifyPosContent($key,array('pcsequence' => $id));
+					M('position','content')->modifyPosContent($key,array('pcsequence' => $id));
 				}
 			}
 			$message = array(
@@ -170,10 +174,10 @@ class action extends app
 
 	private function index()
 	{
-		$page = $this->ev->get('page');
-		$poses = $this->position->getPosList();
-		$this->tpl->assign('poses',$poses);
-		$this->tpl->display('positions');
+		$page = M('ev')->get('page');
+		$poses = M('position','content')->getPosList();
+		M('tpl')->assign('poses',$poses);
+		M('tpl')->display('positions');
 	}
 }
 

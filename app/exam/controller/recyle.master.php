@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,9 +19,9 @@ class action extends app
 
 	private function clearquestions()
 	{
-		if($this->ev->get('clearall'))
+		if(M('ev')->get('clearall'))
 		{
-			$this->exam->clearDeletedQuestions();
+			M('exam','exam')->clearDeletedQuestions();
 		}
         $message = array(
             'statusCode' => 200,
@@ -34,9 +34,9 @@ class action extends app
 
     private function clearquestionrows()
 	{
-		if($this->ev->get('clearall'))
+		if(M('ev')->get('clearall'))
 		{
-            $this->exam->clearDeletedQuestionrows();
+            M('exam','exam')->clearDeletedQuestionrows();
 		}
         $message = array(
             'statusCode' => 200,
@@ -49,10 +49,10 @@ class action extends app
 
 	private function backknows()
 	{
-		$knowsid = $this->ev->get('knowsid');
-		$page = $this->ev->get('page');
-		$nknow = $this->section->getKnowsByArgs(array(array("AND","knowsid = :knowsid",'knowsid',$knowsid)));
-		$know = $this->section->getKnowsByArgs(array(array("AND","knowsstatus = 1",array("AND","knows = :knows",'knows',$nknow['knows']),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$nknow['knowssectionid']))));
+		$knowsid = M('ev')->get('knowsid');
+		$page = M('ev')->get('page');
+		$nknow = M('section','exam')->getKnowsByArgs(array(array("AND","knowsid = :knowsid",'knowsid',$knowsid)));
+		$know = M('section','exam')->getKnowsByArgs(array(array("AND","knowsstatus = 1",array("AND","knows = :knows",'knows',$nknow['knows']),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$nknow['knowssectionid']))));
 		if($know)
 		{
 			$message = array(
@@ -61,7 +61,7 @@ class action extends app
 			);
 			\PHPEMS\ginkgo::R($message);
 		}
-		$this->section->backKnows($knowsid);
+		M('section','exam')->backKnows($knowsid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -73,9 +73,9 @@ class action extends app
 
 	private function delknows()
 	{
-		$knowsid = $this->ev->get('knowsid');
-		$page = $this->ev->get('page');
-		$this->section->delKnows($knowsid,true);
+		$knowsid = M('ev')->get('knowsid');
+		$page = M('ev')->get('page');
+		M('section','exam')->delKnows($knowsid,true);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -87,33 +87,33 @@ class action extends app
 
 	private function knows()
 	{
-		$page = $this->ev->get('page');
+		$page = M('ev')->get('page');
 		$page = $page > 0?$page:1;
 		$args = array("knowsstatus = '0'");
-		$knows = $this->section->getKnowsList($page,10,array(array("AND","knowsstatus = 0")));
-		$this->tpl->assign('page',$page);
-		$this->tpl->assign('knows',$knows);
-		$this->tpl->display('recyle_knows');
+		$knows = M('section','exam')->getKnowsList($page,10,array(array("AND","knowsstatus = 0")));
+		M('tpl')->assign('page',$page);
+		M('tpl')->assign('knows',$knows);
+		M('tpl')->display('recyle_knows');
 	}
 
 	private function rows()
 	{
-		$page = $this->ev->get('page');
+		$page = M('ev')->get('page');
 		$page = $page > 0?$page:1;
 		$args = array(array("AND","questionrows.qrstatus = '0'"),array("AND","questionrows.qrid = quest2knows.qkquestionid"),array("AND","quest2knows.qktype = 1"));
-		$questypes = $this->basic->getQuestypeList();
-		$questions = $this->exam->getQuestionrowsList($page,20,$args);
-		$this->tpl->assign('page',$page);
-		$this->tpl->assign('questypes',$questypes);
-		$this->tpl->assign('questions',$questions);
-		$this->tpl->display('recyle_rowsquestions');
+		$questypes = M('basic','exam')->getQuestypeList();
+		$questions = M('exam','exam')->getQuestionrowsList($page,20,$args);
+		M('tpl')->assign('page',$page);
+		M('tpl')->assign('questypes',$questypes);
+		M('tpl')->assign('questions',$questions);
+		M('tpl')->display('recyle_rowsquestions');
 	}
 
 	private function finaldelquestion()
 	{
-		$page = $this->ev->get('page');
-		$questionid = $this->ev->get('questionid');
-		$this->exam->fanalDelQuestions($questionid);
+		$page = M('ev')->get('page');
+		$questionid = M('ev')->get('questionid');
+		M('exam','exam')->fanalDelQuestions($questionid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -125,10 +125,10 @@ class action extends app
 
 	private function finaldelrowsquestion()
 	{
-		$page = $this->ev->get('page');
-		$questionid = $this->ev->get('questionid');
-		$this->exam->finalDelQuestionRows($questionid);
-		$this->exam->fanalDelQuestionsByArgs(array(array("AND","questionparent = :questionparent",'questionparent',$questionid)));
+		$page = M('ev')->get('page');
+		$questionid = M('ev')->get('questionid');
+		M('exam','exam')->finalDelQuestionRows($questionid);
+		M('exam','exam')->fanalDelQuestionsByArgs(array(array("AND","questionparent = :questionparent",'questionparent',$questionid)));
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -140,15 +140,15 @@ class action extends app
 
 	private function index()
 	{
-		$page = $this->ev->get('page');
+		$page = M('ev')->get('page');
 		$page = $page > 0?$page:1;
 		$args = array(array("AND","quest2knows.qkquestionid = questions.questionid"),array("AND","questions.questionstatus = '0'"),array("AND","questions.questionparent = 0"),array("AND","quest2knows.qktype = 0" ));
-		$questypes = $this->basic->getQuestypeList();
-		$questions = $this->exam->getQuestionsList($page,20,$args);
-		$this->tpl->assign('page',$page);
-		$this->tpl->assign('questypes',$questypes);
-		$this->tpl->assign('questions',$questions);
-		$this->tpl->display('recyle_questions');
+		$questypes = M('basic','exam')->getQuestypeList();
+		$questions = M('exam','exam')->getQuestionsList($page,20,$args);
+		M('tpl')->assign('page',$page);
+		M('tpl')->assign('questypes',$questypes);
+		M('tpl')->assign('questions',$questions);
+		M('tpl')->display('recyle_questions');
 	}
 }
 

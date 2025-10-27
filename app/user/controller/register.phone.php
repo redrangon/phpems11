@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -21,7 +21,7 @@ class action extends app
     {
         $appid = 'user';
         $app = M('apps','core')->getApp($appid);
-        $this->tpl->assign('app',$app);
+        M('tpl')->assign('app',$app);
         if(!$app['appsetting']['emailverify'])
         {
             $message = array(
@@ -30,9 +30,9 @@ class action extends app
             );
             \PHPEMS\ginkgo::R($message);
         }
-        if($this->ev->get('findpassword'))
+        if(M('ev')->get('findpassword'))
         {
-            $randcode = $this->ev->get('randcode');
+            $randcode = M('ev')->get('randcode');
             if((!$randcode) || ($randcode != $_SESSION['phonerandcode']['findpassword']))
             {
                 $message = array(
@@ -45,9 +45,9 @@ class action extends app
             {
                 $_SESSION['phonerandcode']['findpassword'] = 0;
             }
-            $args = $this->ev->get('args');
+            $args = M('ev')->get('args');
             $username = $args['username'];
-            $user = $this->user->getUserByUserName($username);
+            $user = M('user','user')->getUserByUserName($username);
             if(!$user)
             {
                 $message = array(
@@ -64,7 +64,7 @@ class action extends app
                 );
                 \PHPEMS\ginkgo::R($message);
             }
-            $this->user->modifyUserPassword($user['userid'],array('password' => $args['userpassword']));
+            M('user','user')->modifyUserPassword($user['userid'],array('password' => $args['userpassword']));
             $message = array(
                 'statusCode' => 200,
                 "message" => "密码修改成功",
@@ -75,7 +75,7 @@ class action extends app
         }
         else
         {
-            $this->tpl->display('findpassword');
+            M('tpl')->display('findpassword');
         }
     }
 
@@ -83,18 +83,18 @@ class action extends app
 	{
 		$appid = 'user';
 		$app = M('apps','core')->getApp($appid);
-		$this->tpl->assign('app',$app);
+		M('tpl')->assign('app',$app);
 		$fields = array();
 		$tpfields = explode(',',$app['appsetting']['regfields']);
 		foreach($tpfields as $f)
 		{
-			$tf = $this->module->getFieldByNameAndModuleid($f);
+			$tf = M('module')->getFieldByNameAndModuleid($f);
 			if($tf && $tf['fieldappid'] == 'user')
 			{
 				$fields[$tf['fieldid']] = $tf;
 			}
 		}
-		if($this->ev->get('userregister'))
+		if(M('ev')->get('userregister'))
 		{
 			if($app['appsetting']['closeregist'])
 			{
@@ -105,8 +105,8 @@ class action extends app
 				\PHPEMS\ginkgo::R($message);
 			}
 			$fob = array('admin','管理员','站长');
-			$args = $this->ev->get('args');
-			$defaultgroup = $this->user->getDefaultGroup();
+			$args = M('ev')->get('args');
+			$defaultgroup = M('user','user')->getDefaultGroup();
 			if(!$defaultgroup['groupid'] || !trim($args['username']))
 			{
 				$message = array(
@@ -117,7 +117,7 @@ class action extends app
 			}
             if($app['appsetting']['emailverify'])
             {
-                $randcode = $this->ev->get('randcode');
+                $randcode = M('ev')->get('randcode');
                 if((!$randcode) || ($randcode != $_SESSION['phonerandcode']['reg']))
                 {
                     $message = array(
@@ -143,7 +143,7 @@ class action extends app
 					\PHPEMS\ginkgo::R($message);
 				}
 			}
-			$user = $this->user->getUserByUserName($username);
+			$user = M('user','user')->getUserByUserName($username);
 			if($user)
 			{
 				$message = array(
@@ -153,7 +153,7 @@ class action extends app
 				\PHPEMS\ginkgo::R($message);
 			}
 			$email = $args['useremail'];
-			$user = $this->user->getUserByEmail($email);
+			$user = M('user','user')->getUserByEmail($email);
 			if($user)
 			{
 				$message = array(
@@ -168,8 +168,8 @@ class action extends app
 			{
 				$fargs[$p['field']] = $args[$p['field']];
 			}
-			$id = $this->user->insertUser($fargs);
-			$this->session->setSessionUser(array('sessionuserid'=>$id,'sessionpassword'=>md5($args['userpassword']),'sessionip'=>$this->ev->getClientIp(),'sessiongroupid'=>$defaultgroup['groupid'],'sessionlogintime'=>TIME,'sessionusername'=>$username));
+			$id = M('user','user')->insertUser($fargs);
+			M('session')->setSessionUser(array('sessionuserid'=>$id,'sessionpassword'=>md5($args['userpassword']),'sessionip'=>M('ev')->getClientIp(),'sessiongroupid'=>$defaultgroup['groupid'],'sessionlogintime'=>TIME,'sessionusername'=>$username));
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -180,9 +180,9 @@ class action extends app
 		}
 		else
 		{
-			$forms = $this->html->buildHtml($fields);
-			$this->tpl->assign('forms',$forms);
-			$this->tpl->display('register');
+			$forms = M('html')->buildHtml($fields);
+			M('tpl')->assign('forms',$forms);
+			M('tpl')->display('register');
 		}
 	}
 }

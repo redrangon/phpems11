@@ -13,37 +13,45 @@
 	private $log = SQLDEBUG;
 	private $tablepre = DTH;
 	private $mostlimits = 512;
+	public $affectedRows;
 
 	public function createTable($table,$fields,$indexs = false)
 	{
 		$sql = "CREATE TABLE IF NOT EXISTS `".$this->tablepre."{$table}` (";
 		foreach($fields as $field)
 		{
-		$sql .= "\n`{$field['name']}` ";
-		if($field['type'])
-		{
-			$sql .= "{$field['type']} ";
-		}
-		if($field['length'])
-		{
-			$sql .= "( {$field['length']} ) ";
-		}
-		$sql .= "CHARACTERSET {$field['charset']} COLLATE utf8_general_ci ";
-		$sql .= "NOT NULL ";
-		if($field['auto'])
-			$sql .= 'AUTO_INCREMENT ';
-		if($field['comment'])
-			$sql .= "COMMENT '{$field['comment']}' ";
-		$sql .= ",";
+			$sql .= "\n`{$field['name']}` ";
+			if($field['type'])
+			{
+				$sql .= "{$field['type']} ";
+			}
+			if($field['length'])
+			{
+				$sql .= "( {$field['length']} ) ";
+			}
+			if($field['fieldtype'] == 'VARCHAR' || $field['fieldtype'] == 'TEXT')
+			{
+				$sql .= "CHARACTER SET {$field['charset']} COLLATE utf8_general_ci ";
+			}
+			$sql .= "NOT NULL ";
+			if($field['auto'])
+			{
+				$sql .= 'AUTO_INCREMENT ';
+			}
+			if($field['comment'])
+			{
+				$sql .= "COMMENT '{$field['comment']}' ";
+			}
+			$sql .= ",";
 		}
 		if($indexs)
 		{
-		foreach($indexs as $index)
-		{
-			$sql .= "\n";
-			$sql .= $index['type']."( `{$index['field']}` ) ";
-			$sql .= ",";
-		}
+			foreach($indexs as $index)
+			{
+				$sql .= "\n";
+				$sql .= $index['type']."( `{$index['field']}` ) ";
+				$sql .= ",";
+			}
 		}
 		$sql = trim($sql,", ");
 		$sql .= "\n)";
@@ -160,14 +168,7 @@
 					}
 					if($field['fieldtype'] == 'VARCHAR' || $field['fieldtype'] == 'TEXT')
 					{
-						if($field['fieldcharset'] == 'gbk')
-						{
-							$sql .= "CHARACTER SET {$field['fieldcharset']} COLLATE gbk_chinese_ci ";
-						}
-						else
-						{
-							$sql .= "CHARACTER SET {$field['fieldcharset']} COLLATE utf8_general_ci ";
-						}
+						$sql .= "CHARACTER SET {$field['fieldcharset']} COLLATE utf8_general_ci ";
 					}
 					$sql .= "NOT NULL ";
 					if($field['fieldindextype'])
@@ -377,7 +378,7 @@
 		{
 			$sql = 'SELECT '.$db_fields.' FROM '.$db_tables.' WHERE '.$db_query.$db_groups.$db_orders.' LIMIT '.$db_limits;
 		}
-		return array('sql' => $sql, 'v' => $v);
+		return array('sql' => $sql, 'v' => isset($v)?$v:[]);
 	}
 
 	//生成update sql
@@ -707,7 +708,7 @@
 		$this->affectedRows = 0;
 		if(!is_array($sql))return false;
 		if(!$this->linkid)$this->connect();
-		if($sql['dim'])
+		if(isset($sql['dim']) && $sql['dim'])
 		return $this->dimexec($sql);
 		else
 		$query = $this->linkid->prepare($sql['sql']);
@@ -780,9 +781,9 @@
 		$pg = M('pg');
 		$page = $page > 0?$page:1;
 		$r = array();
-		$data = array($args['select'],$args['table'],$args['query'],$args['groupby'],$args['orderby'],array(intval($page-1)*$number,$number));
+		$data = array($args['select'],$args['table'],$args['query'],isset($args['groupby'])?$args['groupby']:false,isset($args['orderby'])?$args['orderby']:false,array(intval($page-1)*$number,$number));
 		$sql = $this->makeSelect($data,true);
-		$r['data'] = $this->fetchAll($sql,$args['index'],$args['serial']);
+		$r['data'] = $this->fetchAll($sql,isset($args['index'])?$args['index']:false,isset($args['serial'])?$args['serial']:false);
 		$total = $this->query('SELECT FOUND_ROWS()')->fetchColumn();
 		$pages = $pg->outPage($pg->getPagesNumber($total,$number),$page);
 		$r['pages'] = $pages;

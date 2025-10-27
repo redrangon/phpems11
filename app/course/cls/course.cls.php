@@ -3,12 +3,6 @@ namespace PHPEMS\course;
 use function \PHPEMS\M;
 class course
 {
-	public $db;
-
-	public function __construct()
-	{
-		$this->db = M('pepdo');
-	}
 
 	public function getCourseList($args,$page = 1,$number = 20,$order = 'cssequence desc,cstime DESC,csid DESC')
 	{
@@ -18,14 +12,14 @@ class course
 			'query' => $args,
 			'orderby' => $order
 		);
-		return $this->db->listElements($page,$number,$data);
+		return M('pepdo')->listElements($page,$number,$data);
 	}
 	
 	public function getCourseNumberByCsid($csid)
 	{
 		$data = array('count(*) as number','course',array(array("AND",'coursecsid = :coursecsid','coursecsid',$csid)));
-        $sql = $this->db->makeSelect($data);
-        $r = $this->db->fetch($sql);
+        $sql = M('pepdo')->makeSelect($data);
+        $r = M('pepdo')->fetch($sql);
         return $r['number'];
 	}
 	
@@ -34,18 +28,17 @@ class course
 		$cdata = array('course' => array(),'content' => array(),'index' => array(),'lock' => array());
 		$course = $this->getCourseById($courseid);
 		$data = array('courseid','course',array(array('AND',"coursecsid = :coursecsid",'coursecsid',$course['csid'])),false,'coursesequence DESC,courseinputtime ASC,courseid ASC');
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetchAll($sql);
 		$i = 0;
 		foreach($r as $p)
 		{
 			$cdata['course'][$i] = $p['courseid'];
 			$cdata['index'][$p['courseid']] = $i;
-			$this->log = M('log','course');
 			$largs = array();
 			$largs[] = array("AND","loguserid = :loguserid","loguserid",$userid);
 			$largs[] = array("AND","logcourseid = :logcourseid","logcourseid",$p['courseid']);
-			$rs = $this->log->getLogByArgs($largs);
+			$rs = M('log','course')->getLogByArgs($largs);
 			if($rs['logstatus'])$cdata['content'][$i] = $rs['logid'];
 			$i++;
 		}
@@ -65,7 +58,7 @@ class course
 
 	public function delCourse($id)
 	{
-		return $this->db->delElement(array('table' => 'coursesubject','query' => array(array('AND',"csid = :csid",'csid',$id))));
+		return M('pepdo')->delElement(array('table' => 'coursesubject','query' => array(array('AND',"csid = :csid",'csid',$id))));
 	}
 
 	public function modifyCourse($id,$args)
@@ -75,26 +68,26 @@ class course
 			'value' => $args,
 			'query' => array(array('AND',"csid = :oldcsid",'oldcsid',$id))
 		);
-		return $this->db->updateElement($data);
+		return M('pepdo')->updateElement($data);
 	}
 
 	public function addCourse($args)
 	{
-		return $this->db->insertElement(array('table' => 'coursesubject','query' => $args));
+		return M('pepdo')->insertElement(array('table' => 'coursesubject','query' => $args));
 	}
 
 	private function _getBasicCourseById($id)
 	{
 		$data = array(false,'coursesubject',array(array('AND',"csid = :csid",'csid',$id)));
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql);
 	}
 
 	private function _modifyBasicCourseById($id,$args)
 	{
 		$data = array('coursesubject',$args,array(array('AND',"csid = :csid",'csid',$id)));
-		$sql = $this->db->makeUpdate($data);
-		return $this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		return M('pepdo')->exec($sql);
 	}
 
 	public function modifyBasciCourse($id,$args)
@@ -110,27 +103,27 @@ class course
 	public function getCourseById($id)
 	{
 		$data = array(false,'coursesubject',array(array('AND',"csid = :csid",'csid',$id)));
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql);
 	}
 
 	public function getNearCourseById($id,$catid)
 	{
 		$r = array();
 		$data = array(false,'coursesubject',array(array('AND',"csid < :csid",'csid',$id),array('AND',"cscatid = :catid",'catid',$catid)),false,"csid DESC",5);
-		$sql = $this->db->makeSelect($data);
-		$r['pre'] = $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r['pre'] = M('pepdo')->fetchAll($sql);
 		$data = array(false,'coursesubject',array(array('AND',"csid > :csid",'csid',$id),array('AND',"cscatid = :catid",'catid',$catid)),false,"csid ASC",5);
-		$sql = $this->db->makeSelect($data);
-		$r['next'] = $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r['next'] = M('pepdo')->fetchAll($sql);
 		return $r;
 	}
 
 	public function getOpenCourseByUserid($userid)
 	{
 		$data = array(false,array('opencourse','course'),array(array("AND","opencourse.ocuserid = :userid",'userid',$userid),array("AND","opencourse.occourseid = course.csid"),array("AND","opencourse.ocendtime > :ocendtime",'ocendtime',TIME)),false,"opencourse.ocendtime DESC,ocid DESC",false);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetchAll($sql,'occourseid');
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetchAll($sql,'occourseid');
 	}
 
 	public function getOpenCourseMember($args,$page = 1,$number = 20,$order = 'octime DESC,ocid DESC')
@@ -142,55 +135,55 @@ class course
 			'query' => $args,
 			'orderby' => $order
 		);
-		$r = $this->db->listElements($page,$number,$data);
+		$r = M('pepdo')->listElements($page,$number,$data);
 		return $r;
 	}
 
 	public function openCourse($args)
 	{
 		$data = array('opencourse',array(array("AND","ocuserid = :ocuserid",'ocuserid',$args['ocuserid']),array("AND","occourseid = :occourseid",'occourseid',$args['occourseid'])));
-		$sql = $this->db->makeDelete($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeDelete($data);
+		M('pepdo')->exec($sql);
 		$args['octime'] = TIME;
 		$data = array('opencourse',$args);
-		$sql = $this->db->makeInsert($data);
-		return $this->db->exec($sql);
+		$sql = M('pepdo')->makeInsert($data);
+		return M('pepdo')->exec($sql);
 	}
 
 	public function delOpenCourse($ocid)
 	{
 		$data = array('opencourse',array(array("AND","ocid = :ocid",'ocid',$ocid)));
-		$sql = $this->db->makeDelete($data);
-		return $this->db->exec($sql);
+		$sql = M('pepdo')->makeDelete($data);
+		return M('pepdo')->exec($sql);
 	}
 
 	public function delOpenPassCourse($userid)
 	{
 		$data = array('opencourse',array(array("AND","ocuserid = :ocuserid",'ocuserid',$userid),array("AND","ocendtime <= :ocendtime",'ocendtime',TIME)));
-		$sql = $this->db->makeDelete($data);
-		return $this->db->exec($sql);
+		$sql = M('pepdo')->makeDelete($data);
+		return M('pepdo')->exec($sql);
 	}
 
 	public function getOpenCourseNumber($csid)
 	{
 		$data = array("count(*) as number",'opencourse',array(array("AND","occourseid = :occourseid",'occourseid',$csid),array("AND","ocendtime >= :ocendtime",'ocendtime',TIME)));
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetch($sql);
 		return $r['number'];
 	}
 
 	public function getOpenCourseById($ocid)
 	{
 		$data = array(false,'opencourse',array(array("AND","ocid = :ocid",'ocid',$ocid)));
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql);
 	}
 
 	public function getOpenCourseByUseridAndCsid($userid,$csid)
 	{
 		$data = array(false,'opencourse',array(array("AND","ocuserid = :ocuserid",'ocuserid',$userid),array("AND","occourseid = :occourseid",'occourseid',$csid),array("AND","ocendtime > :ocendtime",'ocendtime',TIME)));
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql);
 	}
 
     public function getOpenCourseListByUserid($userid,$page = 1,$number = 20)
@@ -201,7 +194,7 @@ class course
             'query' => array(array("AND","opencourse.ocuserid = :userid",'userid',$userid),array("AND","opencourse.occourseid = coursesubject.csid"),array("AND","opencourse.ocendtime > :ocendtime",'ocendtime',TIME)),
             'orderby' => "opencourse.ocendtime DESC,ocid DESC"
         );
-        $r = $this->db->listElements($page,$number,$data);
+        $r = M('pepdo')->listElements($page,$number,$data);
         return $r;
     }
 }

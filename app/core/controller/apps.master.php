@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,19 +19,19 @@ class action extends app
 
 	private function config()
 	{
-		$appid = $this->ev->get('appid');
-		if($this->ev->get('appconfig'))
+		$appid = M('ev')->get('appid');
+		if(M('ev')->get('appconfig'))
 		{
-			$args = $this->ev->get('args');
+			$args = M('ev')->get('args');
 			unset($args['appsetting']);
-			$app = $this->apps->getApp($appid);
+			$app = M('apps','core')->getApp($appid);
 			if($app)
 			{
-				$this->apps->modifyApp($appid,$args);
+				M('apps','core')->modifyApp($appid,$args);
 			}
 			else
 			{
-				$this->apps->addApp($appid,$args);
+				M('apps','core')->addApp($appid,$args);
 			}
 			$message = array(
 				'statusCode' => 200,
@@ -39,20 +39,20 @@ class action extends app
 			    "callbackType" => 'forward',
 			    "forwardUrl" => "index.php?core-master-apps"
 			);
-			\PHPEMS\ginkgo::R($message);
+			R($message);
 		}
 		else
 		{
-			$app = $this->apps->getApp($appid);
-			$this->tpl->assign('appid',$appid);
-			$this->tpl->assign('app',$app);
-			$this->tpl->display('config');
+			$app = M('apps','core')->getApp($appid);
+			M('tpl')->assign('appid',$appid);
+			M('tpl')->assign('app',$app);
+			M('tpl')->display('config');
 		}
 	}
 
 	public function index()
 	{
-		$this->tpl->display('apps');
+		M('tpl')->display('apps');
 	}
 }
 

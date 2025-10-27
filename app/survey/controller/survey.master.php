@@ -8,20 +8,23 @@
  */
 class action extends app
 {
+	public $search;
+	public $u;
+
 	public function display()
 	{
-		$this->search = $this->ev->get('search');
+		$this->search = M('ev')->get('search');
 		$this->u = '';
 		if($this->search)
 		{
-			$this->tpl->assign('search',$this->search);
+			M('tpl')->assign('search',$this->search);
 			foreach($this->search as $key => $arg)
 			{
 				$this->u .= "&search[{$key}]={$arg}";
 			}
-			$this->tpl->assign('u',$this->u);
+			M('tpl')->assign('u',$this->u);
 		}
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -30,8 +33,8 @@ class action extends app
 
 	public function delquestion()
 	{
-		$syqnid = $this->ev->get('syqnid');
-		$this->survey->delSurveyQuestion($syqnid);
+		$syqnid = M('ev')->get('syqnid');
+		M('survey','survey')->delSurveyQuestion($syqnid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功，正在转入目标页面",
@@ -43,9 +46,9 @@ class action extends app
 
 	public function delnode()
 	{
-		$syneid = $this->ev->get('syneid');
-		$this->survey->delSurveyNode($syneid);
-		$this->survey->delSurveyQuestions(array(
+		$syneid = M('ev')->get('syneid');
+		M('survey','survey')->delSurveyNode($syneid);
+		M('survey','survey')->delSurveyQuestions(array(
 			array("AND","syqnsyneid = :syqnsyneid","syqnsyneid",$syneid)
 		));
 		$message = array(
@@ -59,8 +62,8 @@ class action extends app
 
 	public function del()
 	{
-		$svyid = $this->ev->get('svyid');
-		$this->survey->delSurvey($svyid);
+		$svyid = M('ev')->get('svyid');
+		M('survey','survey')->delSurvey($svyid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功，正在转入目标页面",
@@ -72,8 +75,8 @@ class action extends app
 
 	public function delhistory()
 	{
-		$syhyid = $this->ev->get('syhyid');
-		$this->survey->delSurveyHistory($syhyid);
+		$syhyid = M('ev')->get('syhyid');
+		M('survey','survey')->delSurveyHistory($syhyid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功，正在转入目标页面",
@@ -85,16 +88,16 @@ class action extends app
 
 	public function addquestion()
 	{
-		$syneid = $this->ev->get('syneid');
-		$surveynode = $this->survey->getSurveyNodeById($syneid);
+		$syneid = M('ev')->get('syneid');
+		$surveynode = M('survey','survey')->getSurveyNodeById($syneid);
 		$svyid = $surveynode['synesvyid'];
-		$survey = $this->survey->getSurveyById($svyid);
-		if($this->ev->get('addquestion'))
+		$survey = M('survey','survey')->getSurveyById($svyid);
+		if(M('ev')->get('addquestion'))
 		{
-			$args = $this->ev->get('args');
+			$args = M('ev')->get('args');
 			$args['syqnsvyid'] = $svyid;
 			$args['syqnsyneid'] = $syneid;
-			$this->survey->addSurveyQuestion($args);
+			M('survey','survey')->addSurveyQuestion($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功，正在转入目标页面",
@@ -105,22 +108,22 @@ class action extends app
 		}
 		else
 		{
-			$questypes = $this->survey->getQuestypeList();
-			$this->tpl->assign('questypes',$questypes);
-			$this->tpl->assign('node',$surveynode);
-			$this->tpl->assign('survey',$survey);
-			$this->tpl->display('survey_addquestion');
+			$questypes = M('survey','survey')->getQuestypeList();
+			M('tpl')->assign('questypes',$questypes);
+			M('tpl')->assign('node',$surveynode);
+			M('tpl')->assign('survey',$survey);
+			M('tpl')->display('survey_addquestion');
 		}
 	}
 
 	public function modifyquestion()
 	{
-		$syqnid = $this->ev->get('syqnid');
-		$question = $this->survey->getSurveyQuestionById($syqnid);
-		if($this->ev->get('modifyquestion'))
+		$syqnid = M('ev')->get('syqnid');
+		$question = M('survey','survey')->getSurveyQuestionById($syqnid);
+		if(M('ev')->get('modifyquestion'))
 		{
-			$args = $this->ev->get('args');
-			$this->survey->modifySurveyQuestion($syqnid,$args);
+			$args = M('ev')->get('args');
+			M('survey','survey')->modifySurveyQuestion($syqnid,$args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功，正在转入目标页面",
@@ -131,23 +134,23 @@ class action extends app
 		}
 		else
 		{
-			$questypes = $this->survey->getQuestypeList();
-			$this->tpl->assign('questypes',$questypes);
-			$this->tpl->assign('question',$question);
-			$this->tpl->display('survey_modifyquestion');
+			$questypes = M('survey','survey')->getQuestypeList();
+			M('tpl')->assign('questypes',$questypes);
+			M('tpl')->assign('question',$question);
+			M('tpl')->display('survey_modifyquestion');
 		}
 	}
 
 	public function addpaper()
 	{
-		if($this->ev->get('addpaper'))
+		if(M('ev')->get('addpaper'))
 		{
-			$args = $this->ev->get('args');
-			$args['svyuserid'] = $this->_user['sessionuserid'];
+			$args = M('ev')->get('args');
+			$args['svyuserid'] = $this->user['userid'];
 			$args['svystime'] = strtotime($args['svystime']);
 			$args['svyendtime'] = strtotime($args['svyendtime']);
 			$args['svytime'] = TIME;
-			$this->survey->addSurvey($args);
+			M('survey','survey')->addSurvey($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功，正在转入目标页面",
@@ -158,22 +161,22 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->display('survey_addpaper');
+			M('tpl')->display('survey_addpaper');
 		}
 	}
 
 	public function modifypaper()
 	{
-		$svyid = $this->ev->get('svyid');
-		$survey = $this->survey->getSurveyById($svyid);
-		if($this->ev->get('modifypaper'))
+		$svyid = M('ev')->get('svyid');
+		$survey = M('survey','survey')->getSurveyById($svyid);
+		if(M('ev')->get('modifypaper'))
 		{
-			$args = $this->ev->get('args');
-			$args['svyuserid'] = $this->_user['sessionuserid'];
+			$args = M('ev')->get('args');
+			$args['svyuserid'] = $this->user['userid'];
 			$args['svystime'] = strtotime($args['svystime']);
 			$args['svyendtime'] = strtotime($args['svyendtime']);
 			$args['svytime'] = TIME;
-			$this->survey->modifySurvey($svyid,$args);
+			M('survey','survey')->modifySurvey($svyid,$args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功，正在转入目标页面",
@@ -184,20 +187,20 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->assign('survey',$survey);
-			$this->tpl->display('survey_modifypaper');
+			M('tpl')->assign('survey',$survey);
+			M('tpl')->display('survey_modifypaper');
 		}
 	}
 
 	public function addnode()
 	{
-		$svyid = $this->ev->get('svyid');
-		$survey = $this->survey->getSurveyById($svyid);
-		if($this->ev->get('addnode'))
+		$svyid = M('ev')->get('svyid');
+		$survey = M('survey','survey')->getSurveyById($svyid);
+		if(M('ev')->get('addnode'))
 		{
-			$args = $this->ev->get('args');
+			$args = M('ev')->get('args');
 			$args['synesvyid'] = $svyid;
-			$this->survey->addSurveyNode($args);
+			M('survey','survey')->addSurveyNode($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功，正在转入目标页面",
@@ -208,19 +211,19 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->assign('survey',$survey);
-			$this->tpl->display('survey_addnode');
+			M('tpl')->assign('survey',$survey);
+			M('tpl')->display('survey_addnode');
 		}
 	}
 
 	public function modifynode()
 	{
-		$syneid = $this->ev->get('syneid');
-		$surveynode = $this->survey->getSurveyNodeById($syneid);
-		if($this->ev->get('modifynode'))
+		$syneid = M('ev')->get('syneid');
+		$surveynode = M('survey','survey')->getSurveyNodeById($syneid);
+		if(M('ev')->get('modifynode'))
 		{
-			$args = $this->ev->get('args');
-			$this->survey->modifySurveyNode($syneid,$args);
+			$args = M('ev')->get('args');
+			M('survey','survey')->modifySurveyNode($syneid,$args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功，正在转入目标页面",
@@ -231,33 +234,33 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->assign('node',$surveynode);
-			$this->tpl->display('survey_modifynode');
+			M('tpl')->assign('node',$surveynode);
+			M('tpl')->display('survey_modifynode');
 		}
 	}
 
 	public function downloadstats()
 	{
-		$svyid = $this->ev->get('svyid');
-		$survey = $this->survey->getSurveyById($svyid);
-		$nodes = $this->survey->getSurveyNodesByArgs(array(
+		$svyid = M('ev')->get('svyid');
+		$survey = M('survey','survey')->getSurveyById($svyid);
+		$nodes = M('survey','survey')->getSurveyNodesByArgs(array(
 			array("AND","synesvyid = :synesvyid","synesvyid",$svyid)
 		));
 		$questions = array();
 		foreach($nodes as $node)
 		{
-			$questions[$node['syneid']] = $this->survey->getSurveyQuestionsByArgs(array(
+			$questions[$node['syneid']] = M('survey','survey')->getSurveyQuestionsByArgs(array(
 				array("AND","syqnsyneid = :syqnsyneid","syqnsyneid",$node['syneid'])
 			));
 		}
-		$questypes = $this->survey->getQuestypeList();
+		$questypes = M('survey','survey')->getQuestypeList();
 		$args = array();
 		$args[] = array("AND","syhysvyid = :syhysvyid","syhysvyid",$svyid);
 		if($this->cuser['usercity'])
 		{
 			$args[] = array("AND","syhycity = :syhycity","syhycity",$this->cuser['usercity']);
 		}
-		$histories = $this->survey->getSurveyHistoriesByArgs($args);
+		$histories = M('survey','survey')->getSurveyHistoriesByArgs($args);
 		$number = array();
 		$qnumber = array();
 		$rate = array();
@@ -305,7 +308,7 @@ class action extends app
 					$args[] = strip_tags(html_entity_decode(stripslashes($question['syqnquestion'])));
 					$args[] = strip_tags(html_entity_decode(stripslashes($question['syqnquestionselect'])));
 					$args[] = $number[$question['syqnid']];
-					foreach($this->config->selectors as $key => $selector)
+					foreach(M('config','survey')->selectors as $key => $selector)
 					{
 						$args[] = intval(100 * $qnumber[$question['syqnid']][$selector] / $number[$question['syqnid']]);
 						if($key == $question['syqnquestionselectnumber'])
@@ -339,26 +342,26 @@ class action extends app
 
 	public function stats()
 	{
-		$svyid = $this->ev->get('svyid');
-		$survey = $this->survey->getSurveyById($svyid);
-		$nodes = $this->survey->getSurveyNodesByArgs(array(
+		$svyid = M('ev')->get('svyid');
+		$survey = M('survey','survey')->getSurveyById($svyid);
+		$nodes = M('survey','survey')->getSurveyNodesByArgs(array(
 			array("AND","synesvyid = :synesvyid","synesvyid",$svyid)
 		));
 		$questions = array();
 		foreach($nodes as $node)
 		{
-			$questions[$node['syneid']] = $this->survey->getSurveyQuestionsByArgs(array(
+			$questions[$node['syneid']] = M('survey','survey')->getSurveyQuestionsByArgs(array(
 				array("AND","syqnsyneid = :syqnsyneid","syqnsyneid",$node['syneid'])
 			));
 		}
-		$questypes = $this->survey->getQuestypeList();
+		$questypes = M('survey','survey')->getQuestypeList();
 		$args = array();
 		$args[] = array("AND","syhysvyid = :syhysvyid","syhysvyid",$svyid);
 		if($this->cuser['usercity'])
 		{
 			$args[] = array("AND","syhycity = :syhycity","syhycity",$this->cuser['usercity']);
 		}
-		$histories = $this->survey->getSurveyHistoriesByArgs($args);
+		$histories = M('survey','survey')->getSurveyHistoriesByArgs($args);
 		$number = array();
 		$qnumber = array();
 		$rate = array();
@@ -393,106 +396,106 @@ class action extends app
 				$rate[$key][$so] = intval(100*$num/$number[$key]);
 			}
 		}
-		$this->tpl->assign('rate',$rate);
-		$this->tpl->assign('number',$number);
-		$this->tpl->assign('qnumber',$qnumber);
-		$this->tpl->assign('histories',$histories);
-		$this->tpl->assign('questypes',$questypes);
-		$this->tpl->assign('nodes',$nodes);
-		$this->tpl->assign('questions',$questions);
-		$this->tpl->assign('survey',$survey);
-		$this->tpl->display('survey_stats');
+		M('tpl')->assign('rate',$rate);
+		M('tpl')->assign('number',$number);
+		M('tpl')->assign('qnumber',$qnumber);
+		M('tpl')->assign('histories',$histories);
+		M('tpl')->assign('questypes',$questypes);
+		M('tpl')->assign('nodes',$nodes);
+		M('tpl')->assign('questions',$questions);
+		M('tpl')->assign('survey',$survey);
+		M('tpl')->display('survey_stats');
 	}
 
 	public function paper()
 	{
-		$svyid = $this->ev->get('svyid');
-		$survey = $this->survey->getSurveyById($svyid);
-		$nodes = $this->survey->getSurveyNodesByArgs(array(
+		$svyid = M('ev')->get('svyid');
+		$survey = M('survey','survey')->getSurveyById($svyid);
+		$nodes = M('survey','survey')->getSurveyNodesByArgs(array(
 			array("AND","synesvyid = :synesvyid","synesvyid",$svyid)
 		));
 		$questions = array();
 		foreach($nodes as $node)
 		{
-			$questions[$node['syneid']] = $this->survey->getSurveyQuestionsByArgs(array(
+			$questions[$node['syneid']] = M('survey','survey')->getSurveyQuestionsByArgs(array(
 				array("AND","syqnsyneid = :syqnsyneid","syqnsyneid",$node['syneid'])
 			));
 		}
-		$questypes = $this->survey->getQuestypeList();
-		$this->tpl->assign('questypes',$questypes);
-		$this->tpl->assign('nodes',$nodes);
-		$this->tpl->assign('questions',$questions);
-		$this->tpl->assign('survey',$survey);
-		$this->tpl->display('survey_paper');
+		$questypes = M('survey','survey')->getQuestypeList();
+		M('tpl')->assign('questypes',$questypes);
+		M('tpl')->assign('nodes',$nodes);
+		M('tpl')->assign('questions',$questions);
+		M('tpl')->assign('survey',$survey);
+		M('tpl')->display('survey_paper');
 	}
 
 	public function viewhistory()
 	{
-		$syhyid = $this->ev->get('syhyid');
-		$history = $this->survey->getSurveyHistoryById($syhyid);
+		$syhyid = M('ev')->get('syhyid');
+		$history = M('survey','survey')->getSurveyHistoryById($syhyid);
 		$svyid = $history['syhysvyid'];
-		$survey = $this->survey->getSurveyById($svyid);
-		$nodes = $this->survey->getSurveyNodesByArgs(array(
+		$survey = M('survey','survey')->getSurveyById($svyid);
+		$nodes = M('survey','survey')->getSurveyNodesByArgs(array(
 			array("AND","synesvyid = :synesvyid","synesvyid",$svyid)
 		));
 		$questions = array();
 		foreach($nodes as $node)
 		{
-			$questions[$node['syneid']] = $this->survey->getSurveyQuestionsByArgs(array(
+			$questions[$node['syneid']] = M('survey','survey')->getSurveyQuestionsByArgs(array(
 				array("AND","syqnsyneid = :syqnsyneid","syqnsyneid",$node['syneid'])
 			));
 		}
-		$questypes = $this->survey->getQuestypeList();
-		$this->tpl->assign('questypes',$questypes);
-		$this->tpl->assign('nodes',$nodes);
-		$this->tpl->assign('questions',$questions);
-		$this->tpl->assign('answers',$history['syhyanswers']);
-		$this->tpl->assign('survey',$survey);
-		$this->tpl->display('survey_viewhistory');
+		$questypes = M('survey','survey')->getQuestypeList();
+		M('tpl')->assign('questypes',$questypes);
+		M('tpl')->assign('nodes',$nodes);
+		M('tpl')->assign('questions',$questions);
+		M('tpl')->assign('answers',$history['syhyanswers']);
+		M('tpl')->assign('survey',$survey);
+		M('tpl')->display('survey_viewhistory');
 	}
 
 	public function answers()
 	{
 		M('pg')->setUrlTarget('modal-body" class="ajax');
-		$svyid = $this->ev->get('svyid');
-		$syqnid = $this->ev->get('syqnid');
-		$survey = $this->survey->getSurveyById($svyid);
-		$page = intval($this->ev->get('page'));
+		$svyid = M('ev')->get('svyid');
+		$syqnid = M('ev')->get('syqnid');
+		$survey = M('survey','survey')->getSurveyById($svyid);
+		$page = intval(M('ev')->get('page'));
 		$args = array();
 		$args[] = array("AND","syhysvyid = :syhysvyid","syhysvyid",$svyid);
-		if($survey['svytype'])$histories = $this->survey->getSurveyHistoryAndUsersList($args,$page);
-		else $histories = $this->survey->getSurveyHistoryList($args,$page);
-		$this->tpl->assign('survey',$survey);
-		$this->tpl->assign('syqnid',$syqnid);
-		$this->tpl->assign('histories',$histories);
-		$this->tpl->display('survey_answers');
+		if($survey['svytype'])$histories = M('survey','survey')->getSurveyHistoryAndUsersList($args,$page);
+		else $histories = M('survey','survey')->getSurveyHistoryList($args,$page);
+		M('tpl')->assign('survey',$survey);
+		M('tpl')->assign('syqnid',$syqnid);
+		M('tpl')->assign('histories',$histories);
+		M('tpl')->display('survey_answers');
 	}
 
 	public function history()
 	{
-		$svyid = $this->ev->get('svyid');
-		$survey = $this->survey->getSurveyById($svyid);
-		$page = intval($this->ev->get('page'));
+		$svyid = M('ev')->get('svyid');
+		$survey = M('survey','survey')->getSurveyById($svyid);
+		$page = intval(M('ev')->get('page'));
 		$args = array();
 		$args[] = array("AND","syhysvyid = :syhysvyid","syhysvyid",$svyid);
-		if($survey['svytype'])$histories = $this->survey->getSurveyHistoryAndUsersList($args,$page);
-		else $histories = $this->survey->getSurveyHistoryList($args,$page);
-		$this->tpl->assign('survey',$survey);
-		$this->tpl->assign('histories',$histories);
-		$this->tpl->display('survey_history');
+		if($survey['svytype'])$histories = M('survey','survey')->getSurveyHistoryAndUsersList($args,$page);
+		else $histories = M('survey','survey')->getSurveyHistoryList($args,$page);
+		M('tpl')->assign('survey',$survey);
+		M('tpl')->assign('histories',$histories);
+		M('tpl')->display('survey_history');
 	}
 
 	public function index()
 	{
-		$page = intval($this->ev->get('page'));
+		$page = intval(M('ev')->get('page'));
 		$args = array();
 		if($this->search['keyword'])
 		{
 			$args[] = array("AND","svytitle LIKE :svytitle","svytitle","%{$this->search['keyword']}%");
 		}		
-		$surveies = $this->survey->getSurveyList($args,$page);
-		$this->tpl->assign('surveies',$surveies);
-		$this->tpl->display('survey');
+		$surveies = M('survey','survey')->getSurveyList($args,$page);
+		M('tpl')->assign('surveies',$surveies);
+		M('tpl')->display('survey');
 	}
 }
 

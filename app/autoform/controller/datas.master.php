@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,34 +19,33 @@ class action extends app
 
 	private function records()
 	{
-        $moduleid = $this->ev->get('moduleid');
-        $module = $this->module->getModuleById($moduleid);
-		$page = $this->ev->get('page');
-        $page = $page > 1?$page:1;
+        $moduleid = M('ev')->get('moduleid');
+        $module = M('module')->getModuleById($moduleid);
+		$page = M('ev')->get('page');
         $args = array();
 		$data = array(
 			'select' => false,
             'table' => $module['moduletable'],
             'query' => $args,
-            'orderby' => $module['moduletable'].'id desc'
+            'orderby' => $module['modulecode'].'id desc'
 		);
-        $rs = $this->db->listElements($page,PN,$data);
-        $fields = $this->module->getTableMoudleFields($moduleid,1);
-        $this->tpl->assign('fields',$fields);
-        $this->tpl->assign('module',$module);
-        $this->tpl->assign('rs',$rs);
-        $this->tpl->display('datas_records');
+        $rs = M('db')->listElements($page,PN,$data);
+        $fields = M('module')->getTableMoudleFields($moduleid,1);
+        M('tpl')->assign('fields',$fields);
+        M('tpl')->assign('module',$module);
+        M('tpl')->assign('rs',$rs);
+        M('tpl')->display('datas_records');
 	}
 
 	private function index()
 	{
-        $page = $this->ev->get('page');
+        $page = M('ev')->get('page');
         $page = $page > 1?$page:1;
         $args = array();
         $args[] = array("AND","moduleapp = 'autoform'");
-        $modules = $this->module->getModulesList($args);
-        $this->tpl->assign('modules',$modules);
-		$this->tpl->display('datas');
+        $modules = M('module')->getModulesList($args);
+        M('tpl')->assign('modules',$modules);
+		M('tpl')->display('datas');
 	}
 }
 

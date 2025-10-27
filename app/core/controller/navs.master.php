@@ -10,8 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$this->nav = M('nav','core');
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -20,80 +19,80 @@ class action extends app
 
 	public function add()
 	{
-		if($this->ev->get('addnav'))
+		if(M('ev')->get('addnav'))
 		{
-			$args = $this->ev->get('args');
-			$this->nav->addNav($args);
+			$args = M('ev')->get('args');
+			M('nav','core')->addNav($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功，正在转入目标页面",
 				"callbackType" => 'forward',
 				"forwardUrl" => "index.php?core-master-navs"
 			);
-			\PHPEMS\ginkgo::R($message);
+			R($message);
 		}
 		else
 		{
-			$this->tpl->display('nav_add');
+			M('tpl')->display('nav_add');
 		}
 	}
 
 	public function modify()
 	{
-		$navid = $this->ev->get('navid');
-		$nav = $this->nav->getNav($navid);
-		if($this->ev->get('modifynav'))
+		$navid = M('ev')->get('navid');
+		$nav = M('nav','core')->getNav($navid);
+		if(M('ev')->get('modifynav'))
 		{
-			$args = $this->ev->get('args');
-			$this->nav->modifyNav($navid,$args);
+			$args = M('ev')->get('args');
+			M('nav','core')->modifyNav($navid,$args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功，正在转入目标页面",
 				"callbackType" => 'forward',
 				"forwardUrl" => "index.php?core-master-navs"
 			);
-			\PHPEMS\ginkgo::R($message);
+			R($message);
 		}
 		else
 		{
-			$this->tpl->assign('nav',$nav);
-			$this->tpl->display('nav_modify');
+			M('tpl')->assign('nav',$nav);
+			M('tpl')->display('nav_modify');
 		}
 	}
 
 	public function lite()
 	{
-		switch ($this->ev->get('action'))
+		switch (M('ev')->get('action'))
 		{
 			case 'lite':
-				$ids = $this->ev->get('ids');
+				$ids = M('ev')->get('ids');
 				foreach($ids as $id => $p)
 				{
-					$this->nav->modifyNav($id,array('navsequence' => $p));
+					M('nav','core')->modifyNav($id,array('navsequence' => $p));
 				}
 				break;
 
 			case 'open':
-				$delids = $this->ev->get('delids');
+				$delids = M('ev')->get('delids');
 				foreach($delids as $id => $p)
 				{
-					$this->nav->modifyNav($id,array('navstatus' => 1));
+					M('nav','core')->modifyNav($id,array('navstatus' => 1));
 				}
 				break;
 
 			case 'close':
-				$delids = $this->ev->get('delids');
+				$delids = M('ev')->get('delids');
 				foreach($delids as $id => $p)
 				{
-					$this->nav->modifyNav($id,array('navstatus' => 0));
+					M('nav','core')->modifyNav($id,array('navstatus' => 0));
 				}
 				break;
 
 			case 'delete':
-				$delids = $this->ev->get('delids');
+				$delids = M('ev')->get('delids');
 				foreach($delids as $id => $p)
 				{
-					$this->nav->delNav($id);
+					M('nav','core')->delNav($id);
 				}
 				break;
 
@@ -106,17 +105,17 @@ class action extends app
 			"callbackType" => 'forward',
 			"forwardUrl" => "reload"
 		);
-		\PHPEMS\ginkgo::R($message);
+		R($message);
 	}
 
 	public function index()
 	{
-		$page = $this->ev->get('page');
+		$page = M('ev')->get('page');
 		$page = $page?$page:1;
 		$args = array();
-		$navs = $this->nav->getNavList($args,$page);
-		$this->tpl->assign('navs',$navs);
-		$this->tpl->display('navs');
+		$navs = M('nav','core')->getNavList($args,$page);
+		M('tpl')->assign('navs',$navs);
+		M('tpl')->display('navs');
 	}
 }
 

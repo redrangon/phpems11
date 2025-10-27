@@ -9,7 +9,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -18,11 +18,11 @@ class action extends app
 
 	private function index()
 	{
-		$ordersn = $this->ev->get('ordersn');
-		$this->order = M('orders','bank');
-		$order = $this->order->getOrderById($ordersn);
-		$this->tpl->assign('order',$order);
-		$this->tpl->display('payfor_status');
+		$ordersn = M('ev')->get('ordersn');
+		M('orders','bank') = M('orders','bank');
+		$order = M('orders','bank')->getOrderById($ordersn);
+		M('tpl')->assign('order',$order);
+		M('tpl')->display('payfor_status');
 	}
 }
 

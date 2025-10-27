@@ -10,26 +10,26 @@ class action extends app
 {
     public function display()
     {
-        $action = $this->ev->url(3);
+        $action = M('ev')->url(3);
         if(!method_exists($this,$action))
-            $action = "index";
+        $action = "index";
         $this->$action();
         exit;
     }
 
     private function fields()
     {
-        $moduleid = $this->ev->get('moduleid');
-        $page = $this->ev->post('page');
-        if($this->ev->get('modifyfieldsequence'))
+        $moduleid = M('ev')->get('moduleid');
+        $page = M('ev')->post('page');
+        if(M('ev')->get('modifyfieldsequence'))
         {
-            $ids = $this->ev->post('ids');
+            $ids = M('ev')->post('ids');
             if($ids)
             {
                 foreach($ids as $key => $value)
                 {
                     $args = array('fieldsequence'=>$value);
-                    $this->module->modifyFieldHtmlType($key,$args);
+                    M('module')->modifyFieldHtmlType($key,$args);
                 }
             }
             $message = array(
@@ -42,29 +42,29 @@ class action extends app
         }
         else
         {
-            $module = $this->module->getModuleById($moduleid);
-            $fields = $this->module->getMoudleFields($moduleid,1,true);
-            $this->tpl->assign('moduleid',$moduleid);
-            $this->tpl->assign('module',$module);
-            $this->tpl->assign('fields',$fields);
-            $this->tpl->display('fields');
+            $module = M('module')->getModuleById($moduleid);
+            $fields = M('module')->getMoudleFields($moduleid,1,true);
+            M('tpl')->assign('moduleid',$moduleid);
+            M('tpl')->assign('module',$module);
+            M('tpl')->assign('fields',$fields);
+            M('tpl')->display('fields');
         }
     }
 
     private function addfield()
     {
-        $moduleid = $this->ev->get('moduleid');
-        $fieldpublic = $this->ev->get('fieldpublic');
-        $page = $this->ev->post('page');
-        if($this->ev->get('insertfield'))
+        $moduleid = M('ev')->get('moduleid');
+        $fieldpublic = M('ev')->get('fieldpublic');
+        $page = M('ev')->post('page');
+        if(M('ev')->get('insertfield'))
         {
-            $args = $this->ev->post('args');
+            $args = M('ev')->post('args');
             $moduleid = $args['fieldmoduleid'];
-            $module = $this->module->getModuleById($moduleid);
+            $module = M('module')->getModuleById($moduleid);
             if(!$args['fieldpublic'])
                 $args['field'] = $module['modulecode'].'_'.$args['field'];
             $args['fieldforbidactors'] = ','.implode(',',$args['fieldforbidactors']).',';
-            $id = $this->module->insertModuleField($args);
+            $id = M('module')->insertModuleField($args);
             if($id)
             {
                 $message = array(
@@ -85,36 +85,36 @@ class action extends app
         }
         else
         {
-            $module = $this->module->getModuleById($moduleid);
-            $this->tpl->assign('moduleid',$moduleid);
-            $this->tpl->assign('fieldpublic',$fieldpublic);
-            $this->tpl->assign('module',$module);
-            $this->tpl->display('addfield');
+            $module = M('module')->getModuleById($moduleid);
+            M('tpl')->assign('moduleid',$moduleid);
+            M('tpl')->assign('fieldpublic',$fieldpublic);
+            M('tpl')->assign('module',$module);
+            M('tpl')->display('addfield');
         }
     }
 
     private function preview()
     {
-        $moduleid = $this->ev->get('moduleid');
-        $module = $this->module->getModuleById($moduleid);
-        $fields = $this->module->getMoudleFields($moduleid,1);
-        $forms = $this->html->buildHtml($fields);
-        $this->tpl->assign('moduleid',$moduleid);
-        $this->tpl->assign('module',$module);
-        $this->tpl->assign('fields',$fields);
-        $this->tpl->assign('forms',$forms);
-        $this->tpl->display('preview');
+        $moduleid = M('ev')->get('moduleid');
+        $module = M('module')->getModuleById($moduleid);
+        $fields = M('module')->getMoudleFields($moduleid,1);
+        $forms = M('html')->buildHtml($fields);
+        M('tpl')->assign('moduleid',$moduleid);
+        M('tpl')->assign('module',$module);
+        M('tpl')->assign('fields',$fields);
+        M('tpl')->assign('forms',$forms);
+        M('tpl')->display('preview');
     }
 
     private function modifyfield()
     {
-        if($this->ev->get('modifyfieldhtml'))
+        if(M('ev')->get('modifyfieldhtml'))
         {
-            $args = $this->ev->post('args');
+            $args = M('ev')->post('args');
             $args['fieldforbidactors'] = ','.implode(',',$args['fieldforbidactors']).',';
-            $fieldid = $this->ev->post('fieldid');
-            $field = $this->module->getFieldById($fieldid);
-            $this->module->modifyFieldHtmlType($fieldid,$args);
+            $fieldid = M('ev')->post('fieldid');
+            $field = M('module')->getFieldById($fieldid);
+            M('module')->modifyFieldHtmlType($fieldid,$args);
             $message = array(
                 'statusCode' => 200,
                 "message" => "操作成功",
@@ -123,12 +123,12 @@ class action extends app
             );
             \PHPEMS\ginkgo::R($message);
         }
-		elseif($this->ev->get('modifyfielddata'))
+		elseif(M('ev')->get('modifyfielddata'))
         {
-            $args = $this->ev->post('args');
-            $fieldid = $this->ev->post('fieldid');
-            $field = $this->module->getFieldById($fieldid);
-            $this->module->modifyFieldDataType($fieldid,$args);
+            $args = M('ev')->post('args');
+            $fieldid = M('ev')->post('fieldid');
+            $field = M('module')->getFieldById($fieldid);
+            M('module')->modifyFieldDataType($fieldid,$args);
             $message = array(
                 'statusCode' => 200,
                 "message" => "操作成功",
@@ -141,21 +141,21 @@ class action extends app
         }
         else
         {
-            $fieldid = $this->ev->get('fieldid');
-            $field = $this->module->getFieldById($fieldid);
-            $module = $this->module->getModuleById($field['fieldmoduleid']);
-            $this->tpl->assign('fieldid',$fieldid);
-            $this->tpl->assign('module',$module);
-            $this->tpl->assign('field',$field);
-            $this->tpl->display('modifyfield');
+            $fieldid = M('ev')->get('fieldid');
+            $field = M('module')->getFieldById($fieldid);
+            $module = M('module')->getModuleById($field['fieldmoduleid']);
+            M('tpl')->assign('fieldid',$fieldid);
+            M('tpl')->assign('module',$module);
+            M('tpl')->assign('field',$field);
+            M('tpl')->display('modifyfield');
         }
     }
 
     private function delfield()
     {
-        $fieldid = $this->ev->get('fieldid');
-        $moduleid = $this->ev->get('moduleid');
-        $r = $this->module->delField($fieldid);
+        $fieldid = M('ev')->get('fieldid');
+        $moduleid = M('ev')->get('moduleid');
+        $r = M('module')->delField($fieldid);
         $message = array(
             'statusCode' => 200,
             "message" => "操作成功",
@@ -167,12 +167,12 @@ class action extends app
 
     private function modify()
     {
-        $page = $this->ev->get('page');
-        if($this->ev->get('modifymodule'))
+        $page = M('ev')->get('page');
+        if(M('ev')->get('modifymodule'))
         {
-            $args = $this->ev->get('args');
-            $moduleid = $this->ev->get('moduleid');
-            $this->module->modifyModule($moduleid,$args);
+            $args = M('ev')->get('args');
+            $moduleid = M('ev')->get('moduleid');
+            M('module')->modifyModule($moduleid,$args);
             $message = array(
                 'statusCode' => 200,
                 "message" => "操作成功",
@@ -183,20 +183,20 @@ class action extends app
         }
         else
         {
-            $moduleid = $this->ev->get('moduleid');
-            $module = $this->module->getModuleById($moduleid);
-            $this->tpl->assign('module',$module);
-            $this->tpl->display('modifymodule');
+            $moduleid = M('ev')->get('moduleid');
+            $module = M('module')->getModuleById($moduleid);
+            M('tpl')->assign('module',$module);
+            M('tpl')->display('modifymodule');
         }
     }
 
     private function forbiddenfield()
     {
-        $fieldid = $this->ev->get('fieldid');
-        $moduleid = $this->ev->get('moduleid');
-        $field = $this->module->getFieldById($fieldid);
+        $fieldid = M('ev')->get('fieldid');
+        $moduleid = M('ev')->get('moduleid');
+        $field = M('module')->getFieldById($fieldid);
         if(!$moduleid)$moduleid = $field['fieldmoduleid'];
-        $module = $this->module->getModuleById($moduleid);
+        $module = M('module')->getModuleById($moduleid);
         if($module['modulelockfields'][$field['field']])
         {
             unset($module['modulelockfields'][$field['field']]);
@@ -205,7 +205,7 @@ class action extends app
         {
             $module['modulelockfields'][$field['field']] = 1;
         }
-        $this->module->modifyModule($moduleid,array('modulelockfields' => $module['modulelockfields']));
+        M('module')->modifyModule($moduleid,array('modulelockfields' => $module['modulelockfields']));
         $message = array(
             'statusCode' => 200,
             "message" => "操作成功",
@@ -217,12 +217,12 @@ class action extends app
 
     private function add()
     {
-        $page = intval($this->ev->get('page'));
-        if($this->ev->post('insertmodule'))
+        $page = intval(M('ev')->get('page'));
+        if(M('ev')->post('insertmodule'))
         {
-            $args = $this->ev->post('args');
+            $args = M('ev')->post('args');
             $errmsg = false;
-            if($this->module->searchModules(array(array('AND',"modulecode = :modulecode",'modulecode',$args['modulecode']))))
+            if(M('module')->searchModules(array(array('AND',"modulecode = :modulecode",'modulecode',$args['modulecode']))))
             {
                 $message = array(
                     'statusCode' => 300,
@@ -230,7 +230,7 @@ class action extends app
                 );
                 \PHPEMS\ginkgo::R($message);
             }
-            $id = $this->module->insertModule($args);
+            $id = M('module')->insertModule($args);
             if(!$id)$errmsg = '模型添加出错';
             if(!$errmsg)
             {
@@ -252,13 +252,13 @@ class action extends app
             \PHPEMS\ginkgo::R($message);
         }
         else
-            $this->tpl->display('addmodule');
+            M('tpl')->display('addmodule');
     }
 
     private function del()
     {
-        $moduleid = $this->ev->get('moduleid');
-        $fileds = $this->module->getPrivateMoudleFields($moduleid);
+        $moduleid = M('ev')->get('moduleid');
+        $fileds = M('module')->getPrivateMoudleFields($moduleid);
         if($fileds)
             $message = array(
                 'statusCode' => 300,
@@ -266,7 +266,7 @@ class action extends app
             );
         else
         {
-            $this->module->delModule($moduleid);
+            M('module')->delModule($moduleid);
             $message = array(
                 'statusCode' => 200,
                 "message" => "操作成功",
@@ -279,7 +279,9 @@ class action extends app
 
     private function index()
     {
-        $this->tpl->display('module');
+        $modules = M('module')->getModulesByApp('content');
+        M('tpl')->assign('modules',$modules);
+        M('tpl')->display('module');
     }
 }
 

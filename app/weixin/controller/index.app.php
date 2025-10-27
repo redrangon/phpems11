@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-        if($this->_user['sessionuserid'])
+        if($this->user['userid'])
 		{
             $message = array(
                 'statusCode' => 200,
@@ -19,8 +19,7 @@ class action extends app
             );
             \PHPEMS\ginkgo::R($message);
 		}
-		$this->login = M('login','weixin');
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -29,15 +28,15 @@ class action extends app
 
 	private function autologin()
 	{
-        $sessionid = $this->session->getSessionid();
-        $info = $this->login->getLogin($sessionid);
+        $sessionid = M('session')->getSessionid();
+        $info = M('login','weixin')->getLogin($sessionid);
 		$user = $info['wxinfo'];
 		if($user['userid'])
 		{
 			$app = M('apps','core')->getApp('user');
-			if($app['appsetting']['loginmodel'] == 1)$this->session->offOnlineUser($user['userid']);
-			$this->session->setSessionUser(array('sessionuserid'=>$user['userid'],'sessionpassword'=>$user['userpassword'],'sessionip'=>$this->ev->getClientIp(),'sessiongroupid'=>$user['usergroupid'],'sessionlogintime'=>TIME,'sessionusername'=>$user['username']));
-            $this->login->delLogin($sessionid);
+			if($app['appsetting']['loginmodel'] == 1)M('session')->offOnlineUser($user['userid']);
+			M('session')->setSessionUser(array('sessionuserid'=>$user['userid'],'sessionpassword'=>$user['userpassword'],'sessionip'=>M('ev')->getClientIp(),'sessiongroupid'=>$user['usergroupid'],'sessionlogintime'=>TIME,'sessionusername'=>$user['username']));
+            M('login','weixin')->delLogin($sessionid);
             $message = array(
                 'statusCode' => 200,
                 "message" => "操作成功",
@@ -54,10 +53,10 @@ class action extends app
 
 	private function login()
 	{
-		$sessionid = $this->session->getSessionid();
+		$sessionid = M('session')->getSessionid();
 		$img = M('peqr')->pngString(WP.'index.php?weixin-phone-index-pclogin&sessionid='.$sessionid);
-        $this->tpl->assign('img',$img);
-        $this->tpl->display('login');
+        M('tpl')->assign('img',$img);
+        M('tpl')->display('login');
 	}
 
 	private function index()

@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,12 +19,12 @@ class action extends app
 
 	public function index()
 	{
-		$fn = $this->ev->get('CKEditorFuncNum');
-		$upfile = $this->ev->getFile('upload');
+		$fn = M('ev')->get('CKEditorFuncNum');
+		$upfile = M('ev')->getFile('upload');
 		$path = 'files/attach/files/content/'.date('Ymd').'/';
 		$args = array();
-		$args['attext'] = $this->files->getFileExtName($upfile['name']);
-		if(!in_array(strtolower($args['attext']),$this->allowexts) || in_array(strtolower($args['attext']),$this->forbidden))
+		$args['attext'] = M('files')->getFileExtName($upfile['name']);
+		if(!in_array(strtolower($args['attext']),$this->allowexts) || in_array(strtolower($args['attext']),M('config','document')->forbidden))
 		{
 			$message = '上传失败，附件类型不符!';
 			$back = array(
@@ -36,7 +36,9 @@ class action extends app
 			exit(json_encode($back));
 		}
 		if($upfile)
-		$fileurl = $this->files->uploadFile($upfile,$path,$args['attext'],NULL);
+		{
+			$fileurl = M('files')->uploadFile($upfile,$path,$args['attext'],NULL);
+		}
 		if($fileurl)
 		{
 			$osspath = false;
@@ -49,9 +51,9 @@ class action extends app
 			$args['attpath'] = $fileurl;
 			$args['atttitle'] = $upfile['name'];
 			$args['attsize'] = $upfile['size'];
-			$args['attuserid'] = $this->_user['sessionuserid'];
+			$args['attuserid'] = $this->user['userid'];
 			$args['attcntype'] = $upfile['type'];
-			$this->attach->addAttach($args);
+			M('attach','document')->addAttach($args);
 			$back = array(
 				'fileName' => $upfile['name'],
 				'url' => $fileurl,

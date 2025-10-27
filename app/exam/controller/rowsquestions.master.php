@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,9 +19,9 @@ class action extends app
 
 	private function delquestion()
 	{
-		$page = $this->ev->get('page');
-		$questionid = $this->ev->get('questionid');
-		$question = $this->exam->getQuestionRowsByArgs(array(array("AND","qrid = :qrid",'qrid',$questionid)));
+		$page = M('ev')->get('page');
+		$questionid = M('ev')->get('questionid');
+		$question = M('exam','exam')->getQuestionRowsByArgs(array(array("AND","qrid = :qrid",'qrid',$questionid)));
 		if($question['data'])
 		{
 			$message = array(
@@ -30,7 +30,7 @@ class action extends app
 			);
 			\PHPEMS\ginkgo::R($message);
 		}
-		$this->exam->delQuestionRows($questionid);
+		M('exam','exam')->delQuestionRows($questionid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -42,10 +42,10 @@ class action extends app
 
 	private function batdel()
 	{
-		$page = $this->ev->get('page');
-		$delids = $this->ev->get('delids');
+		$page = M('ev')->get('page');
+		$delids = M('ev')->get('delids');
 		foreach($delids as $questionid => $p)
-		$this->exam->delQuestionRows($questionid);
+		M('exam','exam')->delQuestionRows($questionid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -57,11 +57,11 @@ class action extends app
 
 	private function delchildquestion()
 	{
-		$page = $this->ev->get('page');
-		$questionid = $this->ev->get('questionid');
-		$questionparent = $this->ev->get('questionparent');
-		$this->exam->delQuestions($questionid);
-		$this->exam->resetRowsQuestionNumber($questionparent);
+		$page = M('ev')->get('page');
+		$questionid = M('ev')->get('questionid');
+		$questionparent = M('ev')->get('questionparent');
+		M('exam','exam')->delQuestions($questionid);
+		M('exam','exam')->resetRowsQuestionNumber($questionparent);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -73,9 +73,9 @@ class action extends app
 
 	private function backquestion()
 	{
-		$page = $this->ev->get('page');
-		$questionid = $this->ev->get('questionid');
-		$questions = $this->exam->backQuestionRows($questionid);
+		$page = M('ev')->get('page');
+		$questionid = M('ev')->get('questionid');
+		$questions = M('exam','exam')->backQuestionRows($questionid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -87,12 +87,12 @@ class action extends app
 
 	private function modifyquestion()
 	{
-		if($this->ev->get('modifyquestion'))
+		if(M('ev')->get('modifyquestion'))
 		{
-			$page = $this->ev->get('page');
-			$args = $this->ev->get('args');
-			$questionid = $this->ev->get('questionid');
-			$this->exam->modifyQuestionRows($questionid,$args);
+			$page = M('ev')->get('page');
+			$args = M('ev')->get('args');
+			$questionid = M('ev')->get('questionid');
+			M('exam','exam')->modifyQuestionRows($questionid,$args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -103,38 +103,38 @@ class action extends app
 		}
 		else
 		{
-			$page = $this->ev->get('page');
-			$questionid = $this->ev->get('questionid');
-			$question = $this->exam->getQuestionRowsByArgs(array(array("AND","qrid = :qrid",'qrid',$questionid)));
-			$subjects = $this->basic->getSubjectList();
-			$questypes = $this->basic->getQuestypeList();
+			$page = M('ev')->get('page');
+			$questionid = M('ev')->get('questionid');
+			$question = M('exam','exam')->getQuestionRowsByArgs(array(array("AND","qrid = :qrid",'qrid',$questionid)));
+			$subjects = M('basic','exam')->getSubjectList();
+			$questypes = M('basic','exam')->getQuestypeList();
 			foreach($question['qrknowsid'] as $key => $p)
 			{
-				$knows = $this->section->getKnowsByArgs(array(array("AND","knowsid = :knowsid",'knowsid',$p['knowsid'])));
+				$knows = M('section','exam')->getKnowsByArgs(array(array("AND","knowsid = :knowsid",'knowsid',$p['knowsid'])));
 				$question['qrknowsid'][$key]['knows'] = $knows['knows'];
 			}
-			$this->tpl->assign('questypes',$questypes);
-			$this->tpl->assign('subjects',$subjects);
-			$this->tpl->assign('page',$page);
-			$this->tpl->assign('question',$question);
-			$this->tpl->display('questionrows_modify');
+			M('tpl')->assign('questypes',$questypes);
+			M('tpl')->assign('subjects',$subjects);
+			M('tpl')->assign('page',$page);
+			M('tpl')->assign('question',$question);
+			M('tpl')->display('questionrows_modify');
 		}
 	}
 
 	private function modifychildquestion()
 	{
-		if($this->ev->get('modifyquestion'))
+		if(M('ev')->get('modifyquestion'))
 		{
-			$page = $this->ev->get('page');
-			$args = $this->ev->get('args');
-			$questionid = $this->ev->get('questionid');
-			$targs = $this->ev->get('targs');
-			$questype = $this->basic->getQuestypeById($args['questiontype']);
+			$page = M('ev')->get('page');
+			$args = M('ev')->get('args');
+			$questionid = M('ev')->get('questionid');
+			$targs = M('ev')->get('targs');
+			$questype = M('basic','exam')->getQuestypeById($args['questiontype']);
 			if($questype['questsort'])$choice = 0;
 			else $choice = $questype['questchoice'];
 			$args['questionanswer'] = $targs['questionanswer'.$choice];
 			if(is_array($args['questionanswer']))$args['questionanswer'] = implode('',$args['questionanswer']);
-			$this->exam->modifyQuestions($questionid,$args);
+			M('exam','exam')->modifyQuestions($questionid,$args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -145,71 +145,71 @@ class action extends app
 		}
 		else
 		{
-			$page = $this->ev->get('page');
-			$questionparent = $this->ev->get('questionparent');
-			$knowsid = $this->ev->get('knowsid');
-			$questionid = $this->ev->get('questionid');
-			$questypes = $this->basic->getQuestypeList();
-			$question = $this->exam->getQuestionByArgs(array(array("AND","questionid = :questionid",'questionid',$questionid)));
-			$subjects = $this->basic->getSubjectList();
-			$this->tpl->assign('subjects',$subjects);
-			$this->tpl->assign('questionparent',$questionparent);
-			$this->tpl->assign('questypes',$questypes);
-			$this->tpl->assign('page',$page);
-			$this->tpl->assign('knowsid',$knowsid);
-			$this->tpl->assign('question',$question);
-			$this->tpl->display('questionchildrows_modify');
+			$page = M('ev')->get('page');
+			$questionparent = M('ev')->get('questionparent');
+			$knowsid = M('ev')->get('knowsid');
+			$questionid = M('ev')->get('questionid');
+			$questypes = M('basic','exam')->getQuestypeList();
+			$question = M('exam','exam')->getQuestionByArgs(array(array("AND","questionid = :questionid",'questionid',$questionid)));
+			$subjects = M('basic','exam')->getSubjectList();
+			M('tpl')->assign('subjects',$subjects);
+			M('tpl')->assign('questionparent',$questionparent);
+			M('tpl')->assign('questypes',$questypes);
+			M('tpl')->assign('page',$page);
+			M('tpl')->assign('knowsid',$knowsid);
+			M('tpl')->assign('question',$question);
+			M('tpl')->display('questionchildrows_modify');
 		}
 	}
 
 	private function detail()
 	{
-		$questionid = $this->ev->get('questionid');
-		$question = $this->exam->getQuestionRowsByArgs(array(array("AND","qrid = :qrid",'qrid',$questionid)));
+		$questionid = M('ev')->get('questionid');
+		$question = M('exam','exam')->getQuestionRowsByArgs(array(array("AND","qrid = :qrid",'qrid',$questionid)));
 		$sections = array();
 		foreach($question['qrknowsid'] as $key => $p)
 		{
-			$knows = $this->section->getKnowsByArgs(array(array("AND","knowsid = :knowsid",'knowsid',$p['knowsid'])));
+			$knows = M('section','exam')->getKnowsByArgs(array(array("AND","knowsid = :knowsid",'knowsid',$p['knowsid'])));
 			$question['qrknowsid'][$key]['knows'] = $knows['knows'];
-			$sections[] = $this->section->getSectionByArgs(array(array("AND","sectionid = :sectionid",'sectionid',$knows['knowssectionid'])));
+			$sections[] = M('section','exam')->getSectionByArgs(array(array("AND","sectionid = :sectionid",'sectionid',$knows['knowssectionid'])));
 		}
-		$subject = $this->basic->getSubjectById($sections[0]['sectionsubjectid']);
-		$this->tpl->assign("subject",$subject);
-		$this->tpl->assign("sections",$sections);
-		$this->tpl->assign("question",$question);
-		$this->tpl->display('questionrows_detail');
+		$subject = M('basic','exam')->getSubjectById($sections[0]['sectionsubjectid']);
+		M('tpl')->assign("subject",$subject);
+		M('tpl')->assign("sections",$sections);
+		M('tpl')->assign("question",$question);
+		M('tpl')->display('questionrows_detail');
 	}
 
 	private function rowsdetail()
 	{
-		$questionid = $this->ev->get('questionid');
-		$question = $this->exam->getQuestionRowsByArgs(array(array("AND","qrid = :qrid",'qrid',$questionid)));
-		$questypes = $this->basic->getQuestypeList();
-		$this->tpl->assign('questypes',$questypes);
-		$this->tpl->assign("question",$question);
-		$this->tpl->assign("questionparent",$questionid);
-		$this->tpl->display('questionrows_list');
+		$questionid = M('ev')->get('questionid');
+		$question = M('exam','exam')->getQuestionRowsByArgs(array(array("AND","qrid = :qrid",'qrid',$questionid)));
+		$questypes = M('basic','exam')->getQuestypeList();
+		M('tpl')->assign('questypes',$questypes);
+		M('tpl')->assign("question",$question);
+		M('tpl')->assign("questionparent",$questionid);
+		M('tpl')->display('questionrows_list');
 	}
 
 	private function addchildquestion()
 	{
-		if($this->ev->get('insertquestion'))
+		if(M('ev')->get('insertquestion'))
 		{
-			$questionparent = $this->ev->get('questionparent');
-			$args = $this->ev->get('args');
-			$targs = $this->ev->get('targs');
+			$questionparent = M('ev')->get('questionparent');
+			$args = M('ev')->get('args');
+			$targs = M('ev')->get('targs');
 			if(!$questionparent)$questionparent = $args['questionparent'];
-			$questype = $this->basic->getQuestypeById($args['questiontype']);
-			$args['questionuserid'] = $this->_user['sessionuserid'];
+			$questype = M('basic','exam')->getQuestypeById($args['questiontype']);
+			$args['questionuserid'] = $this->user['userid'];
 			if($questype['questsort'])$choice = 0;
 			else $choice = $questype['questchoice'];
 			$args['questionanswer'] = $targs['questionanswer'.$choice];
 			if(is_array($args['questionanswer']))$args['questionanswer'] = implode('',$args['questionanswer']);
-			$page = $this->ev->get('page');
+			$page = M('ev')->get('page');
 			$args['questioncreatetime'] = TIME;
-			$args['questionusername'] = $this->_user['sessionusername'];
-			$this->exam->addQuestions($args);
-			$this->exam->resetRowsQuestionNumber($questionparent);
+			$args['questionusername'] = $this->user['sessionusername'];
+			M('exam','exam')->addQuestions($args);
+			M('exam','exam')->resetRowsQuestionNumber($questionparent);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -220,25 +220,25 @@ class action extends app
 		}
 		else
 		{
-			$questionid = $this->ev->get('questionid');
-			$question = $this->exam->getQuestionRowsByArgs(array(array("AND","qrid = :qrid",'qrid',$questionid)));
-			$questypes = $this->basic->getQuestypeList();
-			$this->tpl->assign('questypes',$questypes);
-			$this->tpl->assign("question",$question);
-			$this->tpl->assign("questionparent",$questionid);
-			$this->tpl->display('questionrows_addchild');
+			$questionid = M('ev')->get('questionid');
+			$question = M('exam','exam')->getQuestionRowsByArgs(array(array("AND","qrid = :qrid",'qrid',$questionid)));
+			$questypes = M('basic','exam')->getQuestypeList();
+			M('tpl')->assign('questypes',$questypes);
+			M('tpl')->assign("question",$question);
+			M('tpl')->assign("questionparent",$questionid);
+			M('tpl')->display('questionrows_addchild');
 		}
 	}
 
 	private function bataddchildquestion()
 	{
-		if($this->ev->get('insertquestion'))
+		if(M('ev')->get('insertquestion'))
 		{
-			$questionparent = $this->ev->get('questionparent');
-			$page = $this->ev->get('page');
-			$content = $this->ev->get('content');
-			$this->exam->insertQuestionBat($content,$questionparent);
-			$this->exam->resetRowsQuestionNumber($questionparent);
+			$questionparent = M('ev')->get('questionparent');
+			$page = M('ev')->get('page');
+			$content = M('ev')->get('content');
+			M('exam','exam')->insertQuestionBat($content,$questionparent);
+			M('exam','exam')->resetRowsQuestionNumber($questionparent);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -248,35 +248,35 @@ class action extends app
 		}
 		else
 		{
-			$questionid = $this->ev->get('questionid');
-			$question = $this->exam->getQuestionRowsByArgs(array(array("AND","qrid = :qrid",'qrid',$questionid)));
-			$questypes = $this->basic->getQuestypeList();
-			$this->tpl->assign('questypes',$questypes);
-			$this->tpl->assign("question",$question);
-			$this->tpl->assign("questionparent",$questionid);
-			$this->tpl->display('questionrows_bataddchild');
+			$questionid = M('ev')->get('questionid');
+			$question = M('exam','exam')->getQuestionRowsByArgs(array(array("AND","qrid = :qrid",'qrid',$questionid)));
+			$questypes = M('basic','exam')->getQuestypeList();
+			M('tpl')->assign('questypes',$questypes);
+			M('tpl')->assign("question",$question);
+			M('tpl')->assign("questionparent",$questionid);
+			M('tpl')->display('questionrows_bataddchild');
 		}
 	}
 
 	private function done()
 	{
-		$questionparent = $this->ev->get('questionparent');
-		switch($this->ev->get('action'))
+		$questionparent = M('ev')->get('questionparent');
+		switch(M('ev')->get('action'))
 		{
 			case 'delete':
-				$delids = $this->ev->get('delids');
+				$delids = M('ev')->get('delids');
 				foreach($delids as $key => $l)
 				{
-					$this->exam->delQuestions($key);
+					M('exam','exam')->delQuestions($key);
 				}
-				$this->exam->resetRowsQuestionNumber($questionparent);
+				M('exam','exam')->resetRowsQuestionNumber($questionparent);
 				break;
 
 			default:
-				$sequence = $this->ev->get('sequence');
+				$sequence = M('ev')->get('sequence');
 				foreach($sequence as $key => $l)
 				{
-					$this->exam->modifyQuestionSequence($key,array('questionsequence'=>$l));
+					M('exam','exam')->modifyQuestionSequence($key,array('questionsequence'=>$l));
 				}
 				break;
 		}
@@ -292,11 +292,11 @@ class action extends app
 
 	private function bataddquestionrows()
 	{
-		if($this->ev->get('insertquestion'))
+		if(M('ev')->get('insertquestion'))
 		{
-			$page = $this->ev->get('page');
-			$content = $this->ev->get('content');
-			$this->exam->insertQuestionRowsBat($content);
+			$page = M('ev')->get('page');
+			$content = M('ev')->get('content');
+			M('exam','exam')->insertQuestionRowsBat($content);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -307,22 +307,22 @@ class action extends app
 		}
 		else
 		{
-			$subjects = $this->basic->getSubjectList();
-			$this->tpl->assign('subjects',$subjects);
-			$this->tpl->display('questionrows_batadd');
+			$subjects = M('basic','exam')->getSubjectList();
+			M('tpl')->assign('subjects',$subjects);
+			M('tpl')->display('questionrows_batadd');
 		}
 	}
 
 	private function addquestionrows()
 	{
-		$questypes = $this->basic->getQuestypeList();
-		if($this->ev->get('insertquestion'))
+		$questypes = M('basic','exam')->getQuestypeList();
+		if(M('ev')->get('insertquestion'))
 		{
-			$args = $this->ev->get('args');
+			$args = M('ev')->get('args');
 			$args['qrtime'] = TIME;
-			$args['qruserid'] = $this->_user['sessionuserid'];
-			$args['qrusername'] = $this->_user['sessionusername'];
-			$this->exam->addQuestionRows($args);
+			$args['qruserid'] = $this->user['userid'];
+			$args['qrusername'] = $this->user['sessionusername'];
+			M('exam','exam')->addQuestionRows($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -333,19 +333,19 @@ class action extends app
 		}
 		else
 		{
-			$subjects = $this->basic->getSubjectList();
-			$this->tpl->assign('questypes',$questypes);
-			$this->tpl->assign('subjects',$subjects);
-			$this->tpl->display('questionrows_add');
+			$subjects = M('basic','exam')->getSubjectList();
+			M('tpl')->assign('questypes',$questypes);
+			M('tpl')->assign('subjects',$subjects);
+			M('tpl')->display('questionrows_add');
 		}
 	}
 
 	private function index()
 	{
-		$page = $this->ev->get('page');
+		$page = M('ev')->get('page');
 		$page = $page > 0?$page:1;
-		$questypes = $this->basic->getQuestypeList();
-		$search = $this->ev->get('search');
+		$questypes = M('basic','exam')->getQuestypeList();
+		$search = M('ev')->get('search');
 		$args = array(array("AND","quest2knows.qkquestionid = questionrows.qrid"),array("AND","quest2knows.qktype = 1"),array("AND","questionrows.qrstatus = '1'"));
 		if($search['questionid'])
 		{
@@ -384,7 +384,7 @@ class action extends app
 			$tmpknows = '0';
 			if($search['questionsectionid'])
 			{
-				$knows = $this->section->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
+				$knows = M('section','exam')->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
 				foreach($knows as $p)
 				{
 					if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -393,7 +393,7 @@ class action extends app
 			}
 			elseif($search['questionsubjectid'])
 			{
-				$knows = $this->section->getAllKnowsBySubject($search['questionsubjectid']);
+				$knows = M('section','exam')->getAllKnowsBySubject($search['questionsubjectid']);
 				foreach($knows as $p)
 				{
 					if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -401,17 +401,17 @@ class action extends app
 				$args[] = array("AND","find_in_set(quest2knows.qkknowsid,:qkknowsid)",'qkknowsid',$tmpknows);
 			}
 		}
-		$questions = $this->exam->getQuestionrowsList($page,50,$args);
-		$subjects = $this->basic->getSubjectList();
-		$sections = $this->section->getSectionListByArgs(array(array("AND","sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$search['questionsubjectid'])));
-		$knows = $this->section->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
-		$this->tpl->assign('search',$search);
-		$this->tpl->assign('subjects',$subjects);
-		$this->tpl->assign('sections',$sections);
-		$this->tpl->assign('knows',$knows);
-		$this->tpl->assign('questypes',$questypes);
-		$this->tpl->assign('questions',$questions);
-		$this->tpl->display('questionrows');
+		$questions = M('exam','exam')->getQuestionrowsList($page,50,$args);
+		$subjects = M('basic','exam')->getSubjectList();
+		$sections = M('section','exam')->getSectionListByArgs(array(array("AND","sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$search['questionsubjectid'])));
+		$knows = M('section','exam')->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
+		M('tpl')->assign('search',$search);
+		M('tpl')->assign('subjects',$subjects);
+		M('tpl')->assign('sections',$sections);
+		M('tpl')->assign('knows',$knows);
+		M('tpl')->assign('questypes',$questypes);
+		M('tpl')->assign('questions',$questions);
+		M('tpl')->display('questionrows');
 	}
 }
 

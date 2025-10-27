@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -20,7 +20,7 @@ class action extends app
 	private function index()
 	{
 		$_SESSION['openid'] = null;
-		$this->session->clearSessionUser();
+		M('session')->clearSessionUser();
         $message = array(
             'statusCode' => 201,
             "message" => "操作成功",

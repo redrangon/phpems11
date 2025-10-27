@@ -10,18 +10,18 @@ class action extends app
 {
 	public function display()
 	{
-        $action = $this->ev->url(3);
-        $search = $this->ev->get('search');
+        $action = M('ev')->url(3);
+        $search = M('ev')->get('search');
         $this->u = '';
         if($search)
         {
-            $this->tpl->assign('search',$search);
+            M('tpl')->assign('search',$search);
             foreach($search as $key => $arg)
             {
                 $this->u .= "&search[{$key}]={$arg}";
             }
         }
-        $this->tpl->assign('search',$search);
+        M('tpl')->assign('search',$search);
         if(!method_exists($this,$action))
             $action = "index";
         $this->$action();
@@ -31,57 +31,57 @@ class action extends app
     private function lists()
     {
         $catids = array();
-        $catids = $this->category->getCategoriesByArgs(array(array("AND","catinmenu = '0'"),array("AND","catapp = 'course'"),array("AND","catparent = 0")));
+        $catids = M('category')->getCategoriesByArgs(array(array("AND","catinmenu = '0'"),array("AND","catapp = 'course'"),array("AND","catparent = 0")));
         $contents = array();
         if($catids)
         {
             foreach($catids as $p)
             {
-                $catstring = $this->category->getChildCategoryString($p['catid']);
-                $contents[$p['catid']] = $this->course->getCourseList(array(array("AND","find_in_set(cscatid,:catstring)",'catstring',$catstring)),1,$p['catindex']?$p['catindex']:6);
+                $catstring = M('category')->getChildCategoryString($p['catid']);
+                $contents[$p['catid']] = M('course','course')->getCourseList(array(array("AND","find_in_set(cscatid,:catstring)",'catstring',$catstring)),1,$p['catindex']?$p['catindex']:6);
             }
         }
-        $this->tpl->assign('catids',$catids);
-        $this->tpl->assign('categories',$this->category->categories);
-        $this->tpl->assign('contents',$contents);
-        $this->tpl->display('index_lists');
+        M('tpl')->assign('catids',$catids);
+        M('tpl')->assign('categories',M('category')->categories);
+        M('tpl')->assign('contents',$contents);
+        M('tpl')->display('index_lists');
     }
 
     private function search()
     {
-        $search = $this->ev->get('search');
-        $page = $this->ev->get('page');
+        $search = M('ev')->get('search');
+        $page = M('ev')->get('page');
         $args = array();
         if($search['keyword'])$args[] = array("AND","cstitle LIKE :cstitle",'cstitle',"%{$search['keyword']}%");
-        $contents = $this->course->getCourseList($args,$page,15);
-        $news = $this->course->getCourseList(array(),1,5);
-        $this->tpl->assign('news',$news['data']);
-        $this->tpl->assign('contents',$contents);
-        $this->tpl->assign('page',$page);
-        $this->tpl->display('search');
+        $contents = M('course','course')->getCourseList($args,$page,15);
+        $news = M('course','course')->getCourseList(array(),1,5);
+        M('tpl')->assign('news',$news['data']);
+        M('tpl')->assign('contents',$contents);
+        M('tpl')->assign('page',$page);
+        M('tpl')->display('search');
     }
 
     private function index()
     {
-        $page = $this->ev->get('page');
+        $page = M('ev')->get('page');
         $catids = array();
-        $catids = $this->category->getCategoriesByArgs(array(array("AND","catinmenu = '0'"),array("AND","catapp = 'course'"),array("AND","catparent = 0")));
+        $catids = M('category')->getCategoriesByArgs(array(array("AND","catinmenu = '0'"),array("AND","catapp = 'course'"),array("AND","catparent = 0")));
         $contents = array();
         if($catids)
         {
             foreach($catids as $p)
             {
-                $catstring = $this->category->getChildCategoryString($p['catid']);
-                $contents[$p['catid']] = $this->course->getCourseList(array(array("AND","find_in_set(cscatid,:catstring)",'catstring',$catstring)),1,$p['catindex']?$p['catindex']:6);
+                $catstring = M('category')->getChildCategoryString($p['catid']);
+                $contents[$p['catid']] = M('course','course')->getCourseList(array(array("AND","find_in_set(cscatid,:catstring)",'catstring',$catstring)),1,$p['catindex']?$p['catindex']:6);
             }
         }
-        $this->tpl->assign('catids',$catids);
-        $this->tpl->assign('categories',$this->category->categories);
-        $news = $this->course->getCourseList(array(),1,5);
-        $this->tpl->assign('news',$news['data']);
-        $this->tpl->assign('contents',$contents);
-        $this->tpl->assign('page',$page);
-        $this->tpl->display('index');
+        M('tpl')->assign('catids',$catids);
+        M('tpl')->assign('categories',M('category')->categories);
+        $news = M('course','course')->getCourseList(array(),1,5);
+        M('tpl')->assign('news',$news['data']);
+        M('tpl')->assign('contents',$contents);
+        M('tpl')->assign('page',$page);
+        M('tpl')->display('index');
     }
 }
 

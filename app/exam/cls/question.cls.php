@@ -10,14 +10,6 @@ use function \PHPEMS\M;
  */
 class question
 {
-	public $db;
-	public $selectorder = array('A','B','C','D','E','F','G','H','I','J','K','L','M','N');
-
-	public function __construct()
-	{
-		$this->db = M('pepdo');
-	}
-
 	public function parse($question)
 	{
 		$questype = M('basic','exam')->getQuestypeById($question['questiontype']);
@@ -53,8 +45,7 @@ class question
 		$values = array();
 		foreach($question['questionselect'] as $id => $select)
 		{
-			//$values[] = array('key'=>$this->selectorder[$id].':'.$select,'value'=>$this->selectorder[$id]);
-			$values[] = array('key'=>$this->selectorder[$id],'value'=>$this->selectorder[$id]);
+			$values[] = array('key'=>M('config','exam')->selectorder[$id],'value'=>M('config','exam')->selectorder[$id]);
 		}
 		if($isMultiple)
 		{
@@ -79,8 +70,8 @@ class question
 	public function getQuestionsByKnows($knowid)
 	{
         $data = array('DISTINCT questionid,questiontype',array('questions','quest2knows'),array(array("AND","find_in_set(quest2knows.qkknowsid,:knowid)",'knowid',$knowid),array("AND","quest2knows.qktype = 0"),array("AND","quest2knows.qkquestionid = questions.questionid"),array("AND","questions.questionstatus = 1")),false,"questionparent asc,questionsequence asc,questionid asc",false);
-        $sql = $this->db->makeSelect($data);
-        $r = $this->db->fetchAll($sql);
+        $sql = M('pepdo')->makeSelect($data);
+        $r = M('pepdo')->fetchAll($sql);
         $t = array();
         $n = array();
         foreach($r as $p)
@@ -102,8 +93,8 @@ class question
 	public function getRandQuestionListByKnowid($knowid,$typeid)
 	{
 		$data = array('DISTINCT questions.questionid',array('questions','quest2knows'),array(array("AND","find_in_set(quest2knows.qkknowsid,:knowid)",'knowid',$knowid),array("AND","quest2knows.qktype = 0"),array("AND","quest2knows.qkquestionid = questions.questionid"),array("AND","questions.questiontype = :typeid",'typeid',$typeid),array("AND","questions.questionstatus = 1")),false,"questionid asc",false);
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetchAll($sql);
 		$t = array();
 		foreach($r as $p)
 		{
@@ -119,8 +110,8 @@ class question
 		$data = array('DISTINCT questionrows.qrid',array('questionrows','quest2knows'),array(array("AND","find_in_set(quest2knows.qkknowsid,:knowid)",'knowid',$knowid),array("AND","quest2knows.qktype = 1"),array("AND","quest2knows.qkquestionid = questionrows.qrid"),array("AND","questionrows.qrtype = :typeid",'typeid',$typeid),array("AND","questionrows.qrnumber <= :number",'number',$number),array("AND","questionrows.qrstatus = 1")),false,false,false);
 		else
 		$data = array('DISTINCT questionrows.qrid',array('questionrows','quest2knows'),array(array("AND","find_in_set(quest2knows.qkknowsid ,:knowid)",'knowid',$knowid),array("AND","quest2knows.qktype = 1"),array("AND","quest2knows.qkquestionid = questionrows.qrid"),array("AND","questionrows.qrtype = :typeid",'typeid',$typeid),array("AND","questionrows.qrstatus = 1")),false,false,false);
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetchAll($sql);
 		$t = array();
 		foreach($r as $p)
 		{
@@ -137,8 +128,8 @@ class question
 		$args[] = array("AND","quest2knows.qkquestionid = questions.questionid");
 		$args[] = array("AND","quest2knows.qktype = 0");
 		$data = array('DISTINCT questions.questionid',array('questions','quest2knows'),$args,false,false,false);
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetchAll($sql);
 		$t = array();
 		foreach($r as $p)
 		{
@@ -155,8 +146,8 @@ class question
 		$args[] = array("AND","quest2knows.qkquestionid = questionrows.qrid");
 		$args[] = array("AND","quest2knows.qktype = 1");
 		$data = array('DISTINCT questionrows.qrid',array('questionrows','quest2knows'),$args,false,false,false);
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetchAll($sql);
 		$t = array();
 		foreach($r as $p)
 		{
@@ -169,8 +160,8 @@ class question
 	public function getSpecialQuestionById($questionid)
 	{
 		$data = array('questionid','questions',array(array("AND","questionparent = :questionid",'questionid',$questionid),array("AND","questionstatus = 1")),false,"questionsequence ASC");
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetchAll($sql);
 		$t = array(0 => $questionid);
 		foreach($r as $p)
 		{
@@ -183,16 +174,16 @@ class question
 	public function getKnowsBySubjectAndAreaid($subjectid,$areaid)
 	{
 		$data = array('esknowsids','examsection',array(array("AND","essubjectid = :subjectid",'subjectid',$subjectid),array("AND","esareaid = :esareaid",'esareaid',$areaid)));
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetchAll($sql);
 		foreach($r as $p)
 		{
 			$t[] = $p['esknowsids'];
 		}
 		$n = implode(',',$t);
 		$data = array("knowsid","knows",array(array("AND","find_in_set(knowsid,:knowsid)",'knowsid',$n),array("AND","knowsstatus = 1")));
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetchAll($sql);
 		foreach($r as $p)
 		{
 			$m[] = $p['knowsid'];

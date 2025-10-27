@@ -6,6 +6,7 @@ class category
 	public $app;
 	public $tidyCategory;
 	public $categories;
+	public $tidycategories;
 
 	public function __construct($parm)
 	{
@@ -118,9 +119,9 @@ class category
 		$child = array();
 		$parent = array($id);
 		$i = 0;
-		while($parent[$i])
+		while(isset($parent[$i]) && $parent[$i])
 		{
-			if($categories[$parent[$i]])
+			if(isset($categories[$parent[$i]]) && $categories[$parent[$i]])
 			{
 				foreach($categories[$parent[$i]] as $n)
 				{

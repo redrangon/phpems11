@@ -16,9 +16,4 @@ class app
 		//
 	}
 }
-include PEPATH.'/lib/init.cls.php';
-ginkgo::loadMoudle();
-ginkgo::run();
-
-
-?>
+require PEPATH."/lib/system.func.php";

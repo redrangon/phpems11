@@ -3,21 +3,14 @@ namespace PHPEMS\exam;
 use function \PHPEMS\M;
 class area
 {
-	public $db;
-
-	public function __construct()
-	{
-		$this->db = M('pepdo');
-	}
-
 	//获取地名列表
 	//参数：无
 	//返回值：地区列表
 	public function getAreaList()
 	{
 		$data = array(false,'area',array(),false,'areaid ASC');
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetchAll($sql,'areaid');
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetchAll($sql,'areaid');
 	}
 
 	//按页获取地名列表
@@ -31,7 +24,7 @@ class area
 			'query' => 1,
 			'index' => 'areaid'
 		);
-		return $this->db->listElements($page,$number,$data);
+		return M('pepdo')->listElements($page,$number,$data);
 	}
 
 	//根据地名查询
@@ -40,8 +33,8 @@ class area
 	public function getAreaByName($area)
 	{
 		$data = array(false,'area',array(array("AND","area = :area",'area',$area)),false,false,false);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql);
 	}
 
 	//根据ID获取地名信息
@@ -50,8 +43,8 @@ class area
 	public function getAreaById($areaid)
 	{
 		$data = array(false,'area',array(array("AND","areaid = :areaid",'areaid',$areaid)));
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql);
 	}
 
 	//修改地名信息
@@ -60,8 +53,8 @@ class area
 	public function modifyArea($areaid,$args)
 	{
 		$data = array('area',$args,array(array("AND","areaid = :areaid",'areaid',$areaid)));
-		$sql = $this->db->makeUpdate($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		M('pepdo')->exec($sql);
 		return true;
 	}
 
@@ -71,12 +64,12 @@ class area
 	public function addArea($args)
 	{
 		$data = array(false,'area',array(array("AND","areaid = :areaid",'areaid',$args['areacode'])));
-		$sql = $this->db->makeSelect($data);
-		if($this->db->fetch($sql))return false;
+		$sql = M('pepdo')->makeSelect($data);
+		if(M('pepdo')->fetch($sql))return false;
 		$data = array('area',$args);
-		$sql = $this->db->makeInsert($data);
-		$this->db->exec($sql);
-		return $this->db->lastInsertId();
+		$sql = M('pepdo')->makeInsert($data);
+		M('pepdo')->exec($sql);
+		return M('pepdo')->lastInsertId();
 	}
 
 	//删除地区
@@ -85,9 +78,9 @@ class area
 	public function delArea($id)
 	{
 		$data = array('area',array(array("AND","areaid = :areaid",'areaid',$id)));
-		$sql = $this->db->makeDelete($data);
-		$this->db->exec($sql);
-		return $this->db->affectedRows();
+		$sql = M('pepdo')->makeDelete($data);
+		M('pepdo')->exec($sql);
+		return M('pepdo')->affectedRows();
 	}
 }
 

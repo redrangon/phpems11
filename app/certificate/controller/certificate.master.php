@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,14 +19,14 @@ class action extends app
 
 	private function modify()
 	{
-		$ceid = $this->ev->get('ceid');
-		$ce = $this->ce->getCeById($ceid);
-		$this->tpl->assign('ce',$ce);
-		if($this->ev->get('modifycertificate'))
+		$ceid = M('ev')->get('ceid');
+		$ce = M('ce','certificate')->getCeById($ceid);
+		M('tpl')->assign('ce',$ce);
+		if(M('ev')->get('modifycertificate'))
 		{
-			$args = $this->ev->get('args');
+			$args = M('ev')->get('args');
 			$args['cetime'] = strtotime($args['cetime']);
-			$this->ce->modifyCe($ceid,$args);
+			M('ce','certificate')->modifyCe($ceid,$args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -36,13 +36,13 @@ class action extends app
 			\PHPEMS\ginkgo::R($message);
 		}
 		else
-		$this->tpl->display('certificate_edit');
+		M('tpl')->display('certificate_edit');
 	}
 
 	private function del()
 	{
-		$ceid = $this->ev->get('ceid');
-		$this->ce->delCe($ceid);
+		$ceid = M('ev')->get('ceid');
+		M('ce','certificate')->delCe($ceid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -54,11 +54,11 @@ class action extends app
 
 	private function add()
 	{
-		if($this->ev->get('addcertificate'))
+		if(M('ev')->get('addcertificate'))
 		{
-			$args = $this->ev->get('args');
+			$args = M('ev')->get('args');
 			$args['cetime'] = strtotime($args['cetime']);
-			$this->ce->addCe($args);
+			M('ce','certificate')->addCe($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -68,14 +68,14 @@ class action extends app
 			\PHPEMS\ginkgo::R($message);
 		}
 		else
-		$this->tpl->display('certificate_add');
+		M('tpl')->display('certificate_add');
 	}
 
 	private function modifyqueue()
 	{
-		$ceqid = $this->ev->get('ceqid');
-		$status = $this->ev->get('status');
-		$this->ce->modifyCeQueue($ceqid,array('ceqstatus' => $status));
+		$ceqid = M('ev')->get('ceqid');
+		$status = M('ev')->get('status');
+		M('ce','certificate')->modifyCeQueue($ceqid,array('ceqstatus' => $status));
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -87,9 +87,9 @@ class action extends app
 
 	private function outdata()
 	{
-		$search = $this->ev->get('search');
-		$ceid = $this->ev->get('ceid');
-		$ce = $this->ce->getCeById($ceid);
+		$search = M('ev')->get('search');
+		$ceid = M('ev')->get('ceid');
+		$ce = M('ce','certificate')->getCeById($ceid);
 		$args = array();
 		$args[] = array("AND","ceqceid = :ceqceid","ceqceid",$ceid);
 		if($search['username'])
@@ -112,7 +112,7 @@ class action extends app
 		{
 			$args[] = array("AND","ceqtime <= :eceqtime","eceqtime",strtotime($search['etime']));
 		}
-		$certificates = $this->ce->getCeQueuesByArgs($args);
+		$certificates = M('ce','certificate')->getCeQueuesByArgs($args);
 		$r = array();
 		foreach($certificates as $p)
 		{
@@ -148,26 +148,26 @@ class action extends app
 
 	private function queue()
 	{
-		$page = intval($this->ev->get('page'));
-		$search = $this->ev->get('search');
+		$page = intval(M('ev')->get('page'));
+		$search = M('ev')->get('search');
 		$this->u = '';
 		if($search)
 		{
-			$this->tpl->assign('search',$search);
+			M('tpl')->assign('search',$search);
 			foreach($search as $key => $arg)
 			{
 				$this->u .= "&search[{$key}]={$arg}";
 			}
 		}
-		$this->tpl->assign('search',$search);
-		$this->tpl->assign('u',$this->u);
-		$ceid = $this->ev->get('ceid');
-		$ce = $this->ce->getCeById($ceid);
+		M('tpl')->assign('search',$search);
+		M('tpl')->assign('u',$this->u);
+		$ceid = M('ev')->get('ceid');
+		$ce = M('ce','certificate')->getCeById($ceid);
 		$args = array();
 		$args[] = array("AND","ceqceid = :ceqceid","ceqceid",$ceid);
 		if($search['username'])
 		{
-			$user = $this->user->getUserByUserName($search['username']);
+			$user = M('user','user')->getUserByUserName($search['username']);
 			if($user)
 			{
 				$args[] = array("AND","cequserid = :cequserid","cequserid",$user['userid']);
@@ -189,21 +189,21 @@ class action extends app
 		{
 			$args[] = array("AND","ceqtime <= :eceqtime","eceqtime",strtotime($search['etime']));
 		}
-		$certificates = $this->ce->getCeQueueList($args,$page,10);
-		$this->tpl->assign('certificates',$certificates);
-		$this->tpl->assign('status',array('申请中','已受理','已出证','申请被驳回'));
-		$this->tpl->assign('page',$page);
-		$this->tpl->assign('ce',$ce);
-		$this->tpl->display('certificate_queue');
+		$certificates = M('ce','certificate')->getCeQueueList($args,$page,10);
+		M('tpl')->assign('certificates',$certificates);
+		M('tpl')->assign('status',array('申请中','已受理','已出证','申请被驳回'));
+		M('tpl')->assign('page',$page);
+		M('tpl')->assign('ce',$ce);
+		M('tpl')->display('certificate_queue');
 	}
 
 	private function index()
 	{
-		$page = intval($this->ev->get('page'));
-		$certificates = $this->ce->getCeList(array(),$page,10);
-		$this->tpl->assign('certificates',$certificates);
-		$this->tpl->assign('page',$page);
-		$this->tpl->display('certificate');
+		$page = intval(M('ev')->get('page'));
+		$certificates = M('ce','certificate')->getCeList(array(),$page,10);
+		M('tpl')->assign('certificates',$certificates);
+		M('tpl')->assign('page',$page);
+		M('tpl')->display('certificate');
 	}
 }
 

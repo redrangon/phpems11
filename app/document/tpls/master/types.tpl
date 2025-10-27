@@ -27,11 +27,11 @@
 				       <table class="table table-hover table-bordered">
 							<thead>
 								<tr class="info">
-				                    <th><input type="checkbox" class="checkall"/></th>
-				                    <th>类型ID</th>
+				                    <th width="80"><input type="checkbox" class="checkall"/></th>
+				                    <th width="120">类型ID</th>
 							        <th>类型名称</th>
 							        <th>允许上传扩展名</th>
-							        <th>操作</th>
+							        <th width="160">操作</th>
 				                </tr>
 				            </thead>
 				            <tbody>
@@ -51,8 +51,8 @@
 									</td>
 									<td>
 										<div class="btn-group">
-											<a class="btn" href="index.php?{x2;$_app}-master-attachtype-modify&page={x2;$page}&atid={x2;v:type['atid']}{x2;$u}" title="修改"><em class="glyphicon glyphicon-edit"></em></a>
-											<a class="btn confirm" href="index.php?{x2;$_app}-master-attachtype-del&atid={x2;v:type['atid']}&page={x2;$page}{x2;$u}" title="删除"><em class="glyphicon glyphicon-remove"></em></a>
+											<a class="btn" href="index.php?{x2;$_app}-master-attachtype-modify&page={x2;$page}&atid={x2;v:type['atid']}{x2;$u}" title="修改">修改</a>
+											<a class="btn confirm" href="index.php?{x2;$_app}-master-attachtype-del&atid={x2;v:type['atid']}&page={x2;$page}{x2;$u}" title="删除">删除</a>
 										</div>
 									</td>
 						        </tr>

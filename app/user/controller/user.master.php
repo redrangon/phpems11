@@ -16,13 +16,15 @@ class action extends app
 		$this->u = '';
 		if($this->search)
 		{
+			M('tpl')->assign('search',$this->search);
 			foreach($this->search as $key => $arg)
 			{
 				$this->u .= "&search[{$key}]={$arg}";
 			}
-			$this->tpl->assign('u',$this->u);
+			M('tpl')->assign('u',$this->u);
 		}
-		$this->tpl->assign('search',$this->search);
+		$groups = M('user','user')->getUserGroups();
+		M('tpl')->assign('groups',$groups);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -34,7 +36,7 @@ class action extends app
 		$userdisable = M('ev')->get('userdisable');
 		$userid = M('ev')->get('userid');
 		M('user','user')->modifyUserInfo($userid,array('userdisable' => $userdisable));
-		if($userdisable == 1)$this->session->offOnlineUser($userid);
+		if($userdisable == 1)M('session')->offOnlineUser($userid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -64,9 +66,9 @@ class action extends app
 		$userid = M('ev')->get('userid');
 		$args[] = array('AND',"uluserid = :userid",'userid',$userid);
 		$userlogs = M('user','user')->getUserLogList($args,$page,20);
-		$this->tpl->assign('userlogs',$userlogs);
-		$this->tpl->assign('userid',$userid);
-		$this->tpl->display('user_log');
+		M('tpl')->assign('userlogs',$userlogs);
+		M('tpl')->assign('userid',$userid);
+		M('tpl')->display('user_log');
 	}
 
 	private function del()
@@ -186,15 +188,15 @@ class action extends app
 			$user = M('user','user')->getUserById($userid);
 			$group = M('user','user')->getGroupById($user['usergroupid']);
 			$fields = M('module')->getMoudleFields($group['groupmoduleid'],1);
-			$forms = $this->html->buildHtml($fields,$user);
+			$forms = M('html')->buildHtml($fields,$user);
 			$subjects = M('basic','exam')->getSubjectList();
-            $this->tpl->assign('subjects',$subjects);
-			$this->tpl->assign('moduleid',$group['groupmoduleid']);
-			$this->tpl->assign('fields',$fields);
-			$this->tpl->assign('forms',$forms);
-			$this->tpl->assign('user',$user);
-			$this->tpl->assign('page',$page);
-			$this->tpl->display('modifyuser');
+            M('tpl')->assign('subjects',$subjects);
+			M('tpl')->assign('moduleid',$group['groupmoduleid']);
+			M('tpl')->assign('fields',$fields);
+			M('tpl')->assign('forms',$forms);
+			M('tpl')->assign('user',$user);
+			M('tpl')->assign('page',$page);
+			M('tpl')->display('modifyuser');
 		}
 	}
 
@@ -262,7 +264,7 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->display('batadduser');
+			M('tpl')->display('batadduser');
 		}
 	}
 
@@ -310,7 +312,7 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->display('adduser');
+			M('tpl')->display('adduser');
 		}
 	}
 
@@ -331,9 +333,9 @@ class action extends app
 			$args[] = array('AND',"userregtime <= :userregtime",'userregtime',$etime);
 		}
 		$users = M('user','user')->getUserList($args,$page,50);
-		$this->tpl->assign('users',$users);
-		$this->tpl->assign('page',$page);
-		$this->tpl->display('user');
+		M('tpl')->assign('users',$users);
+		M('tpl')->assign('page',$page);
+		M('tpl')->display('user');
 	}
 }
 

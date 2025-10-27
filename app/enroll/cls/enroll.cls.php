@@ -3,13 +3,6 @@ namespace PHPEMS\enroll;
 use function \PHPEMS\M;
 class enroll
 {
-	public $db;
-
-	public function __construct()
-	{
-		
-		$this->db = M('pepdo');
-	}
 
     public function getEnrollById($enrollid)
     {
@@ -17,7 +10,7 @@ class enroll
             'table' => 'enroll',
             'query' => array(array("AND","enrollid = :enrollid","enrollid",$enrollid))
         );
-        return $this->db->getElement($data);
+        return M('pepdo')->getElement($data);
     }
 
     public function getEnrollByArgs($args)
@@ -27,7 +20,7 @@ class enroll
             'query' => $args,
             'limit' => 1
         );
-        return $this->db->getElement($data);
+        return M('pepdo')->getElement($data);
     }
 
     public function getEnrolls($args,$orderby = 'enrollid desc',$select = false)
@@ -39,7 +32,7 @@ class enroll
             'limit' => false,
             'orderby' => $orderby
         );
-        return $this->db->getElements($data);
+        return M('pepdo')->getElements($data);
     }
 
     public function getEnrollPlusList($args,$page = 1,$number = 20,$orderby = 'enrollid desc')
@@ -51,7 +44,7 @@ class enroll
             'limit' => false,
             'orderby' => $orderby
         );
-        return $this->db->listElements($page,$number = 20,$data);
+        return M('pepdo')->listElements($page,$number = 20,$data);
     }
 
     public function getEnrollList($args,$page = 1,$number = 20,$orderby = 'enrollid desc')
@@ -62,7 +55,7 @@ class enroll
             'limit' => false,
             'orderby' => $orderby
         );
-        return $this->db->listElements($page,$number = 20,$data);
+        return M('pepdo')->listElements($page,$number = 20,$data);
     }
 
     public function addEnroll($args)
@@ -71,7 +64,7 @@ class enroll
             'table' => 'enroll',
             'query' => $args
         );
-        return $this->db->insertElement($data);
+        return M('pepdo')->insertElement($data);
     }
 
     public function modifyEnroll($enrollid,$args)
@@ -81,7 +74,7 @@ class enroll
             'value' => $args,
             'query' => array(array("AND","enrollid = :enrollid","enrollid",$enrollid))
         );
-        return $this->db->updateElement($data);
+        return M('pepdo')->updateElement($data);
     }
 
     public function modifyEnrollByArgs($values,$args)
@@ -91,7 +84,7 @@ class enroll
             'value' => $values,
             'query' => $args
         );
-        return $this->db->updateElement($data);
+        return M('pepdo')->updateElement($data);
     }
 
     public function delEnroll($parm,$type = 'id')
@@ -102,7 +95,7 @@ class enroll
             'table' => 'enroll',
             'query' => $args
         );
-        return $this->db->delElement($data);
+        return M('pepdo')->delElement($data);
     }
 
     public function getEnrollBatById($enbid)
@@ -111,7 +104,7 @@ class enroll
             'table' => 'enroll_bats',
             'query' => array(array("AND","enbid = :enbid","enbid",$enbid))
         );
-        return $this->db->getElement($data);
+        return M('pepdo')->getElement($data);
     }
 
     public function getEnrollBatByArgs($args)
@@ -121,7 +114,7 @@ class enroll
             'query' => $args,
             'limit' => 1
         );
-        return $this->db->getElement($data);
+        return M('pepdo')->getElement($data);
     }
 
     public function getEnrollBats($args,$orderby = 'enbid desc')
@@ -132,7 +125,7 @@ class enroll
             'limit' => false,
             'orderby' => $orderby
         );
-        return $this->db->getElements($data);
+        return M('pepdo')->getElements($data);
     }
 
     public function getEnrollBatsList($args,$page = 1,$number = 20,$orderby = 'enbid desc')
@@ -143,7 +136,7 @@ class enroll
             'limit' => false,
             'orderby' => $orderby
         );
-        return $this->db->listElements($page,$number,$data);
+        return M('pepdo')->listElements($page,$number,$data);
     }
 
     public function addEnrollBat($args)
@@ -152,7 +145,7 @@ class enroll
             'table' => 'enroll_bats',
             'query' => $args
         );
-        return $this->db->insertElement($data);
+        return M('pepdo')->insertElement($data);
     }
 
     public function modifyEnrollBat($enbid,$args)
@@ -162,7 +155,7 @@ class enroll
             'value' => $args,
             'query' => array(array("AND","enbid = :enbid","enbid",$enbid))
         );
-        return $this->db->updateElement($data);
+        return M('pepdo')->updateElement($data);
     }
 
     public function delEnrollBat($parm,$type = 'id')
@@ -173,7 +166,7 @@ class enroll
             'table' => 'enroll_bats',
             'query' => $args
         );
-        return $this->db->delElement($data);
+        return M('pepdo')->delElement($data);
     }
 
     public function getEnrollBatsListByUser($args,$page = 1,$number = 20,$orderby = 'enrollid desc')
@@ -185,7 +178,7 @@ class enroll
             'limit' => false,
             'orderby' => $orderby
         );
-        return $this->db->listElements($page,$number = 20,$data);
+        return M('pepdo')->listElements($page,$number = 20,$data);
     }
 
 }

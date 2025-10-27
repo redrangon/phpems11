@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,10 +19,10 @@ class action extends app
 
 	private function clearexamsession()
 	{
-		$sessionid = $this->ev->get('sessionid');
-		$token = $this->ev->get('token');
-		$sessionvars = $this->exam->getExamSessionBySessionid($sessionid);
-		if(!$sessionvars['examsessionid'] || (md5($sessionvars['examsessionid'].'-'.$this->_user['sessionuserid'].'-'.$sessionvars['examsessiontoken']) != $token))
+		$sessionid = M('ev')->get('sessionid');
+		$token = M('ev')->get('token');
+		$sessionvars = M('exam','exam')->getExamSessionBySessionid($sessionid);
+		if(!$sessionvars['examsessionid'] || (md5($sessionvars['examsessionid'].'-'.$this->user['userid'].'-'.$sessionvars['examsessiontoken']) != $token))
 		{
 			$message = array(
 				'statusCode' => 300,
@@ -31,7 +31,7 @@ class action extends app
 		}
 		else
 		{
-			$this->exam->delExamSession($sessionvars['examsessionid']);
+			M('exam','exam')->delExamSession($sessionvars['examsessionid']);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功，正在刷新考试页面",
@@ -44,10 +44,10 @@ class action extends app
 
 	public function index()
 	{
-		$sessionid = $this->ev->get('sessionid');
-		$token = $this->ev->get('token');
-		$sessionvars = $this->exam->getExamSessionBySessionid($sessionid);
-		if(!$sessionvars['examsessionid'] || (md5($sessionvars['examsessionid'].'-'.$this->_user['sessionuserid'].'-'.$sessionvars['examsessiontoken']) != $token))
+		$sessionid = M('ev')->get('sessionid');
+		$token = M('ev')->get('token');
+		$sessionvars = M('exam','exam')->getExamSessionBySessionid($sessionid);
+		if(!$sessionvars['examsessionid'] || (md5($sessionvars['examsessionid'].'-'.$this->user['userid'].'-'.$sessionvars['examsessiontoken']) != $token))
 		{
 			$message = array(
 				'statusCode' => 300,

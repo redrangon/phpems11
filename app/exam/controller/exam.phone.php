@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
         if($this->data['currentbasic']['basicexam']['model'] != 2)
 		{
             header("location:index.php?exam-phone-basics-page");
@@ -38,7 +38,7 @@ class action extends app
 		{
             $intime = 1;
 		}
-        $this->tpl->assign('intime',$intime);
+        M('tpl')->assign('intime',$intime);
         if(!method_exists($this,$action))
 		{
 			$action = "index";
@@ -49,18 +49,18 @@ class action extends app
 
 	private function history()
 	{
-        $page = $this->ev->get('page');
+        $page = M('ev')->get('page');
         $ehtype = 2;
         $page = $page > 0?$page:1;
         $basicid = $this->data['currentbasic']['basicid'];
         $args = array(
-            array("AND","ehuserid = :ehuserid",'ehuserid',$this->_user['sessionuserid']),
+            array("AND","ehuserid = :ehuserid",'ehuserid',$this->user['userid']),
             array("AND","ehbasicid = :ehbasicid",'ehbasicid',$basicid),
             array("AND","ehtype = :ehtype",'ehtype',$ehtype)
         );
-        $exams = $this->favor->getExamHistoryListByArgs($args,$page,10,false,'ehid desc');
-		$this->tpl->assign('exams',$exams);
-        $this->tpl->display('exam_history');
+        $exams = M('favor','exam')->getExamHistoryListByArgs($args,$page,10,false,'ehid desc');
+		M('tpl')->assign('exams',$exams);
+        M('tpl')->display('exam_history');
 	}
 
     private function score()
@@ -76,12 +76,12 @@ class action extends app
                 \PHPEMS\ginkgo::R($message);
             }
         }
-    	$questype = $this->basic->getQuestypeList();
-        if($this->ev->get('insertscore'))
+    	$questype = M('basic','exam')->getQuestypeList();
+        if(M('ev')->get('insertscore'))
         {
-			$sessionid = $this->ev->get('sessionid');
-			$token = $this->ev->get('token');
-			$sessionvars = $this->exam->getExamSessionBySessionid($sessionid);
+			$sessionid = M('ev')->get('sessionid');
+			$token = M('ev')->get('token');
+			$sessionvars = M('exam','exam')->getExamSessionBySessionid($sessionid);
             if($this->data['currentbasic']['basicexam']['examnumber'])
             {
                 $overflow = false;
@@ -93,7 +93,7 @@ class action extends app
                     $ids = explode(',',$ids);
                     foreach($ids as $t)
                     {
-                        $num = $this->favor->getExamUseNumber($this->_user['sessionuserid'],$t,$this->data['currentbasic']['basicid'],$this->data['currentbasic']['basicexam']['batch']);
+                        $num = M('favor','exam')->getExamUseNumber($this->user['userid'],$t,$this->data['currentbasic']['basicid'],$this->data['currentbasic']['basicexam']['batch']);
                         $number['child'][$t] = $num;
                         $number['all'] = intval($number['all'])+$num;
                     }
@@ -121,7 +121,7 @@ class action extends app
                     \PHPEMS\ginkgo::R($message);
                 }
             }
-            if(!$sessionvars['examsessionid'] || (md5($sessionvars['examsessionid'].'-'.$this->_user['sessionuserid'].'-'.$sessionvars['examsessiontoken']) != $token))
+            if(!$sessionvars['examsessionid'] || (md5($sessionvars['examsessionid'].'-'.$this->user['userid'].'-'.$sessionvars['examsessiontoken']) != $token))
             {
                 $message = array(
                     'statusCode' => 300,
@@ -129,12 +129,12 @@ class action extends app
                 );
                 \PHPEMS\ginkgo::R($message);
             }
-            $question = $this->ev->get('question');
+            $question = M('ev')->get('question');
             $sessionvars['examsessionuseranswer'] = $question;
-            $result = $this->exam->markscore($sessionvars,$questype,$this->data['currentbasic']['basicexam']['batch']);
+            $result = M('exam','exam')->markscore($sessionvars,$questype,$this->data['currentbasic']['basicexam']['batch']);
             if($result['wrongids'] && $this->setting['autorecord'])
             {
-                $this->favor->addRecords($this->_user['sessionuserid'],$result['wrongids'],$this->data['currentbasic']['basicsubjectid']);
+                M('favor','exam')->addRecords($this->user['userid'],$result['wrongids'],$this->data['currentbasic']['basicsubjectid']);
             }
             if($result['needhand'] && !$sessionvars['examsessionsetting']['examdecide'])
             {
@@ -168,10 +168,10 @@ class action extends app
 
 	private function paper()
 	{
-		$sessionid = $this->ev->get('sessionid');
-		$token = $this->ev->get('token');
-		$sessionvars = $this->exam->getExamSessionBySessionid($sessionid);
-		if(!$sessionvars['examsessionid'] || (md5($sessionvars['examsessionid'].'-'.$this->_user['sessionuserid'].'-'.$sessionvars['examsessiontoken']) != $token))
+		$sessionid = M('ev')->get('sessionid');
+		$token = M('ev')->get('token');
+		$sessionvars = M('exam','exam')->getExamSessionBySessionid($sessionid);
+		if(!$sessionvars['examsessionid'] || (md5($sessionvars['examsessionid'].'-'.$this->user['userid'].'-'.$sessionvars['examsessiontoken']) != $token))
 		{
             $message = array(
                 'statusCode' => 200,
@@ -181,13 +181,13 @@ class action extends app
             \PHPEMS\ginkgo::R($message);
         }
         $lefttime = 0;
-        $questype = $this->basic->getQuestypeList();
-		$this->tpl->assign('questype',$questype);
-		$this->tpl->assign('sessionvars',$sessionvars);
-		$this->tpl->assign('lefttime',$lefttime);
-		$this->tpl->assign('token',$token);
-		$this->tpl->assign('donumber',is_array($sessionvars['examsessionuseranswer'])?count($sessionvars['examsessionuseranswer']):0);
-		$this->tpl->display('exam_paper');
+        $questype = M('basic','exam')->getQuestypeList();
+		M('tpl')->assign('questype',$questype);
+		M('tpl')->assign('sessionvars',$sessionvars);
+		M('tpl')->assign('lefttime',$lefttime);
+		M('tpl')->assign('token',$token);
+		M('tpl')->assign('donumber',is_array($sessionvars['examsessionuseranswer'])?count($sessionvars['examsessionuseranswer']):0);
+		M('tpl')->display('exam_paper');
 	}
 
 	private function selectquestions()
@@ -205,8 +205,8 @@ class action extends app
 		}
 		if($this->data['currentbasic']['basicexam']['faceverify'])
 		{
-			$photo = $this->ev->get('photo');
-			$user = $this->user->getUserById($this->_user['sessionuserid']);
+			$photo = M('ev')->get('photo');
+			$user = M('user','user')->getUserById($this->user['userid']);
 			if($user['userstatus'] != 3)
 			{
 				$message = array(
@@ -259,8 +259,8 @@ class action extends app
 			$examid = $ids[$p];
 		}
 		else
-		$examid = $this->ev->get('examid');
-		$r = $this->exam->getExamSettingById($examid);
+		$examid = M('ev')->get('examid');
+		$r = M('exam','exam')->getExamSettingById($examid);
 		if(!$r['examid'])
 		{
 			$message = array(
@@ -282,7 +282,7 @@ class action extends app
                     $ids = explode(',',$ids);
                     foreach($ids as $t)
                     {
-                        $num = $this->favor->getExamUseNumber($this->_user['sessionuserid'],$t,$this->data['currentbasic']['basicid'],$this->data['currentbasic']['basicexam']['batch']);
+                        $num = M('favor','exam')->getExamUseNumber($this->user['userid'],$t,$this->data['currentbasic']['basicid'],$this->data['currentbasic']['basicexam']['batch']);
                         $number['child'][$t] = $num;
                         $number['all'] = intval($number['all'])+$num;
                     }
@@ -321,12 +321,12 @@ class action extends app
 			else $examtime = 60;
 			if($r['examtype'] == 1)
 			{
-				$questionids = $this->question->selectQuestions($examid,$this->data['currentbasic']);
+				$questionids = M('question','exam')->selectQuestions($examid,$this->data['currentbasic']);
 				$questions = array();
 				$questionrows = array();
 				foreach($questionids['question'] as $key => $p)
 				{
-					$questions[$key] = $this->exam->getQuestionListByIds($p);
+					$questions[$key] = M('exam','exam')->getQuestionListByIds($p);
 				}
 				foreach($questionids['questionrow'] as $key => $p)
 				{
@@ -337,11 +337,11 @@ class action extends app
 						{
 							foreach($p as $t)
 							{
-								$questionrows[$key][$t] = $this->exam->getQuestionRowsById($t);
+								$questionrows[$key][$t] = M('exam','exam')->getQuestionRowsById($t);
 							}
 						}
 					}
-					else $questionrows[$key][$p] = $this->exam->getQuestionRowsById($p);
+					else $questionrows[$key][$p] = M('exam','exam')->getQuestionRowsById($p);
 				}
 				$sargs['examsessionquestion'] = array('questionids'=>$questionids,'questions'=>$questions,'questionrows'=>$questionrows);
 				$sargs['examsessionsetting'] = $r;
@@ -356,7 +356,7 @@ class action extends app
 				$sargs['examsessionkey'] = $examid;
 				$sargs['examsessionissave'] = 0;
 				$sargs['examsessionsign'] = '';
-				$sargs['examsessionuserid'] = $this->_user['sessionuserid'];
+				$sargs['examsessionuserid'] = $this->user['userid'];
 			}
 			elseif($r['examtype'] == 2)
 			{
@@ -368,14 +368,14 @@ class action extends app
 					$qrids = '';
 					if($p['questions'])$qids = trim($p['questions']," ,");
 					if($qids)
-					$questions[$key] = $this->exam->getQuestionListByIds($qids);
+					$questions[$key] = M('exam','exam')->getQuestionListByIds($qids);
 					if($p['rowsquestions'])$qrids = trim($p['rowsquestions']," ,");
 					if($qrids)
 					{
 						$qrids = explode(",",$qrids);
 						foreach($qrids as $t)
 						{
-							$qr = $this->exam->getQuestionRowsById($t);
+							$qr = M('exam','exam')->getQuestionRowsById($t);
 							if($qr)
 							$questionrows[$key][$t] = $qr;
 						}
@@ -395,7 +395,7 @@ class action extends app
 				$args['examsessionkey'] = $r['examid'];
 				$args['examsessionissave'] = 0;
 				$args['examsessionbasic'] = $this->data['currentbasic']['basicid'];
-				$args['examsessionuserid'] = $this->_user['sessionuserid'];
+				$args['examsessionuserid'] = $this->user['userid'];
 				$sargs = $args;
 			}
 			else
@@ -414,13 +414,13 @@ class action extends app
 				$args['examsessionkey'] = $r['examid'];
 				$args['examsessionissave'] = 0;
 				$args['examsessionbasic'] = $this->data['currentbasic']['basicid'];
-				$args['examsessionuserid'] = $this->_user['sessionuserid'];
+				$args['examsessionuserid'] = $this->user['userid'];
 				$sargs = $args;
 			}
 			$sargs['examsessiontoken'] = uniqid();
 			$sargs['examsessionid'] = md5(serialize($sargs));
-			$token = md5($sargs['examsessionid'].'-'.$this->_user['sessionuserid'].'-'.$sargs['examsessiontoken']);
-			$this->exam->insertExamSession($sargs);
+			$token = md5($sargs['examsessionid'].'-'.$this->user['userid'].'-'.$sargs['examsessiontoken']);
+			M('exam','exam')->insertExamSession($sargs);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "抽题完毕，转入试卷页面",
@@ -433,16 +433,16 @@ class action extends app
 
 	public function index()
 	{
-        $page = $this->ev->get('page');
+        $page = M('ev')->get('page');
 		$ids = trim($this->data['currentbasic']['basicexam']['self'],', ');
 		if(!$ids)$ids = '0';
-		$exams = $this->exam->getExamSettingList(array(array("AND","find_in_set(examid,:examid)",'examid',$ids)),$page,20);
-        $sessionvars = $this->exam->getExamSessionByUserid($this->_user['sessionuserid'],$this->data['currentbasic']['basicid']);
+		$exams = M('exam','exam')->getExamSettingList(array(array("AND","find_in_set(examid,:examid)",'examid',$ids)),$page,20);
+        $sessionvars = M('exam','exam')->getExamSessionByUserid($this->user['userid'],$this->data['currentbasic']['basicid']);
 		if($sessionvars)
 		{
-			$token = md5($sessionvars['examsessionid'].'-'.$this->_user['sessionuserid'].'-'.$sessionvars['examsessiontoken']);
-			$this->tpl->assign('sessionvars',$sessionvars);
-			$this->tpl->assign('token',$token);
+			$token = md5($sessionvars['examsessionid'].'-'.$this->user['userid'].'-'.$sessionvars['examsessiontoken']);
+			M('tpl')->assign('sessionvars',$sessionvars);
+			M('tpl')->assign('token',$token);
 		}
         $number = array();
         if($ids)
@@ -450,20 +450,20 @@ class action extends app
             $ids = explode(',',$ids);
             foreach($ids as $t)
             {
-                $num = $this->favor->getExamUseNumber($this->_user['sessionuserid'],$t,$this->data['currentbasic']['basicid'],$this->data['currentbasic']['basicexam']['batch']);
+                $num = M('favor','exam')->getExamUseNumber($this->user['userid'],$t,$this->data['currentbasic']['basicid'],$this->data['currentbasic']['basicexam']['batch']);
                 $number['child'][$t] = $num;
                 $number['all'] = intval($number['all'])+$num;
             }
         }
-        $this->tpl->assign('number',$number);
-		$this->tpl->assign('exams',$exams);
+        M('tpl')->assign('number',$number);
+		M('tpl')->assign('exams',$exams);
 		if($this->data['currentbasic']['basicexam']['faceverify'])
 		{
-			$this->tpl->display('examverify');
+			M('tpl')->display('examverify');
 		}
 		else
 		{
-			$this->tpl->display('exam');
+			M('tpl')->display('exam');
 		}
 	}
 }

@@ -3,13 +3,6 @@ namespace PHPEMS\bank;
 use function \PHPEMS\M;
 class coupon
 {
-	public $db;
-
-	public function __construct($parms = 'default')
-	{
-		$this->db = M('pepdo');
-	}
-
 	public function getCouponList($args,$page,$number = 10)
 	{
 		$data = array(
@@ -18,36 +11,36 @@ class coupon
 			'query' => $args,
 			'orderby' => 'couponaddtime DESC'
 		);
-		return $this->db->listElements($page,$number,$data);
+		return M('pepdo')->listElements($page,$number,$data);
 	}
 
 	public function clearOutTimeCoupon()
 	{
-		return $this->db->delElement(array('table' => 'coupon','query' => array(array("AND","couponendtime <= :couponendtime",'couponendtime',TIME))));
+		return M('pepdo')->delElement(array('table' => 'coupon','query' => array(array("AND","couponendtime <= :couponendtime",'couponendtime',TIME))));
 	}
 
 	public function delCoupon($id)
 	{
-		return $this->db->delElement(array('table' => 'coupon','query' => array(array("AND","couponsn = :couponsn",'couponsn',$id))));
+		return M('pepdo')->delElement(array('table' => 'coupon','query' => array(array("AND","couponsn = :couponsn",'couponsn',$id))));
 	}
 
 	public function addCoupon($args)
 	{
-		return $this->db->insertElement(array('table' => 'coupon','query' => $args));
+		return M('pepdo')->insertElement(array('table' => 'coupon','query' => $args));
 	}
 
 	public function getCouponById($id)
 	{
 		$data = array(false,'coupon',array(array("AND","couponsn = :couponsn",'couponsn',$id)));
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql);
 	}
 
 	public function getAllOKCoupon($stime,$etime)
 	{
 		$data = array('couponsn,couponvalue','coupon',array(array("AND","couponaddtime >= :couponaddstime",'couponaddstime',$stime),array("AND","couponaddtime <= :couponaddetime",'couponaddetime',$etime),array("AND","couponstatus = 0")),false,false,false);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetchAll($sql);
 	}
 
 	public function useCouponById($id,$userid)
@@ -68,8 +61,8 @@ class coupon
             $user->modifyUserInfo($userid,$args);
 			$args = array('couponstatus' => 1,'couponusername' => $u['username'],'couponusetime' => TIME);
 			$data = array('coupon',$args,array(array("AND","couponsn = :couponsn",'couponsn',$id)));
-			$sql = $this->db->makeUpdate($data);
-			$this->db->exec($sql);
+			$sql = M('pepdo')->makeUpdate($data);
+			M('pepdo')->exec($sql);
 			return 200;
 		}
 	}

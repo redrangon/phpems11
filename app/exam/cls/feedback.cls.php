@@ -3,12 +3,6 @@ namespace PHPEMS\exam;
 use function \PHPEMS\M;
 class feedback
 {
-	public $db;
-	public function __construct()
-	{
-		$this->db = M('pepdo');
-	}
-
 	//获取试题反馈列表
 	//参数：
 	//返回值：地区列表
@@ -20,16 +14,16 @@ class feedback
 			'query' => $args,
 			'orderby' => 'fbid desc'
 		);
-		return $this->db->listElements($page,$number,$data);
+		return M('pepdo')->listElements($page,$number,$data);
 	}
 
 	public function addFeedBack($args)
 	{
 		$args['fbtime'] = TIME;
 		$data = array('feedback',$args);
-		$sql = $this->db->makeInsert($data);
-		$this->db->exec($sql);
-		return $this->db->lastInsertId();
+		$sql = M('pepdo')->makeInsert($data);
+		M('pepdo')->exec($sql);
+		return M('pepdo')->lastInsertId();
 	}
 
 	//根据地名查询
@@ -38,8 +32,8 @@ class feedback
 	public function getFeedBackById($id)
 	{
 		$data = array(false,'feedback',array(array("AND","fbid = :fbid",'fbid',$id)),false,false,false);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql);
 	}
 
 	//根据ID获取地名信息
@@ -48,8 +42,8 @@ class feedback
 	public function modifyFeedBackById($id,$args)
 	{
 		$data = array('feedback',$args,array(array("AND","fbid = :fbid",'fbid',$id)));
-		$sql = $this->db->makeUpdate($data);
-		return $this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		return M('pepdo')->exec($sql);
 	}
 
 	//修改地名信息
@@ -58,8 +52,8 @@ class feedback
 	public function delFeedBack($id)
 	{
 		$data = array('feedback',array(array("AND","fbid = :fbid",'fbid',$id)));
-		$sql = $this->db->makeDelete($data);
-		return $this->db->exec($sql);
+		$sql = M('pepdo')->makeDelete($data);
+		return M('pepdo')->exec($sql);
 	}
 }
 

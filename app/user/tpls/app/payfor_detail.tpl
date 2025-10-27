@@ -59,11 +59,7 @@
 										<a class="btn btn-primary" href="{x2;$order['orderbill']}">下载发票</a>
 										{x2;endif}
 										{x2;if:$order['orderstatus'] == 1}
-										{x2;if:PAYJSASWX == 'YES'}
-										<a class="btn btn-info" href="index.php?user-app-payfor-payjs&ordersn={x2;$order['ordersn']}" target="_blank">微信支付</a>
-										{x2;else}
 										<a class="btn btn-success" href="index.php?user-app-payfor-wxpay&ordersn={x2;$order['ordersn']}" target="_blank">微信支付</a>
-										{x2;endif}
 										<a class="btn btn-primary ajax" href="index.php?user-app-payfor-alipay&ordersn={x2;$order['ordersn']}">支付宝支付</a>
 										{x2;else}
 										{x2;if:$order['orderstatus'] == 3}
@@ -99,11 +95,7 @@
 										{x2;endif}
 										{x2;if:$order['orderstatus'] == 1}
 										{x2;if:WXPAY}
-										{x2;if:PAYJSASWX == 'YES'}
-										<a class="btn btn-info" href="index.php?user-app-payfor-payjs&ordersn={x2;$order['ordersn']}" target="_blank">微信支付</a>
-										{x2;else}
 										<a class="btn btn-success" href="index.php?user-app-payfor-wxpay&ordersn={x2;$order['ordersn']}" target="_blank">微信支付</a>
-										{x2;endif}
 										{x2;endif}
 										{x2;if:ALIPAY}
 										<a class="btn btn-primary ajax" href="index.php?user-app-payfor-alipay&ordersn={x2;$order['ordersn']}">支付宝支付</a>

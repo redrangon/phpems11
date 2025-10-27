@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,8 +19,8 @@ class action extends app
 
 	private function getActorsByModule()
 	{
-		$moduleid = $this->ev->get('moduleid');
-		$actors = $this->user->getGroupsByModuleid($moduleid);
+		$moduleid = M('ev')->get('moduleid');
+		$actors = M('user','user')->getGroupsByModuleid($moduleid);
 		foreach($actors as $actor)
 		{
 			echo '<option value="'.$actor['groupid'].'">'.$actor['groupname'].'</option>';

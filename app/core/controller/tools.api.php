@@ -12,7 +12,7 @@ class action extends app
 	public function display()
 	{
         $this->area = M('area');
-	    $action = $this->ev->url(3);
+	    $action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -23,7 +23,7 @@ class action extends app
     {
         $provinces = $this->area->getProvinces();
         echo "<option value=\"\">请选择省</option>\n";
-        $current = $this->ev->get('current');
+        $current = M('ev')->get('current');
         foreach($provinces as $province)
         {
             if($province['provinceid'] == $current)
@@ -35,8 +35,8 @@ class action extends app
 
     private function getAjaxCity()
     {
-        $pid = $this->ev->get('pid');
-        $current = $this->ev->get('current');
+        $pid = M('ev')->get('pid');
+        $current = M('ev')->get('current');
         if($current && !$pid)
         {
             $ccity = $this->area->getCityById($current);
@@ -58,8 +58,8 @@ class action extends app
 
     private function getAjaxCityArea()
     {
-        $cid = $this->ev->get('cid');
-        $current = $this->ev->get('current');
+        $cid = M('ev')->get('cid');
+        $current = M('ev')->get('current');
         if($current && !$cid)
         {
             $ccity = $this->area->getCityAreaById($current);

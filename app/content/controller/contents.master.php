@@ -8,20 +8,23 @@
  */
 class action extends app
 {
+	public $search;
+	public $u;
+	
 	public function display()
 	{
-		$action = $this->ev->url(3);
-		$search = $this->ev->get('search');
+		$action = M('ev')->url(3);
+		$this->search = M('ev')->get('search');
 		$this->u = '';
-		if($search)
+		if($this->search)
 		{
-			$this->tpl->assign('search',$search);
-			foreach($search as $key => $arg)
+			M('tpl')->assign('search',$this->search);
+			foreach($this->search as $key => $arg)
 			{
 				$this->u .= "&search[{$key}]={$arg}";
 			}
+			M('tpl')->assign('u',$this->u);
 		}
-		$this->tpl->assign('search',$search);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -30,30 +33,30 @@ class action extends app
 
 	private function catsmenu()
 	{
-        $catid = $this->ev->get('catid');
-		$categories = $this->category->getAllCategory();
+        $catid = M('ev')->get('catid');
+		$categories = M('category')->getAllCategory();
         $r = array();
-        $this->category->selected = $catid;
-        $this->category->hrefpre = 'index.php?content-master-contents&catid=';
-        $this->category->levelCategory($r,0,$this->category->tidycategories);
-        $this->category->resetCategoryIndex($r);
+        M('category')->selected = $catid;
+        M('category')->hrefpre = 'index.php?content-master-contents&catid=';
+        M('category')->levelCategory($r,0,M('category')->tidycategories);
+        M('category')->resetCategoryIndex($r);
         echo json_encode($r,JSON_UNESCAPED_UNICODE);
         exit();
 	}
 
 	private function add()
 	{
-		if($this->ev->get('submit'))
+		if(M('ev')->get('submit'))
 		{
-			$args = $this->ev->get('args');
-			$args['contentuserid'] = $this->_user['sessionuserid'];
+			$args = M('ev')->get('args');
+			$args['contentuserid'] = $this->user['userid'];
 			$args['contentusername'] = $this->_user['sessionusername'];
 			if(!$args['contentinputtime'])$args['contentinputtime'] = TIME;
 			else
 			$args['contentinputtime'] = strtotime($args['contentinputtime']);
-			$group = $this->user->getGroupById($this->_user['sessiongroupid']);
-			$args = $this->module->tidyNeedFieldsPars($args,$args['contentmoduleid'],1);
-			$id = $this->content->addContent($args);
+			$group = M('user','user')->getGroupById($this->_user['sessiongroupid']);
+			$args = M('module')->tidyNeedFieldsPars($args,$args['contentmoduleid'],1);
+			$id = M('content','content')->addContent($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -64,44 +67,44 @@ class action extends app
 		}
 		else
 		{
-			$catid = intval($this->ev->get('catid'));
-            $moduleid = intval($this->ev->get('moduleid'));
-			$parentcat = $this->category->getCategoriesByArgs(array(array("AND","catparent = 0"),array("AND","catapp = 'content'")));
-			$modules = $this->module->getModulesByApp(\PHPEMS\ginkgo::$app);
-            $fields = $this->module->getMoudleFields($moduleid,1);
-            $forms = $this->html->buildHtml($fields);
+			$catid = intval(M('ev')->get('catid'));
+            $moduleid = intval(M('ev')->get('moduleid'));
+			$parentcat = M('category')->getCategoriesByArgs(array(array("AND","catparent = 0"),array("AND","catapp = 'content'")));
+			$modules = M('module')->getModulesByApp(\PHPEMS\ginkgo::$app);
+            $fields = M('module')->getMoudleFields($moduleid,1);
+            $forms = M('html')->buildHtml($fields);
 			$tpls = array();
 			foreach(glob("app/content/tpls/app/content_*.tpl") as $p)
 			{
 				$tpls[] = substr(basename($p),0,-4);
 			}
-			$this->tpl->assign('moduleid',$moduleid);
-            $this->tpl->assign('forms',$forms);
-            $this->tpl->assign('tpls',$tpls);
-			$this->tpl->assign('modules',$modules);
-			$this->tpl->assign('parentcat',$parentcat);
-			$this->tpl->assign('catid',$catid);
-			$this->tpl->display('content_add');
+			M('tpl')->assign('moduleid',$moduleid);
+            M('tpl')->assign('forms',$forms);
+            M('tpl')->assign('tpls',$tpls);
+			M('tpl')->assign('modules',$modules);
+			M('tpl')->assign('parentcat',$parentcat);
+			M('tpl')->assign('catid',$catid);
+			M('tpl')->display('content_add');
 		}
 	}
 
 	private function edit()
 	{
-		$page = intval($this->ev->get('page'));
-		if($this->ev->get('submit'))
+		$page = intval(M('ev')->get('page'));
+		if(M('ev')->get('submit'))
 		{
-			$contentid = intval($this->ev->get('contentid'));
-			$content = $this->content->getContentById($contentid);
-			$args = $this->ev->get('args');
+			$contentid = intval(M('ev')->get('contentid'));
+			$content = M('content','content')->getContentById($contentid);
+			$args = M('ev')->get('args');
 			if(!$args['contentinputtime'])$args['contentinputtime'] = TIME;
 			else
 			$args['contentinputtime'] = strtotime($args['contentinputtime']);
 			$args['contentmodifytime'] = TIME;
 			unset($args['contentcatid']);
-			$group = $this->user->getGroupById($this->_user['sessiongroupid']);
-			$args = $this->module->tidyNeedFieldsPars($args,$content['contentmoduleid'],1);
-			$this->content->modifyContent($contentid,$args);
-            $this->position->modifyPosContentByContentId($contentid,array('pctitle' => $args['contenttitle'],'pcthumb' => $args['contentthumb'],'pcdescribe' => $args['contentdescribe']),'content');
+			$group = M('user','user')->getGroupById($this->_user['sessiongroupid']);
+			$args = M('module')->tidyNeedFieldsPars($args,$content['contentmoduleid'],1);
+			M('content','content')->modifyContent($contentid,$args);
+            M('position','content')->modifyPosContentByContentId($contentid,array('pctitle' => $args['contenttitle'],'pcthumb' => $args['contentthumb'],'pcdescribe' => $args['contentdescribe']),'content');
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -112,38 +115,38 @@ class action extends app
 		}
 		else
 		{
-			$catid = intval($this->ev->get('catid'));
-			$cat = $this->category->getCategoryById($catid);
-			$contentid = intval($this->ev->get('contentid'));
-			$content = $this->content->getContentById($contentid);
-			$userid = $this->_user['sessionuserid'];
-			$user = $this->user->getUserById($userid);
-			$group = $this->user->getGroupById($user['usergroupid']);
-			$fields = $this->module->getMoudleFields($content['contentmoduleid'],1);
-			$forms = $this->html->buildHtml($fields,$content);
+			$catid = intval(M('ev')->get('catid'));
+			$cat = M('category')->getCategoryById($catid);
+			$contentid = intval(M('ev')->get('contentid'));
+			$content = M('content','content')->getContentById($contentid);
+			$userid = $this->user['userid'];
+			$user = M('user','user')->getUserById($userid);
+			$group = M('user','user')->getGroupById($user['usergroupid']);
+			$fields = M('module')->getMoudleFields($content['contentmoduleid'],1);
+			$forms = M('html')->buildHtml($fields,$content);
 			$tpls = array();
 			foreach(glob("app/content/tpls/app/content_*.tpl") as $p)
 			{
 				$tpls[] = substr(basename($p),0,-4);
 			}
-			$this->tpl->assign('tpls',$tpls);
-			$this->tpl->assign('fields',$fields);
-			$this->tpl->assign('catid',$catid);
-			$this->tpl->assign('cat',$cat);
-			$this->tpl->assign('contentid',$contentid);
-			$this->tpl->assign('content',$content);
-			$this->tpl->assign('page',$page);
-			$this->tpl->assign('forms',$forms);
-			$this->tpl->display('content_edit');
+			M('tpl')->assign('tpls',$tpls);
+			M('tpl')->assign('fields',$fields);
+			M('tpl')->assign('catid',$catid);
+			M('tpl')->assign('cat',$cat);
+			M('tpl')->assign('contentid',$contentid);
+			M('tpl')->assign('content',$content);
+			M('tpl')->assign('page',$page);
+			M('tpl')->assign('forms',$forms);
+			M('tpl')->display('content_edit');
 		}
 	}
 
 	private function del()
 	{
-		$page = intval($this->ev->get('page'));
-		$contentid = intval($this->ev->get('contentid'));
-		$content = $this->content->getContentById($contentid);
-		$this->content->delContent($contentid);
+		$page = intval(M('ev')->get('page'));
+		$contentid = intval(M('ev')->get('contentid'));
+		$content = M('content','content')->getContentById($contentid);
+		M('content','content')->delContent($contentid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -157,71 +160,71 @@ class action extends app
 
 	private function lite()
 	{
-		$catid = $this->ev->get('catid');
-		$page = $this->ev->get('page');
-		$this->tpl->assign('catid',$catid);
-		$this->tpl->assign('page',$page);
-		if($this->ev->get('modifycontentsequence'))
+		$catid = M('ev')->get('catid');
+		$page = M('ev')->get('page');
+		M('tpl')->assign('catid',$catid);
+		M('tpl')->assign('page',$page);
+		if(M('ev')->get('modifycontentsequence'))
 		{
-			if($this->ev->get('action') == 'delete')
+			if(M('ev')->get('action') == 'delete')
 			{
-				$ids = $this->ev->get('delids');
+				$ids = M('ev')->get('delids');
 				foreach($ids as $key => $id)
 				{
-					$this->content->delContent($key);
+					M('content','content')->delContent($key);
 				}
 			}
-			elseif($this->ev->get('action') == 'movecategory')
+			elseif(M('ev')->get('action') == 'movecategory')
 			{
 				$contentids = array();
-				$ids = $this->ev->get('delids');
+				$ids = M('ev')->get('delids');
 				foreach($ids as $key => $id)
 				{
 					if($key)$contentids[] = $key;
 				}
 				$contentids = implode(',',$contentids);
-				$parentcat = $this->category->getCategoriesByArgs(array(array("AND","catparent = 0"),array("AND","catapp = 'content'")));
-				$this->tpl->assign('parentcat',$parentcat);
-				$this->tpl->assign('contentids',$contentids);
-				$this->tpl->display('content_move');
+				$parentcat = M('category')->getCategoriesByArgs(array(array("AND","catparent = 0"),array("AND","catapp = 'content'")));
+				M('tpl')->assign('parentcat',$parentcat);
+				M('tpl')->assign('contentids',$contentids);
+				M('tpl')->display('content_move');
 				exit;
 			}
-			elseif($this->ev->get('action') == 'copycategory')
+			elseif(M('ev')->get('action') == 'copycategory')
 			{
 				$contentids = array();
-				$ids = $this->ev->get('delids');
+				$ids = M('ev')->get('delids');
 				foreach($ids as $key => $id)
 				{
 					if($key)$contentids[] = $key;
 				}
 				$contentids = implode(',',$contentids);
-				$parentcat = $this->category->getCategoriesByArgs(array(array("AND","catparent = 0"),array("AND","catapp = 'content'")));
-				$this->tpl->assign('parentcat',$parentcat);
-				$this->tpl->assign('contentids',$contentids);
-				$this->tpl->display('content_copy');
+				$parentcat = M('category')->getCategoriesByArgs(array(array("AND","catparent = 0"),array("AND","catapp = 'content'")));
+				M('tpl')->assign('parentcat',$parentcat);
+				M('tpl')->assign('contentids',$contentids);
+				M('tpl')->display('content_copy');
 				exit;
 			}
-			elseif($this->ev->get('action') == 'moveposition')
+			elseif(M('ev')->get('action') == 'moveposition')
 			{
 				$contentids = array();
-				$ids = $this->ev->get('delids');
+				$ids = M('ev')->get('delids');
 				foreach($ids as $key => $id)
 				{
 					if($key)$contentids[] = $key;
 				}
 				$contentids = implode(',',$contentids);
-				$poses = $this->position->getPosList();
-				$this->tpl->assign('poses',$poses);
-				$this->tpl->assign('contentids',$contentids);
-				$this->tpl->display('content_position');
+				$poses = M('position','content')->getPosList();
+				M('tpl')->assign('poses',$poses);
+				M('tpl')->assign('contentids',$contentids);
+				M('tpl')->display('content_position');
 				exit;
 			}
 			else
 			{
-				$ids = $this->ev->get('ids');
+				$ids = M('ev')->get('ids');
 				foreach($ids as $key => $id)
 				{
-					$this->content->modifyBasciContent($key,array('contentsequence' => $id));
+					M('content','content')->modifyBasciContent($key,array('contentsequence' => $id));
 				}
 			}
 			$message = array(
@@ -232,19 +235,19 @@ class action extends app
 			);
 			\PHPEMS\ginkgo::R($message);
 		}
-		elseif($this->ev->get('movecposition'))
+		elseif(M('ev')->get('movecposition'))
 		{
-			$contentids = explode(',',$this->ev->get('contentids'));
-			$position = $this->ev->get('position');
+			$contentids = explode(',',M('ev')->get('contentids'));
+			$position = M('ev')->get('position');
 			if($position)
 			{
 				foreach($contentids as $key => $id)
 				{
 					if($id)
 					{
-						$basic = $this->content->getBasicContentById($id);
+						$basic = M('content','content')->getBasicContentById($id);
 						$args = array('pctitle' => $basic['contenttitle'],'pctime' => $basic['contentinputtime'],'pcposapp' => 'content','pccontentid' => $id,'pcthumb' => $basic['contentthumb'],'pcdescribe' => $basic['contentdescribe'],'pcposid' => $position);
-						$this->position->addPosContent($args);
+						M('position','content')->addPosContent($args);
 					}
 				}
 				$message = array(
@@ -261,15 +264,15 @@ class action extends app
 			);
 			\PHPEMS\ginkgo::R($message);
 		}
-		elseif($this->ev->get('movecategory'))
+		elseif(M('ev')->get('movecategory'))
 		{
-			$contentids = explode(',',$this->ev->get('contentids'));
-			$targetcatid = $this->ev->get('targetcatid');
+			$contentids = explode(',',M('ev')->get('contentids'));
+			$targetcatid = M('ev')->get('targetcatid');
 			if($targetcatid)
 			{
 				foreach($contentids as $key => $id)
 				{
-					if($id)$this->content->modifyBasciContent($id,array('contentcatid' => $targetcatid));
+					if($id)M('content','content')->modifyBasciContent($id,array('contentcatid' => $targetcatid));
 				}
 				$message = array(
 					'statusCode' => 200,
@@ -285,22 +288,22 @@ class action extends app
 			);
 			\PHPEMS\ginkgo::R($message);
 		}
-		elseif($this->ev->get('copycategory'))
+		elseif(M('ev')->get('copycategory'))
 		{
-			$contentids = explode(',',$this->ev->get('contentids'));
-			$targetcatid = $this->ev->get('targetcatid');
+			$contentids = explode(',',M('ev')->get('contentids'));
+			$targetcatid = M('ev')->get('targetcatid');
 			if($targetcatid)
 			{
 				foreach($contentids as $key => $id)
 				{
 					if($id)
 					{
-						$content = $this->content->getBasicContentById($id);
+						$content = M('content','content')->getBasicContentById($id);
 						$args = array('contentcatid' => $targetcatid,'contenttitle' => $content['contenttitle'],'contentmoduleid' => $content['contentmoduleid'],'contentthumb' => $content['contentthumb'],'contentlink' => 'index.php?content-app-content&contentid='.$content['contentid']);
-						$args['contentuserid'] = $this->_user['sessionuserid'];
+						$args['contentuserid'] = $this->user['userid'];
 						$args['contentusername'] = $this->_user['sessionusername'];
 						$args['contentinputtime'] = TIME;
-						$this->content->addContent($args);
+						M('content','content')->addContent($args);
 					}
 				}
 				$message = array(
@@ -329,62 +332,60 @@ class action extends app
 
 	private function addpage()
 	{
-        $modules = $this->module->getModulesByApp(\PHPEMS\ginkgo::$app);
-        $this->tpl->assign('modules',$modules);
-		$this->tpl->display('addpage');
+        $modules = M('module')->getModulesByApp(\PHPEMS\ginkgo::$app);
+        M('tpl')->assign('modules',$modules);
+		M('tpl')->display('addpage');
 	}
 
 	private function index()
 	{
-		$search = $this->ev->get('search');
-		$catid = intval($this->ev->get('catid'));
-		$page = intval($this->ev->get('page'));
-		$page = $page?$page:1;
-		if(!$catid)$catid = $search['contentcatid'];
-		$categories = $this->category->getAllCategory();
-		$parentcat = $this->category->getCategoriesByArgs(array(array("AND","catparent = 0"),array("AND","catapp = 'content'")));
+		$catid = intval(M('ev')->get('catid'));
+		$page = intval(M('ev')->get('page'));
+		if(!$catid)$catid = $this->search['contentcatid'];
+		$categories = M('category')->getAllCategory();
+		$parentcat = M('category')->getCategoriesByArgs(array(array("AND","catparent = 0"),array("AND","catapp = 'content'")));
 		if($catid)
 		{
-			$childstring = $this->category->getChildCategoryString($catid);
+			$childstring = M('category')->getChildCategoryString($catid);
 			$args = array(array("AND","find_in_set(contentcatid,:contentcatid)",'contentcatid',$childstring));
 		}
 		else $args = array();
-		if($search['contentid'])
+		if($this->search['contentid'])
 		{
-			$args[] = array("AND","contentid = :contentid",'contentid',$search['contentid']);
+			$args[] = array("AND","contentid = :contentid",'contentid',$this->search['contentid']);
 		}
 		else
 		{
-			if($search['contentcatid'])$args[] = array("AND","contentcatid = :contentcatid",'contentcatid',$search['contentcatid']);
-			if($search['contentmoduleid'])$args[] = array("AND","contentmoduleid = :contentmoduleid",'contentmoduleid',$search['contentmoduleid']);
-			if($search['stime'])$args[] = array("AND","contentinputtime >= :scontentinputtime",'scontentinputtime',strtotime($search['stime']));
-			if($search['etime'])$args[] = array("AND","contentinputtime <= :econtentinputtime",'econtentinputtime',strtotime($search['etime']));
-			if($search['keyword'])$args[] = array("AND","contenttitle LIKE :contenttitle",'contenttitle',"%{$search['keyword']}%");
-			if($search['username'])
+			if($this->search['contentcatid'])$args[] = array("AND","contentcatid = :contentcatid",'contentcatid',$this->search['contentcatid']);
+			if($this->search['contentmoduleid'])$args[] = array("AND","contentmoduleid = :contentmoduleid",'contentmoduleid',$this->search['contentmoduleid']);
+			if($this->search['stime'])$args[] = array("AND","contentinputtime >= :scontentinputtime",'scontentinputtime',strtotime($this->search['stime']));
+			if($this->search['etime'])$args[] = array("AND","contentinputtime <= :econtentinputtime",'econtentinputtime',strtotime($this->search['etime']));
+			if($this->search['keyword'])$args[] = array("AND","contenttitle LIKE :contenttitle",'contenttitle',"%{$this->search['keyword']}%");
+			if($this->search['username'])
 			{
-				$user = $this->user->getUserByUserName($search['username']);
+				$user = M('user','user')->getUserByUserName($this->search['username']);
 				$args[] = array("AND","contentuserid = :contentuserid",'contentuserid',$user['userid']);
 			}
 		}
-		$contents = $this->content->getContentList($args,$page,10);
-		$modules = $this->module->getModulesByApp(\PHPEMS\ginkgo::$app);
+		$contents = M('content','content')->getContentList($args,$page,10);
+		$modules = M('module')->getModulesByApp(\PHPEMS\ginkgo::$app);
 		$catlevel = 1;
 		if($catid)
 		{
-            $pos = $this->category->getCategoryPos($catid);
+            $pos = M('category')->getCategoryPos($catid);
             if(count($pos))
 			{
 				$catlevel = count($pos) + 1;
 			}
 		}
-        $this->tpl->assign('catlevel',$catlevel);
-		$this->tpl->assign('modules',$modules);
-		$this->tpl->assign('catid',$catid);
-		$this->tpl->assign('contents',$contents);
-		$this->tpl->assign('parentcat',$parentcat);
-		$this->tpl->assign('categories',$categories);
-		$this->tpl->assign('page',$page);
-		$this->tpl->display('content');
+        M('tpl')->assign('catlevel',$catlevel);
+		M('tpl')->assign('modules',$modules);
+		M('tpl')->assign('catid',$catid);
+		M('tpl')->assign('contents',$contents);
+		M('tpl')->assign('parentcat',$parentcat);
+		M('tpl')->assign('categories',$categories);
+		M('tpl')->assign('page',$page);
+		M('tpl')->display('content');
 	}
 }
 

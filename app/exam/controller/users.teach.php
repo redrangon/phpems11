@@ -10,19 +10,19 @@ class action extends app
 {
 	public function display()
 	{
-		$this->module = M('module');
-		$action = $this->ev->url(3);
-		$search = $this->ev->get('search');
+		M('module') = M('module');
+		$action = M('ev')->url(3);
+		$search = M('ev')->get('search');
 		$u = '';
 		if($search)
 		{
-			$this->tpl->assign('search',$search);
+			M('tpl')->assign('search',$search);
 			foreach($search as $key => $arg)
 			{
 				$u .= "&search[{$key}]={$arg}";
 			}
 		}
-		$this->tpl->assign('u',$u);
+		M('tpl')->assign('u',$u);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -31,22 +31,22 @@ class action extends app
 
 	private function resetinfo()
 	{
-		$ehid = $this->ev->get('ehid');
-		$logs = $this->favor->getAllExamHistoryLogByArgs(array(array("AND","ehlehid = :ehlehid","ehlehid",$ehid)));
-		$this->tpl->assign('logs',$logs);
-		$this->tpl->display('users_ajax_resetinfo');
+		$ehid = M('ev')->get('ehid');
+		$logs = M('favor','exam')->getAllExamHistoryLogByArgs(array(array("AND","ehlehid = :ehlehid","ehlehid",$ehid)));
+		M('tpl')->assign('logs',$logs);
+		M('tpl')->display('users_ajax_resetinfo');
 	}
 
 	private function stats()
 	{
-		$search = $this->ev->get('search');
-		$page = $this->ev->get('page');
+		$search = M('ev')->get('search');
+		$page = M('ev')->get('page');
 		if($page < 1)$page = 1;
-		$this->tpl->assign('page',$page);
+		M('tpl')->assign('page',$page);
 		$args = array();
-		$basicid = $this->ev->get('basicid');
-		$type = $this->ev->get('type');
-		$this->tpl->assign('type',$type);
+		$basicid = M('ev')->get('basicid');
+		$type = M('ev')->get('type');
+		M('tpl')->assign('type',$type);
 		$args[] =  array('AND',"ehbasicid = :ehbasicid",'ehbasicid',$basicid);
 		if($search['stime'])
 		{
@@ -70,13 +70,13 @@ class action extends app
 		{
 			$args[] = array('AND',"ehexamid = :ehexamid",'ehexamid',$search['examid']);
 		}
-		$rs = $this->favor->getStatsAllExamHistoryByArgs($args);
+		$rs = M('favor','exam')->getStatsAllExamHistoryByArgs($args);
 		$number = count($rs);
 		$stats = array();
 		if(!$type)
 		{
 			$os = array('A','B','C','D','E','F','G','H');
-			$questiontype = $this->basic->getQuestypeList();
+			$questiontype = M('basic','exam')->getQuestypeList();
 			foreach($rs as $p)
 			{
                 $p['ehquestion'] = unserialize(gzuncompress(base64_decode($p['ehquestion'])));
@@ -132,9 +132,9 @@ class action extends app
 			$start = $start >= 0?$start:0;
 			$tmp = array_slice($stats,$start * 20,20);
 			$pages = $this->pg->outPage($this->pg->getPagesNumber(count($stats),20),$page);
-			$this->tpl->assign('stats',array('data' => $tmp,'pages' => $pages));
-			$this->tpl->assign('basicid',$basicid);
-			$this->tpl->display('users_stats');
+			M('tpl')->assign('stats',array('data' => $tmp,'pages' => $pages));
+			M('tpl')->assign('basicid',$basicid);
+			M('tpl')->display('users_stats');
 		}
 		else
 		{
@@ -180,17 +180,17 @@ class action extends app
 			$start = $start >= 0?$start:0;
 			$tmp = array_slice($stats,$start * 20,20);
 			$pages = $this->pg->outPage($this->pg->getPagesNumber(count($stats),20),$page);
-			$this->tpl->assign('stats',array('data' => $tmp,'pages' => $pages));
-			$this->tpl->assign('basicid',$basicid);
-			$this->tpl->display('users_knowsstats');
+			M('tpl')->assign('stats',array('data' => $tmp,'pages' => $pages));
+			M('tpl')->assign('basicid',$basicid);
+			M('tpl')->display('users_knowsstats');
 		}
 	}
 
     private function outanswer()
     {
-        $search = $this->ev->get('search');
+        $search = M('ev')->get('search');
         $args = array();
-        $basicid = $this->ev->get('basicid');
+        $basicid = M('ev')->get('basicid');
         if($basicid)
         {
             $fname = 'data/score/'.TIME.'-'.$basicid.'-answer.csv';
@@ -221,7 +221,7 @@ class action extends app
                 $args[] = array('AND',"ehexamid = :ehexamid",'ehexamid',$search['examid']);
             }
             $sf = array('ehusername','useremail','usertruename','ehstarttime','ehtime','ehquestion','ehuseranswer');
-            $rs = $this->favor->getAllExamHistoryByArgs($args,$sf);
+            $rs = M('favor','exam')->getAllExamHistoryByArgs($args,$sf);
             $r = array();
             $index = array();
             $questions = array();
@@ -316,21 +316,21 @@ class action extends app
 	{
 		$appid = 'user';
 		$app = M('apps','core')->getApp($appid);
-		$this->tpl->assign('app',$app);
+		M('tpl')->assign('app',$app);
 		$fields = array();
 		$tpfields = explode(',',$app['appsetting']['outfields']);
 		foreach($tpfields as $f)
 		{
-			$tf = $this->module->getFieldByNameAndModuleid($f);
+			$tf = M('module')->getFieldByNameAndModuleid($f);
 			if($tf && $tf['fieldappid'] == 'user')
 			{
 				$fields[$tf['fieldid']] = $tf;
 			}
 		}
 
-		$search = $this->ev->get('search');
+		$search = M('ev')->get('search');
 		$args = array();
-		$basicid = $this->ev->get('basicid');
+		$basicid = M('ev')->get('basicid');
 		if($basicid)
 		{
 			$fname = 'data/score/'.TIME.'-'.$basicid.'-score.csv';
@@ -376,7 +376,7 @@ class action extends app
 			{
 				$sf[] = $p['field'];
 			}
-			$rs = $this->favor->getAllExamHistoryByArgs($args,$sf);
+			$rs = M('favor','exam')->getAllExamHistoryByArgs($args,$sf);
 			$r = array();
 			foreach($rs as $p)
 			{
@@ -410,25 +410,25 @@ class action extends app
 
 	private function readpaper()
 	{
-		$ehid = $this->ev->get('ehid');
-		$eh = $this->favor->getExamHistoryById($ehid);
-		$questype = $this->basic->getQuestypeList();
+		$ehid = M('ev')->get('ehid');
+		$eh = M('favor','exam')->getExamHistoryById($ehid);
+		$questype = M('basic','exam')->getQuestypeList();
 		$sessionvars = array('examsession'=>$eh['ehexam'],'examsessionscore'=>$eh['ehscore'],'examsessionscorelist'=>$eh['ehscorelist'],'examsessionsetting'=>$eh['ehsetting'],'examsessionquestion'=>$eh['ehquestion'],'examsessionuseranswer'=>$eh['ehuseranswer']);
-		$this->tpl->assign('eh',$eh);
-		$this->tpl->assign('user',$this->user->getUserById($eh['ehuserid']));
-		$this->tpl->assign('sessionvars',$sessionvars);
-		$this->tpl->assign('questype',$questype);
-		$this->tpl->display('exam_view');
+		M('tpl')->assign('eh',$eh);
+		M('tpl')->assign('user',M('user','user')->getUserById($eh['ehuserid']));
+		M('tpl')->assign('sessionvars',$sessionvars);
+		M('tpl')->assign('questype',$questype);
+		M('tpl')->display('exam_view');
 	}
 
 	private function makescore()
 	{
-		$questype = $this->basic->getQuestypeList();
-		$ehid = $this->ev->get('ehid');
-		$eh = $this->favor->getExamHistoryById($ehid);
-		if($this->ev->get('makescore'))
+		$questype = M('basic','exam')->getQuestypeList();
+		$ehid = M('ev')->get('ehid');
+		$eh = M('favor','exam')->getExamHistoryById($ehid);
+		if(M('ev')->get('makescore'))
 		{
-			if($eh['ehteacher'] != $this->_user['username'])
+			if($eh['ehteacher'] != $this->user['username'])
 			{
                 $message = array(
                     'statusCode' => 300,
@@ -436,7 +436,7 @@ class action extends app
                 );
                 \PHPEMS\ginkgo::R($message);
 			}
-			$score = $this->ev->get('score');
+			$score = M('ev')->get('score');
 			$sumscore = 0;
 			if(is_array($score))
 			{
@@ -454,8 +454,8 @@ class action extends app
 			$args['ehscore'] = $eh['ehscore'];
 			$args['ehstatus'] = 1;
 			if($eh['ehscore'] >= $eh['ehsetting']['examsetting']['passscore'])$args['ehispass'] = 1;
-			$this->favor->modifyExamHistory($ehid,$args);
-			$this->favor->addExamHistoryLog(array('ehlehid'=>$ehid,'ehluserid'=>$this->_user['userid'],'ehltype'=>1,'ehlinfo'=>'完成评卷'));
+			M('favor','exam')->modifyExamHistory($ehid,$args);
+			M('favor','exam')->addExamHistoryLog(array('ehlehid'=>$ehid,'ehluserid'=>$this->user['userid'],'ehltype'=>1,'ehlinfo'=>'完成评卷'));
 			$message = array(
 				'statusCode' => 200,
 				"message" => "评分完成",
@@ -468,41 +468,41 @@ class action extends app
 
 	private function score()
 	{
-		$ehid = $this->ev->get('ehid');
-		$sessionvars = $this->favor->getExamHistoryById($ehid);
+		$ehid = M('ev')->get('ehid');
+		$sessionvars = M('favor','exam')->getExamHistoryById($ehid);
 		if(!$sessionvars['ehstatus'] && !$sessionvars['ehteacher'])
 		{
             $args = array();
-            $sessionvars['ehteacher'] = $args['ehteacher'] = $this->_user['username'];
+            $sessionvars['ehteacher'] = $args['ehteacher'] = $this->user['username'];
             $sessionvars['ehdecidetime'] = $args['ehdecidetime'] = TIME;
-			$this->favor->modifyExamHistory($ehid,$args);
+			M('favor','exam')->modifyExamHistory($ehid,$args);
 		}
-		$questype = $this->basic->getQuestypeList();
-		$this->tpl->assign('ehid',$ehid);
-		$this->tpl->assign('sessionvars',$sessionvars);
-		$this->tpl->assign('questype',$questype);
-		$this->tpl->display('users_decide');
+		$questype = M('basic','exam')->getQuestypeList();
+		M('tpl')->assign('ehid',$ehid);
+		M('tpl')->assign('sessionvars',$sessionvars);
+		M('tpl')->assign('questype',$questype);
+		M('tpl')->display('users_decide');
 	}
 
 	private function scorelist()
 	{
 		$appid = 'user';
 		$app = M('apps','core')->getApp($appid);
-		$this->tpl->assign('app',$app);
+		M('tpl')->assign('app',$app);
 		$fields = array();
 		$tpfields = explode(',',$app['appsetting']['outfields']);
 		foreach($tpfields as $f)
 		{
-			$tf = $this->module->getFieldByNameAndModuleid($f);
+			$tf = M('module')->getFieldByNameAndModuleid($f);
 			if($tf && $tf['fieldappid'] == 'user')
 			{
 				$fields[$tf['fieldid']] = $tf;
 			}
 		}
-		$page = $this->ev->get('page');
-		$search = $this->ev->get('search');
-		$basicid = intval($this->ev->get('basicid'));
-		$basic = $this->basic->getBasicById($basicid);
+		$page = M('ev')->get('page');
+		$search = M('ev')->get('search');
+		$basicid = intval(M('ev')->get('basicid'));
+		$basic = M('basic','exam')->getBasicById($basicid);
 		$page = $page > 0?$page:1;
 		$args = array();
 		$args[] =  array('AND',"ehtype > 0");
@@ -544,25 +544,25 @@ class action extends app
 		}
 		if($search['order'])$order = null;
 		else $order = "ehid desc";
-		$exams = $this->favor->getExamHistoryListByArgs($args,$page,30,false,$order);
+		$exams = M('favor','exam')->getExamHistoryListByArgs($args,$page,30,false,$order);
 		$ids = trim($basic['basicexam']['self'],', ');
 		if(!$ids)$ids = '0';
-		$exampaper = $this->exam->getExamSettingsByArgs(array(array("AND","find_in_set(examid,:examid)",'examid',$ids)));
-		$this->tpl->assign('basicid',$basicid);
-		$this->tpl->assign('search',$search);
-		$this->tpl->assign('basic',$basic);
-		$this->tpl->assign('page',$page);
-		$this->tpl->assign('fields',$fields);
-		$this->tpl->assign('exampaper',$exampaper);
-		$this->tpl->assign('exams',$exams);
-		$this->tpl->display('users_scorelist');
+		$exampaper = M('exam','exam')->getExamSettingsByArgs(array(array("AND","find_in_set(examid,:examid)",'examid',$ids)));
+		M('tpl')->assign('basicid',$basicid);
+		M('tpl')->assign('search',$search);
+		M('tpl')->assign('basic',$basic);
+		M('tpl')->assign('page',$page);
+		M('tpl')->assign('fields',$fields);
+		M('tpl')->assign('exampaper',$exampaper);
+		M('tpl')->assign('exams',$exams);
+		M('tpl')->display('users_scorelist');
 	}
 
 	private function setresit()
 	{
-		$ehid = $this->ev->get('ehid');
-		$this->favor->modifyExamHistory($ehid,array('ehneedresit' => 1));
-		$this->favor->addExamHistoryLog(array('ehlehid'=>$ehid,'ehluserid'=>$this->_user['userid'],'ehltype'=>3,'ehlinfo'=>'要求补考'));
+		$ehid = M('ev')->get('ehid');
+		M('favor','exam')->modifyExamHistory($ehid,array('ehneedresit' => 1));
+		M('favor','exam')->addExamHistoryLog(array('ehlehid'=>$ehid,'ehluserid'=>$this->user['userid'],'ehltype'=>3,'ehlinfo'=>'要求补考'));
 		$message = array(
 			'statusCode' => 200,
 			"message" => "设置成功",
@@ -574,22 +574,22 @@ class action extends app
 
 	private function exams()
 	{
-		$page = $this->ev->get('page');
-		$basicid = intval($this->ev->get('basicid'));
+		$page = M('ev')->get('page');
+		$basicid = intval(M('ev')->get('basicid'));
 		$page = $page > 0?$page:1;
 		$args = array(array('AND',"ehstatus = '0'"),array('AND',"ehtype = 2"),array('AND',"ehbasicid = :ehbasicid",'ehbasicid',$basicid));
-		$exams = $this->favor->getExamHistoryListByArgs($args,$page,10,false,'ehid desc');
-		$this->tpl->assign('page',$page);
-		$this->tpl->assign('exams',$exams);
-		$this->tpl->display('users_history');
+		$exams = M('favor','exam')->getExamHistoryListByArgs($args,$page,10,false,'ehid desc');
+		M('tpl')->assign('page',$page);
+		M('tpl')->assign('exams',$exams);
+		M('tpl')->display('users_history');
 	}
 
 	private function index()
 	{
-		$page = $this->ev->get('page');
-		$search = $this->ev->get('search');
+		$page = M('ev')->get('page');
+		$search = M('ev')->get('search');
 		$page = $page > 1?$page:1;
-		$subjects = $this->basic->getSubjectList(array(array('AND',"find_in_set(subjectid,:subjectid)",'subjectid',$this->teachsubjects)));
+		$subjects = M('basic','exam')->getSubjectList(array(array('AND',"find_in_set(subjectid,:subjectid)",'subjectid',$this->teachsubjects)));
 		$args = array(array('AND',"find_in_set(basicsubjectid,:basicsubjectid)",'basicsubjectid',$this->teachsubjects));
 		if($search['basicid'])$args[] = array('AND',"basicid = :basicid",'basicid',$search['basicid']);
 		else
@@ -599,12 +599,12 @@ class action extends app
 			if($search['basicsubjectid'])$args[] = array('AND',"basicsubjectid = :basicsubjectid",'basicsubjectid',$search['basicsubjectid']);
 			if($search['basicapi'])$args[] = array('AND',"basicapi = :basicapi",'basicapi',$search['basicapi']);
 		}
-		$basics = $this->basic->getBasicList($args,$page,10);
-		$areas = $this->area->getAreaList();
-		$this->tpl->assign('areas',$areas);
-		$this->tpl->assign('subjects',$subjects);
-		$this->tpl->assign('basics',$basics);
-		$this->tpl->display('users_basic');
+		$basics = M('basic','exam')->getBasicList($args,$page,10);
+		$areas = M('area','exam')->getAreaList();
+		M('tpl')->assign('areas',$areas);
+		M('tpl')->assign('subjects',$subjects);
+		M('tpl')->assign('basics',$basics);
+		M('tpl')->display('users_basic');
 	}
 }
 

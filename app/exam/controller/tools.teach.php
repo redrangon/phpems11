@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,8 +19,8 @@ class action extends app
 
 	private function clear()
 	{
-		$this->session->clearOutTimeUser();
-		$this->exam->clearOutTimeExamSession();
+		M('session')->clearOutTimeUser();
+		M('exam','exam')->clearOutTimeExamSession();
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -32,7 +32,7 @@ class action extends app
 
 	private function index()
 	{
-		$this->tpl->display('tools');
+		M('tpl')->display('tools');
 	}
 }
 

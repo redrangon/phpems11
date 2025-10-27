@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,9 +19,9 @@ class action extends app
 
 	private function getajaxbasiclist()
 	{
-		$subjectid = $this->ev->get('subjectid');
-		$current = $this->ev->get('current');
-		$basics = $this->basic->getBasicsByArgs(array(array("AND","basicsubjectid = :basicsubjectid",'basicsubjectid',$subjectid)));
+		$subjectid = M('ev')->get('subjectid');
+		$current = M('ev')->get('current');
+		$basics = M('basic','exam')->getBasicsByArgs(array(array("AND","basicsubjectid = :basicsubjectid",'basicsubjectid',$subjectid)));
 		if($basics)
 		{
 			foreach($basics as $basic)
@@ -38,7 +38,7 @@ class action extends app
 
 	private function index()
 	{
-		$this->tpl->display('index');
+		M('tpl')->display('index');
 	}
 }
 

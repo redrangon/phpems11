@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,8 +19,8 @@ class action extends app
 
 	private function getsubjectquestype()
 	{
-		$subjectid = $this->ev->get('subjectid');
-		$subject = $this->basic->getSubjectById($subjectid);
+		$subjectid = M('ev')->get('subjectid');
+		$subject = M('basic','exam')->getSubjectById($subjectid);
 		$r = array();
 		if($subject['subjectsetting']['questypes'])
 		{
@@ -34,11 +34,11 @@ class action extends app
 
 	private function setexamrange()
 	{
-		$page = $this->ev->get('page');
-		$basicid = $this->ev->get('basicid');
-		if($this->ev->get('setexamrange'))
+		$page = M('ev')->get('page');
+		$basicid = M('ev')->get('basicid');
+		if(M('ev')->get('setexamrange'))
 		{
-			$args = $this->ev->get('args');
+			$args = M('ev')->get('args');
 			$args['basicsection'] = array();
 			if(is_array($args['basicknows']))
 			foreach($args['basicknows'] as $key => $p)
@@ -50,7 +50,7 @@ class action extends app
 			$args['basicsection'] = $args['basicsection'];
 			$args['basicknows'] = $args['basicknows'];
 			$args['basicexam'] = $args['basicexam'];
-			$this->basic->setBasicConfig($basicid,$args);
+			M('basic','exam')->setBasicConfig($basicid,$args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -61,12 +61,12 @@ class action extends app
 		}
 		else
 		{
-			$basic = $this->basic->getBasicById($basicid);
-			$subjects = $this->basic->getSubjectList(array(array('AND',"find_in_set(subjectid,:subjectid)",'subjectid',$this->teachsubjects)));
-			$areas = $this->area->getAreaList();
-			$tmpknows = $this->section->getAllKnowsBySubject($basic['basicsubjectid']);
+			$basic = M('basic','exam')->getBasicById($basicid);
+			$subjects = M('basic','exam')->getSubjectList(array(array('AND',"find_in_set(subjectid,:subjectid)",'subjectid',$this->teachsubjects)));
+			$areas = M('area','exam')->getAreaList();
+			$tmpknows = M('section','exam')->getAllKnowsBySubject($basic['basicsubjectid']);
 			$knows = array();
-			$sections = $this->section->getSectionListByArgs(array(array('AND',"sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$basic['basicsubjectid'])));
+			$sections = M('section','exam')->getSectionListByArgs(array(array('AND',"sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$basic['basicsubjectid'])));
 			foreach($tmpknows as $p)
 			{
 				$knows[$p['knowssectionid']][] = $p;
@@ -80,21 +80,21 @@ class action extends app
 			{
 				$tpls['pp'][] = substr(basename($p),0,-4);
 			}
-			$this->tpl->assign('tpls',$tpls);
-			$this->tpl->assign('basic',$basic);
-			$this->tpl->assign('areas',$areas);
-			$this->tpl->assign('sections',$sections);
-			$this->tpl->assign('knows',$knows);
-			$this->tpl->assign('subjects',$subjects);
-			$this->tpl->display('basic_examrange');
+			M('tpl')->assign('tpls',$tpls);
+			M('tpl')->assign('basic',$basic);
+			M('tpl')->assign('areas',$areas);
+			M('tpl')->assign('sections',$sections);
+			M('tpl')->assign('knows',$knows);
+			M('tpl')->assign('subjects',$subjects);
+			M('tpl')->display('basic_examrange');
 		}
 	}
 
 	private function savepaper()
 	{
-		$sessionid = $this->ev->get('examsessionid');
-		$questype = $this->basic->getQuestypeList();
-		$sessionvars = $this->exam->getExamSessionBySessionid($sessionid);
+		$sessionid = M('ev')->get('examsessionid');
+		$questype = M('basic','exam')->getQuestypeList();
+		$sessionvars = M('exam','exam')->getExamSessionBySessionid($sessionid);
 		$question = $sessionvars['examsessionuseranswer'];
 		$needhand = 0;
 		foreach($sessionvars['examsessionquestion']['questions'] as $key => $tmp)
@@ -207,8 +207,8 @@ class action extends app
 		$args['examsessionuseranswer'] = $question;
 		$args['examsessionscorelist'] = $scorelist;
 		$args['examsessionscore'] = array_sum($scorelist);
-		$this->exam->modifyExamSession($args,$sessionid);
-		$this->favor->addExamHistory($sessionid);
+		M('exam','exam')->modifyExamSession($args,$sessionid);
+		M('favor','exam')->addExamHistory($sessionid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -220,44 +220,44 @@ class action extends app
 
     private function selectgroups()
     {
-        $useframe = $this->ev->get('useframe');
-        $target = $this->ev->get('target');
-        $page = $this->ev->get('page');
+        $useframe = M('ev')->get('useframe');
+        $target = M('ev')->get('target');
+        $page = M('ev')->get('page');
         $page = $page > 0?$page:1;
         $this->pg->setUrlTarget('modal-body" class="ajax');
         $args = 1;
-        $actors = $this->user->getUserGroupList($args,$page,10);
-        $this->tpl->assign('page',$page);
-        $this->tpl->assign('target',$target);
-        $this->tpl->assign('actors',$actors);
-        $this->tpl->display('basic_allowgroups');
+        $actors = M('user','user')->getUserGroupList($args,$page,10);
+        M('tpl')->assign('page',$page);
+        M('tpl')->assign('target',$target);
+        M('tpl')->assign('actors',$actors);
+        M('tpl')->display('basic_allowgroups');
     }
 
 	private function offpaper()
 	{
-		$page = $this->ev->get('page');
-		$basicid = $this->ev->get('basicid');
+		$page = M('ev')->get('page');
+		$basicid = M('ev')->get('basicid');
 		$args = array();
 		$args[] = array("AND","examsessionbasic = :examsessionbasic",'examsessionbasic',$basicid);
 		$args[] = array("AND","examsessiontype = 2");
-		$sessionusers = $this->exam->getExamSessionByArgs($args,$page);
-		$this->tpl->assign('sessionusers',$sessionusers);
-		$this->tpl->display('basic_offpaper');
+		$sessionusers = M('exam','exam')->getExamSessionByArgs($args,$page);
+		M('tpl')->assign('sessionusers',$sessionusers);
+		M('tpl')->display('basic_offpaper');
 	}
 
 	private function getbasicmembernumber()
 	{
-		$basicid = $this->ev->get('basicid');
-		$number = $this->basic->getOpenBasicNumber($basicid);
+		$basicid = M('ev')->get('basicid');
+		$number = M('basic','exam')->getOpenBasicNumber($basicid);
 		echo $number;
 	}
 
 	private function index()
 	{
-		$page = $this->ev->get('page');
-		$search = $this->ev->get('search');
+		$page = M('ev')->get('page');
+		$search = M('ev')->get('search');
 		$page = $page > 1?$page:1;
-		$subjects = $this->basic->getSubjectList(array(array('AND','find_in_set(subjectid,:subjectid)','subjectid',$this->teachsubjects)));
+		$subjects = M('basic','exam')->getSubjectList(array(array('AND','find_in_set(subjectid,:subjectid)','subjectid',$this->teachsubjects)));
 		$args = array(array('AND','find_in_set(basicsubjectid,:basicsubjectid)','basicsubjectid',$this->teachsubjects));
 		if($search['basicid'])$args[] = array('AND',"basicid = :basicid",'basicid',$search['basicid']);
 		else
@@ -267,12 +267,12 @@ class action extends app
 			if($search['basicsubjectid'])$args[] = array('AND',"basicsubjectid = :basicsubjectid",'basicsubjectid',$search['basicsubjectid']);
 			if($search['basicapi'])$args[] = array('AND',"basicapi = :basicapi",'basicapi',$search['basicapi']);
 		}
-		$basics = $this->basic->getBasicList($args,$page,10);
-		$areas = $this->area->getAreaList();
-		$this->tpl->assign('areas',$areas);
-		$this->tpl->assign('subjects',$subjects);
-		$this->tpl->assign('basics',$basics);
-		$this->tpl->display('basic');
+		$basics = M('basic','exam')->getBasicList($args,$page,10);
+		$areas = M('area','exam')->getAreaList();
+		M('tpl')->assign('areas',$areas);
+		M('tpl')->assign('subjects',$subjects);
+		M('tpl')->assign('basics',$basics);
+		M('tpl')->display('basic');
 	}
 }
 

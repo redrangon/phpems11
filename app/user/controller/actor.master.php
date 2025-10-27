@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,11 +19,11 @@ class action extends app
 
 	private function selectactor()
 	{
-		$groupid = $this->ev->get('groupid');
-		$group = $this->user->getGroupById($groupid);
+		$groupid = M('ev')->get('groupid');
+		$group = M('user','user')->getGroupById($groupid);
 		if($group)
 		{
-			$this->user->selectDefaultActor($groupid);
+			M('user','user')->selectDefaultActor($groupid);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -41,12 +41,12 @@ class action extends app
 
 	private function modifyactor()
 	{
-		$page = $this->ev->get('page');
-		if($this->ev->get('modifyactor'))
+		$page = M('ev')->get('page');
+		if(M('ev')->get('modifyactor'))
 		{
-			$groupid = $this->ev->get('groupid');
-			$args = $this->ev->get('args');
-			$r = $this->user->modifyActor($groupid,$args);
+			$groupid = M('ev')->get('groupid');
+			$args = M('ev')->get('args');
+			$r = M('user','user')->modifyActor($groupid,$args);
 			if($r)
 			{
 				$message = array(
@@ -68,18 +68,18 @@ class action extends app
 		}
 		else
 		{
-			$groupid = $this->ev->get('groupid');
-			$group = $this->user->getGroupById($groupid);
-			$this->tpl->assign('group',$group);
-			$this->tpl->display('modifyactor');
+			$groupid = M('ev')->get('groupid');
+			$group = M('user','user')->getGroupById($groupid);
+			M('tpl')->assign('group',$group);
+			M('tpl')->display('modifyactor');
 		}
 	}
 
 	private function delactor()
 	{
-		$page = intval($this->ev->get('page'));
-		$groupid = $this->ev->get('groupid');
-		$r = $this->user->delActorById($groupid);
+		$page = intval(M('ev')->get('page'));
+		$groupid = M('ev')->get('groupid');
+		$r = M('user','user')->delActorById($groupid);
 		if($r)
 		{
 			$message = array(
@@ -101,10 +101,10 @@ class action extends app
 
 	private function add()
 	{
-		if($this->ev->post('insertactor'))
+		if(M('ev')->post('insertactor'))
 		{
-			$args = $this->ev->post('args');
-			$id = $this->user->insertActor($args);
+			$args = M('ev')->post('args');
+			$id = M('user','user')->insertActor($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -115,24 +115,24 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->display('addactor');
+			M('tpl')->display('addactor');
 		}
 	}
 
 	private function index()
 	{
-		$search = $this->ev->post('search');
+		$search = M('ev')->post('search');
 		$args = 1;
-		$page = $this->ev->get('page');
+		$page = M('ev')->get('page');
 		$page = $page>1?$page:1;
 		if($search['groupmoduleid'])
 		{
 			$args = array(array('AND',"groupmoduleid = :groupmoduleid",'groupmoduleid',$search['groupmoduleid']));
 		}
-		$actors = $this->user->getUserGroupList($args,$page,10);
-		$this->tpl->assign('page',$page);
-		$this->tpl->assign('actors',$actors);
-		$this->tpl->display('actor');
+		$actors = M('user','user')->getUserGroupList($args,$page,10);
+		M('tpl')->assign('page',$page);
+		M('tpl')->assign('actors',$actors);
+		M('tpl')->display('actor');
 	}
 }
 

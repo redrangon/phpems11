@@ -10,27 +10,21 @@ use function \PHPEMS\M;
  */
 class favor
 {
-	public $db;
-
-	public function __construct()
-	{
-		$this->db = M('pepdo');
-	}
 
 	public function getBestStudentsToday()
 	{
 		$t = TIME - 24*3600*7;
 		$data = array("count(*) AS number,ehusername,max(ehscore) as ehscore",'examhistory',array(array("AND","ehstarttime >= :ehstarttime",'ehstarttime',$t)),"ehuserid","number DESC",10);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetchAll($sql);
 	}
 
 	public function getBestStudentsThisMonth()
 	{
 		$t = TIME - 24*3600*30;
 		$data = array("count(*) AS number,ehusername,max(ehscore) as ehscore",'examhistory',array(array("AND","ehstarttime >= :ehstarttime",'ehstarttime',$t)),"ehuserid","number DESC",10);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetchAll($sql);
 	}
 
 	//通过用户ID获取收藏试题列表
@@ -45,7 +39,7 @@ class favor
             'query' => $args,
             'orderby' => $orderby
         );
-        return $this->db->listElements($page,$number,$data);
+        return M('pepdo')->listElements($page,$number,$data);
 	}
 
 	//收藏试题
@@ -55,9 +49,9 @@ class favor
 	{
 		$args = array("favorsubjectid"=>$subjectid,"favorquestionid" => $questionid,"favoruserid" => $userid,"favortime" => TIME );
 		$data = array("favor",$args);
-		$sql = $this->db->makeInsert($data);
-		$this->db->exec($sql);
-		return $this->db->lastInsertId();
+		$sql = M('pepdo')->makeInsert($data);
+		M('pepdo')->exec($sql);
+		return M('pepdo')->lastInsertId();
 	}
 
 	//根据ID获取试题是否收藏
@@ -65,8 +59,8 @@ class favor
 	public function getFavorById($id)
 	{
 		$data = array(false,'favor',array(array("AND","favorid = :favorid",'favorid',$id)));
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql,'favorquestion');
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql,'favorquestion');
 	}
 
 	//根据用户ID和试题ID获取试题是否收藏
@@ -75,16 +69,16 @@ class favor
 	public function getFavorByQuestionAndUserId($id,$userid)
 	{
 		$data = array(false,'favor',array(array("AND","favorquestionid = :favorquestionid",'favorquestionid',$id),array("AND","favoruserid = :favoruserid",'favoruserid',$userid)));
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql,'favorquestion');
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql,'favorquestion');
 	}
 
 	//根据ID删除试题
 	public function delFavorById($id)
 	{
 		$data = array("favor",array(array("AND","favorid = :favorid",'favorid',$id)));
-		$sql = $this->db->makeDelete($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeDelete($data);
+		M('pepdo')->exec($sql);
 		return true;
 	}
 
@@ -94,9 +88,9 @@ class favor
 	{
 		$args['recordtime'] = TIME;
 		$data = array("record",$args);
-		$sql = $this->db->makeInsert($data);
-		$this->db->exec($sql);
-		return $this->db->lastInsertId();
+		$sql = M('pepdo')->makeInsert($data);
+		M('pepdo')->exec($sql);
+		return M('pepdo')->lastInsertId();
 	}
 
 	public function addRecords($userid,$ids,$subjectid)
@@ -120,24 +114,24 @@ class favor
 	public function getRecordByQuestionAndUserId($id,$userid)
 	{
 		$data = array(false,'record',array(array("AND","recordquestionid = :recordquestionid",'recordquestionid',$id),array("AND","recorduserid = :recorduserid",'recorduserid',$userid)));
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql,'recordquestion');
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql,'recordquestion');
 	}
 
 	//删除错误记录
 	public function delRecord($recordid)
 	{
 		$data = array("record",array(array("AND","recordid = :recordid",'recordid',$recordid)));
-		$sql = $this->db->makeDelete($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeDelete($data);
+		M('pepdo')->exec($sql);
 		return true;
 	}
 
 	public function delRecordByArgs($args)
 	{
 		$data = array("record",$args);
-		$sql = $this->db->makeDelete($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeDelete($data);
+		M('pepdo')->exec($sql);
 		return true;
 	}
 
@@ -150,15 +144,15 @@ class favor
             'query' => $args,
             'orderby' => $order
         );
-        return $this->db->listElements($page,$number,$data);
+        return M('pepdo')->listElements($page,$number,$data);
 	}
 
 	public function recordTask()
 	{
 		$time = strtotime(date('Y-m-d',TIME - 3*24*3600));
 		$data = array(false,'record',array(array('AND','recordtime >= :recordtime','recordtime',$time)),false,'recordid desc',false);
-		$sql = $this->db->makeSelect($data);
-		$rs = $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$rs = M('pepdo')->fetchAll($sql);
 		$log = array();
 		foreach($rs as $r)
 		{
@@ -188,13 +182,13 @@ class favor
 				if($question['questionparent'])
 				{
 					$data = array(false,'questionrows',array(array("AND","qrid = :qrid","qrid",$question['questionparent']),array('AND','qrstatus = 1')));
-                    $sql = $this->db->makeSelect($data);
-                    $parent = $this->db->fetch($sql);
+                    $sql = M('pepdo')->makeSelect($data);
+                    $parent = M('pepdo')->fetch($sql);
                     if($parent)
 					{
 						$data = array(false,'quest2knows',array(array("AND","qkquestionid = :qkquestionid","qkquestionid",$question['questionparent']),array("AND","qktype = 1")),false,false,false);
-						$sql = $this->db->makeSelect($data);
-						$r = $this->db->fetchAll($sql);
+						$sql = M('pepdo')->makeSelect($data);
+						$r = M('pepdo')->fetchAll($sql);
 						foreach($r as $tmp)
 						{
 							//$rs[$tmp['qkknowsid']][$parent['qrtype']][$parent['qrlevel']]['questionrows'][$parent['qrid']] = $parent['qrid'];
@@ -205,8 +199,8 @@ class favor
 				else
 				{
 					$data = array(false,'quest2knows',array(array("AND","qkquestionid = :qkquestionid","qkquestionid",$question['questionid']),array("AND","qktype = 0")),false,false,false);
-                    $sql = $this->db->makeSelect($data);
-                    $r = $this->db->fetchAll($sql);
+                    $sql = M('pepdo')->makeSelect($data);
+                    $r = M('pepdo')->fetchAll($sql);
                     foreach($r as $tmp)
 					{
                         //$rs[$tmp['qkknowsid']][$question['questiontype']][$question['questionlevel']]['question'][$question['questionid']] = $question['questionid'];
@@ -235,52 +229,53 @@ class favor
     public function getRecordDataByUseridAndSubjectid($userid,$subjectid)
     {
         $data = array(false,'recorddata',array(array("AND","rduserid = :rduserid",'rduserid',$userid),array("AND","rdsubjectid = :rdsubjectid",'rdsubjectid',$subjectid)));
-        $sql = $this->db->makeSelect($data);
-        return $this->db->fetch($sql,'rddata');
+        $sql = M('pepdo')->makeSelect($data);
+        return M('pepdo')->fetch($sql,'rddata');
     }
 
     public function getRecordData($id)
     {
         $data = array(false,'recorddata',array(array("AND","rdid = :rdid",'rdid',$id)));
-        $sql = $this->db->makeSelect($data);
-        return $this->db->fetch($sql,'rddata');
+        $sql = M('pepdo')->makeSelect($data);
+        return M('pepdo')->fetch($sql,'rddata');
     }
 
     public function addRecordData($args)
     {
 		$args['rdtime'] = TIME;
     	$data = array("recorddata",$args);
-        $sql = $this->db->makeInsert($data);
-        $this->db->exec($sql);
-        return $this->db->lastInsertId();
+        $sql = M('pepdo')->makeInsert($data);
+        M('pepdo')->exec($sql);
+        return M('pepdo')->lastInsertId();
     }
 
     public function delRecordData($rdid)
     {
         $data = array("recorddata",array(array("AND","rdid = :rdid",'rdid',$rdid)));
-        $sql = $this->db->makeDelete($data);
-        $this->db->exec($sql);
+        $sql = M('pepdo')->makeDelete($data);
+        M('pepdo')->exec($sql);
         return true;
     }
 
     public function modifyRecordData($rdid,$args)
     {
         $data = array("recorddata",$args,array(array("AND","rdid = :rdid",'rdid',$rdid)));
-        $sql = $this->db->makeUpdate($data);
-        $this->db->exec($sql);
+        $sql = M('pepdo')->makeUpdate($data);
+        M('pepdo')->exec($sql);
         return true;
     }
 
 	//根据用户和科目获取考试记录列表
 	public function getExamHistoryListByArgs($args = array(),$page = 1,$number = 20,$fields = false,$orderby = "ehscore DESC,ehid DESC")
 	{
+		$args[] = array("AND","userid = ehuserid");
 		$data = array(
 			'select' => $fields,
 			'table' => array('examhistory','user'),
 			'query' => $args,
 			'orderby' => $orderby
 		);
-		return $this->db->listElements($page,$number,$data);
+		return M('pepdo')->listElements($page,$number,$data);
 	}
 
 	//根据用户和科目获取考试记录列表
@@ -288,24 +283,24 @@ class favor
 	{
 		$args[] = array("AND","examhistory.ehuserid = user.userid");
 		$data = array($fields,array('examhistory','user'),$args,false,"ehscore DESC",false);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetchAll($sql);
 	}
 
 	public function getStatsAllExamHistoryByArgs($args = array())
 	{
 		$args[] = array("AND","examhistory.ehuserid = user.userid");
 		$data = array(false,array('examhistory','user'),$args,false,"ehscore DESC",false);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetchAll($sql,false,array('ehscorelist','ehuseranswer','ehtimelist'));
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetchAll($sql,false,array('ehscorelist','ehuseranswer','ehtimelist'));
 	}
 
 	//根据用户和ID获取一个考试记录
 	public function getExamHistoryById($id)
 	{
 		$data = array(false,'examhistory',array(array("AND","ehid = :ehid",'ehid',$id)));
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetch($sql,array('ehscorelist','ehuseranswer','ehtimelist'));
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetch($sql,array('ehscorelist','ehuseranswer','ehtimelist'));
 		$r['ehquestion'] = unserialize(gzuncompress(base64_decode($r['ehquestion'])));
 		$r['ehsetting'] = unserialize(gzuncompress(base64_decode($r['ehsetting'])));
 		return $r;
@@ -314,8 +309,8 @@ class favor
     public function getExamHistoryByArgs($args)
     {
         $data = array(false,'examhistory',$args);
-        $sql = $this->db->makeSelect($data);
-        $r = $this->db->fetch($sql,array('ehscorelist','ehuseranswer','ehtimelist'));
+        $sql = M('pepdo')->makeSelect($data);
+        $r = M('pepdo')->fetch($sql,array('ehscorelist','ehuseranswer','ehtimelist'));
         $r['ehquestion'] = unserialize(gzuncompress(base64_decode($r['ehquestion'])));
         $r['ehsetting'] = unserialize(gzuncompress(base64_decode($r['ehsetting'])));
         return $r;
@@ -325,8 +320,8 @@ class favor
 	public function modifyExamHistory($ehid,$args)
 	{
 		$data = array("examhistory",$args,array(array("AND","ehid = :ehid",'ehid',$ehid)));
-		$sql = $this->db->makeUpdate($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		M('pepdo')->exec($sql);
 		return true;
 	}
 
@@ -341,8 +336,8 @@ class favor
 		{
 			$data = array("examhistory",array(array("AND","ehid = :ehid",'ehid',$ehid)));
 		}
-		$sql = $this->db->makeDelete($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeDelete($data);
+		M('pepdo')->exec($sql);
 		return true;
 	}
 
@@ -350,8 +345,8 @@ class favor
 	public function clearExamHistory($args)
 	{
 		$data = array("examhistory",$args);
-		$sql = $this->db->makeDelete($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeDelete($data);
+		M('pepdo')->exec($sql);
 		return true;
 	}
 
@@ -359,8 +354,8 @@ class favor
 	public function getExamHistoryNumber($userid,$basicid,$type = 0)
 	{
 		$data = array('count(*) AS number',"examhistory",array(array("AND","ehuserid = :ehuserid",'ehuserid',$userid),array("AND","ehbasicid = :ehbasicid",'ehbasicid',$basicid),array("AND","ehtype = :ehtype",'ehtype',$type)));
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetch($sql);
 		return $r['number'];
 	}
 
@@ -368,11 +363,11 @@ class favor
 	public function delLastExamHistory($userid,$subjectid,$type = 0)
 	{
 		$data = array(false,"examhistory",array(array("AND","ehuserid = :ehuserid",'ehuserid',$userid),array("AND","ehsubjectid = :ehsubjectid",'ehsubjectid',$subjectid),array("AND","ehtype = :ehtype",'ehtype',$type)),false,"ehid ASC",1);
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetch($sql);
 		$data = array("examhistory","ehid = '{$r['ehid']}'");
-		$sql = $this->db->makeDelete($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeDelete($data);
+		M('pepdo')->exec($sql);
 		return true;
 	}
 
@@ -408,9 +403,9 @@ class favor
 		$errnum = 0;
 		while(!$ehid && $errnum < 3)
 		{
-			$sql = $this->db->makeInsert($data);
-			$aff = $this->db->exec($sql);
-			$ehid = $this->db->lastInsertId();
+			$sql = M('pepdo')->makeInsert($data);
+			$aff = M('pepdo')->exec($sql);
+			$ehid = M('pepdo')->lastInsertId();
 			$errnum++;
 		}
 		return $ehid;
@@ -419,16 +414,16 @@ class favor
 	public function getAvgScore($args)
 	{
 		$data = array("avg(ehscore) as avgscore",'examhistory',$args,false,false,false);
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetch($sql);
 		return $r['avgscore'];
 	}
 
 	public function getExamUseNumber($userid,$examid,$basicid,$batch = 1,$type = 2)
 	{
 		$data = array('count(*) AS number',"examhistory",array(array("AND","ehuserid = :ehuserid",'ehuserid',$userid),array("AND","ehexamid = :ehexamid",'ehexamid',$examid),array("AND","ehbasicid = :ehbasicid",'ehbasicid',$basicid),array("AND","ehtype = :ehtype",'ehtype',$type),array("AND","ehneedresit = 0"),array("AND","ehbatch = :ehbatch","ehbatch",$batch)));
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetch($sql);
 		return $r['number'];
 	}
 
@@ -440,28 +435,28 @@ class favor
 			'query' => array(array("AND","ehbasicid = :ehbasicid",'ehbasicid',$basicid),array("AND","ehtype = 2"),array("AND","ehuserid = userid"),array("AND","ehstatus = 1")),
 			'orderby' => 'ehscore DESC,ehid DESC'
 		);
-		return $this->db->listElements($page,$number,$data);
+		return M('pepdo')->listElements($page,$number,$data);
 	}
 
 	public function getUserScoreIndex($basicid,$userid,$score)
 	{
 		$data = array("count(*) as number",'examhistory',array(array("AND","ehbasicid = :ehbasicid",'ehbasicid',$basicid),array("AND","ehscore > :ehscore",'ehscore',$score)),false,false,false);
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetch($sql);
 		return $r['number'] + 1;
 	}
 
 	public function getUserTopScore($basicid,$userid)
 	{
 		$data = array("max(ehscore) as ehscore",'examhistory',array(array("AND","ehbasicid = :ehbasicid",'ehbasicid',$basicid),array("AND","ehuserid = :ehuserid",'ehuserid',$userid),array("AND","ehtype = 2")),false,false,false);
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetch($sql);
 		if($r['ehscore'] > 0)$s = array('score' => $r['ehscore']);
 		else
 		$s = array('score' => 0);
 		$data = array("count(*) as number",'examhistory',array(array("AND","ehbasicid = :ehbasicid",'ehbasicid',$basicid),array("AND","ehscore > :ehscore",'ehscore',$s['score']),array("AND","ehtype = 2")),false,false,false);
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetch($sql);
 		$s['index'] = $r['number'] + 1;
 		return $s;
 	}
@@ -471,9 +466,9 @@ class favor
 	{
 		$args['ehltime'] = TIME;
 		$data = array("examhistory_log",$args);
-		$sql = $this->db->makeInsert($data);
-		$this->db->exec($sql);
-		return $this->db->lastInsertId();
+		$sql = M('pepdo')->makeInsert($data);
+		M('pepdo')->exec($sql);
+		return M('pepdo')->lastInsertId();
 	}
 
 	//获取评卷记录
@@ -481,8 +476,8 @@ class favor
 	{
 		$args[] = array("AND","examhistory_log.ehluserid = user.userid");
 		$data = array($fields,array('examhistory_log','user'),$args,false,"ehlid DESC",false);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetchAll($sql);
 	}
 
 }

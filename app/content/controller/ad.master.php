@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,11 +19,11 @@ class action extends app
 
 	private function modify()
 	{
-		if($this->ev->get('modifyad'))
+		if(M('ev')->get('modifyad'))
 		{
-			$args = $this->ev->get('args');
+			$args = M('ev')->get('args');
 			$args['adstyle'] = $args['adstyle'];
-			$adid = $this->ev->get('adid');
+			$adid = M('ev')->get('adid');
 			$this->ad->modifyAd($adid,$args);
 			$message = array(
 				'statusCode' => 200,
@@ -37,10 +37,10 @@ class action extends app
 		}
 		else
 		{
-			$adid = $this->ev->get('adid');
+			$adid = M('ev')->get('adid');
 			$ad = $this->ad->getAdById($adid);
-			$this->tpl->assign('ad',$ad);
-			$this->tpl->display('ad_modify');
+			M('tpl')->assign('ad',$ad);
+			M('tpl')->display('ad_modify');
 		}
 	}
 
@@ -48,8 +48,8 @@ class action extends app
 	{
 		$page = 1;
 		$ads = $this->ad->getAdList(1,$page);
-		$this->tpl->assign('ads',$ads);
-		$this->tpl->display('ad');
+		M('tpl')->assign('ads',$ads);
+		M('tpl')->display('ad');
 	}
 }
 

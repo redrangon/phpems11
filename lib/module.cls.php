@@ -26,7 +26,7 @@ class module
 		return M('pepdo')->fetchAll($sql,'moduleid');
 	}
 
-    public function getModulesList($args,$page,$number = PN,$order = "moduleid desc")
+    public function getModulesList($args = [],$page = 1,$number = PN,$order = "moduleid desc")
     {
         $data = array(
             'select' => false,
@@ -271,7 +271,7 @@ class module
 		$table = $r['moduletable'];
 		else
 		$table = \PHPEMS\ginkgo::$app;
-		$sql = $this->sql->addField($args,$table);
+		$sql = M('pepdo')->addField($args,$table);
 		return M('pepdo')->query($sql);
 	}
 
@@ -286,7 +286,7 @@ class module
 		$table = $r['moduletable'];
 		else
 		$table = \PHPEMS\ginkgo::$app;
-		$sql = $this->sql->modifyField($args,$table);
+		$sql = M('pepdo')->modifyField($args,$table);
 		return M('pepdo')->query($sql);
 	}
 

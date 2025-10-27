@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,14 +19,13 @@ class action extends app
 
 	private function modify()
 	{
-		$page = $this->ev->get('page');
-		if($this->ev->get('modifyblock'))
+		$page = M('ev')->get('page');
+		if(M('ev')->get('modifyblock'))
 		{
-			$blockid = $this->ev->get('blockid');
-			$args = $this->ev->get('args');
-			$args['blockcontent'] = $args['blockcontent'];
+			$blockid = M('ev')->get('blockid');
+			$args = M('ev')->get('args');
 			unset($args['blocktype']);
-			$this->block->modifyBlock($blockid,$args);
+			M('block','content')->modifyBlock($blockid,$args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -39,31 +38,22 @@ class action extends app
 		}
 		else
 		{
-			$blockid = $this->ev->get('blockid');
-			$block = $this->block->getBlockById($blockid);
-			$block['blockcontent'] = $this->ev->stripSlashes($block['blockcontent']);
-			$apps = $this->apps->getAppList();
-			$blockapps = array();
-			foreach($apps as $id => $app)
-			{
-				$tmp = M('api',$app['appid']);
-				if($tmp && method_exists($tmp,'parseBlock'))
-				$blockapps[$id] = $app;
-			}
-			$this->tpl->assign('block',$block);
-			$this->tpl->assign('blockapps',$blockapps);
-			$this->tpl->assign('page',$page);
-			$this->tpl->display('blocks_modify');
+			$blockid = M('ev')->get('blockid');
+			$block = M('block','content')->getBlockById($blockid);
+			$block['blockcontent'] = M('ev')->stripSlashes($block['blockcontent']);
+			M('tpl')->assign('block',$block);
+			M('tpl')->assign('page',$page);
+			M('tpl')->display('blocks_modify');
 		}
 	}
 
 	private function add()
 	{
-		if($this->ev->get('addblock'))
+		if(M('ev')->get('addblock'))
 		{
-			$args = $this->ev->get('args');
+			$args = M('ev')->get('args');
 			$args['blockcontent'] = $args['blockcontent'];
-			$this->block->addBlock($args);
+			M('block','content')->addBlock($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -76,7 +66,7 @@ class action extends app
 		}
 		else
 		{
-			$apps = $this->apps->getAppList();
+			$apps = M('apps','core')->getAppList();
 			$blockapps = array();
 			foreach($apps as $id => $app)
 			{
@@ -84,15 +74,15 @@ class action extends app
 				if($tmp && method_exists($tmp,'parseBlock'))
 				$blockapps[$id] = $app;
 			}
-			$this->tpl->assign('blockapps',$blockapps);
-			$this->tpl->display('blocks_add');
+			M('tpl')->assign('blockapps',$blockapps);
+			M('tpl')->display('blocks_add');
 		}
 	}
 
 	private function del()
 	{
-		$blockid = $this->ev->get('blockid');
-		$this->block->delBlock($blockid);
+		$blockid = M('ev')->get('blockid');
+		M('block','content')->delBlock($blockid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -106,9 +96,9 @@ class action extends app
 
 	private function change()
 	{
-		$blockid = $this->ev->get('blockid');
-		$blocktype = $this->ev->get('blocktype');
-		$this->block->modifyBlock($blockid,array('blocktype' => $blocktype));
+		$blockid = M('ev')->get('blockid');
+		$blocktype = M('ev')->get('blocktype');
+		M('block','content')->modifyBlock($blockid,array('blocktype' => $blocktype));
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -122,11 +112,11 @@ class action extends app
 
 	private function index()
 	{
-		$page = $this->ev->get('page');
-		$blocks = $this->block->getBlockList(1,$page,10);
-		$this->tpl->assign('blocks',$blocks);
-		$this->tpl->assign('page',$page);
-		$this->tpl->display('blocks');
+		$page = M('ev')->get('page');
+		$blocks = M('block','content')->getBlockList(1,$page,10);
+		M('tpl')->assign('blocks',$blocks);
+		M('tpl')->assign('page',$page);
+		M('tpl')->display('blocks');
 	}
 }
 

@@ -1,18 +1,18 @@
 <?php
- namespace PHPEMS;
+
+namespace PHPEMS;
 
 class app
 {
-	public function __construct()
+	public $user;
+    public $session;
+
+    public function __construct()
 	{
-		$this->ev = M('ev');
-		$this->tpl = M('tpl');
-		$this->session = M('session');
-		$this->ask = M('ask','ask');
-		$this->user = M('user','user');
-		$this->_user = $_user = $this->session->getSessionUser();
-		$this->tpl->assign('_user',$this->user->getUserById($this->_user['sessionuserid']));
-        $this->tpl->assign('navs',M('nav','core')->getWebNavs());
+		$this->session = M('session')->getSessionUser();
+        $this->user = M('user','user')->getUserById($this->session['sessionuserid']);
+		M('tpl')->assign('_user',$this->user);
+        M('tpl')->assign('navs',M('nav','core')->getWebNavs());
 	}
 }
 ?>

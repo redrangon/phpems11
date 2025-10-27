@@ -10,9 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$this->module = M('module');
-        $this->progress = M('progress','user');
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -21,52 +19,17 @@ class action extends app
 
 	private function pdfview()
 	{
-		$this->tpl->display('viewer');
+		M('tpl')->display('viewer');
 	}
-
-	private function coursejs()
-	{
-		$contentid = $this->ev->get('contentid');
-		$r = $this->log->getLogByArgs(array(array('AND',"loguserid = :loguserid",'loguserid',$this->_user['sessionuserid']),array('AND',"logcourseid = :logcourseid",'logcourseid',$contentid)));
-		if((TIME - $r['logtime']) > 10)echo "document.write('[已学习]');";
-	}
-
-    private function jumppaper()
-    {
-        $csid = $this->ev->get('csid');
-        $progress = $this->progress->getProgressByArgs(array(array("AND","prscourseid = :prscourseid","prscourseid",$csid),array("and","prsuserid = :prsuserid","prsuserid",$this->_user['sessionuserid'])));
-        if(!$progress['prscoursestatus'])
-        {
-            $message = array(
-                'statusCode' => 300,
-                "message" => "请先学完课程"
-            );
-            \PHPEMS\ginkgo::R($message);
-        }
-        $course = $this->course->getCourseById($csid);
-        $basicid = $course['csbasicid'];
-        //$examid = $this->ev->get('examid');
-        if(!$basicid)
-        {
-            $message = array(
-                'statusCode' => 300,
-                "message" => "请联系管理员设置考场"
-            );
-            \PHPEMS\ginkgo::R($message);
-        }
-        $this->session->setSessionValue(array('sessioncurrent'=>$basicid));
-        header("location:index.php?exam-phone-basics-detail&userhash=1&basicid=".$basicid);
-        exit;
-    }
 
 	private function opencourse()
 	{
-		$csid = $this->ev->get('csid');
-		$course = $this->course->getCourseById($csid);
-		if($this->ev->get('opencs'))
+		$csid = M('ev')->get('csid');
+		$course = M('course','course')->getCourseById($csid);
+		if(M('ev')->get('opencs'))
 		{
-			$userid = $this->_user['sessionuserid'];
-			if($this->course->getOpenCourseByUseridAndCsid($userid,$csid))
+			$userid = $this->user['userid'];
+			if(M('course','course')->getOpenCourseByUseridAndCsid($userid,$csid))
 			{
 				$message = array(
 					'statusCode' => 300,
@@ -79,7 +42,7 @@ class action extends app
 			}
 			else
 			{
-				$opentype = intval($this->ev->get('opentype'));
+				$opentype = intval(M('ev')->get('opentype'));
 				$price = 0;
 				if(trim($course['csprice']))
 				{
@@ -99,7 +62,7 @@ class action extends app
 				$t = $price[$opentype];
 				$time = $t['time']*24*3600;
 				$score = $t['price'];
-				$user = $this->user->getUserById($this->_user['sessionuserid']);
+				$user = M('user','user')->getUserById($this->user['userid']);
 				if($user['usercoin'] < $score)
 				{
 					$message = array(
@@ -111,11 +74,11 @@ class action extends app
 				else
 				{
 					$args = array("usercoin" => $user['usercoin'] - $score);
-					$this->user->modifyUserInfo($this->_user['sessionuserid'],$args);
+					M('user','user')->modifyUserInfo($this->user['userid'],$args);
 				}
 			}
 			$args = array('ocuserid'=>$userid,'occourseid'=>$csid,'ocendtime'=>TIME + $time);
-			$this->course->openCourse($args);
+			M('course','course')->openCourse($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -139,84 +102,47 @@ class action extends app
 						$price[] = array('time'=>$p[0],'price'=>$p[1]);
 					}
 				}
-				$this->tpl->assign('price',$price);
+				M('tpl')->assign('price',$price);
 			}
-			$isopen = $this->course->getOpenCourseByUseridAndCsid($this->_user['sessionuserid'],$csid);
-			$this->tpl->assign('isopen',$isopen);
-			$this->tpl->assign('course',$course);
-			$this->tpl->display('opencourse');
+			$isopen = M('course','course')->getOpenCourseByUseridAndCsid($this->user['userid'],$csid);
+			M('tpl')->assign('isopen',$isopen);
+			M('tpl')->assign('course',$course);
+			M('tpl')->display('opencourse');
 		}
 	}
 
     private function recordtime()
     {
-        $courseid = $this->ev->get('courseid');
-        $time = intval($this->ev->get('time'));
-        $r = $this->log->getLogByArgs(array(array('AND',"loguserid = :loguserid",'loguserid',$this->_user['sessionuserid']),array('AND',"logcourseid = :logcourseid",'logcourseid',$courseid)));
+        $courseid = M('ev')->get('courseid');
+        $time = intval(M('ev')->get('time'));
+        $r = M('log','course')->getLogByArgs(array(array('AND',"loguserid = :loguserid",'loguserid',$this->user['userid']),array('AND',"logcourseid = :logcourseid",'logcourseid',$courseid)));
         if($r)
         {
-            $this->log->modifyLog($r['logid'],array('logprogress' => $time));
+            M('log','course')->modifyLog($r['logid'],array('logprogress' => $time));
         }
         exit('1');
     }
 
     private function endstatus()
     {
-        $courseid = $this->ev->get('courseid');
-        $r = $this->log->getLogByArgs(array(array('AND',"loguserid = :loguserid",'loguserid',$this->_user['sessionuserid']),array('AND',"logcourseid = :logcourseid",'logcourseid',$courseid)));
+        $courseid = M('ev')->get('courseid');
+        $r = M('log','course')->getLogByArgs(array(array('AND',"loguserid = :loguserid",'loguserid',$this->user['userid']),array('AND',"logcourseid = :logcourseid",'logcourseid',$courseid)));
         if($r)
         {
-            $this->log->modifyLog($r['logid'],array('logstatus' => 1,'logendtime' => TIME,'logprogress' => 0));
-            $content = $this->content->getCourseById($courseid);
-            if($content)
-            {
-                $csid = $content['coursecsid'];
-                $course = $this->course->getCourseById($csid);
-                $ishave = $this->progress->getProgressByArgs(array(array("AND","prscourseid = :prscourseid","prscourseid",$csid),array("and","prsuserid = :prsuserid","prsuserid",$this->_user['sessionuserid'])));
-                if(!$ishave)
-                {
-                    $args = array(
-                        'prsuserid' => $this->_user['sessionuserid'],
-                        'prscourseid' => $csid,
-                        'prstime' => TIME,
-                        'prsexamid' => $course['csbasicid']
-                    );
-                    $id = $this->progress->addProgress($args);
-                }
-                else
-                    $id = $ishave['prsid'];
-                $allnumber = $this->course->getCourseNumberByCsid($csid);
-                $passednumber = $this->log->getPassedLogsNumberByCsid($csid,$this->_user['sessionuserid']);
-                if($passednumber >= $allnumber)
-                {
-                    $this->progress->modifyProgress($id,array('prscoursestatus' => 1));
-                }
-            }
+            M('log','course')->modifyLog($r['logid'],array('logstatus' => 1,'logendtime' => TIME,'logprogress' => 0));
         }
         exit('1');
     }
 
-	private function setcourse()
-	{
-		$cnoteid = $this->ev->get('cnoteid');
-		$note = $this->ev->get('note');
-		$this->content->setCourseNote(array('clsnote' => $note),$cnoteid);
-		$message = array(
-			'statusCode' => 200,
-			"message" => "保存成功"
-		);
-		\PHPEMS\ginkgo::R($message);
-	}
-
 	private function index()
 	{
-		$page = $this->ev->get('page');
-		$csid = $this->ev->get('csid');
-		$contentid = $this->ev->get('contentid');
-		$course = $this->course->getCourseById($csid);
-		$catbread = $this->category->getCategoryPos($course['cscatid']);
-		$cat = $this->category->getCategoryById($course['cscatid']);
-		$oc = $this->course->getOpenCourseByUseridAndCsid($this->_user['sessionuserid'],$csid);
+		$page = M('ev')->get('page');
+		$csid = M('ev')->get('csid');
+		$contentid = M('ev')->get('contentid');
+		$course = M('course','course')->getCourseById($csid);
+		$catbread = M('category')->getCategoryPos($course['cscatid']);
+		$cat = M('category')->getCategoryById($course['cscatid']);
+		$oc = M('course','course')->getOpenCourseByUseridAndCsid($this->user['userid'],$csid);
 		if(!$oc)
 		{
 			$message = array(
@@ -228,10 +154,10 @@ class action extends app
 		}
 		else
 		{
-            $this->tpl->assign('oc',$oc);
+            M('tpl')->assign('oc',$oc);
 		}
 		$courseid = $course['csid'];
-		$lessons = $this->content->getCoursesByCsid($courseid)['data'];
+		$lessons = M('content','course')->getCoursesByCsid($courseid)['data'];
 		if($contentid)$content = $lessons[$contentid];
 		$tmparray = array();
 		$defaultlesson = 0;
@@ -240,7 +166,7 @@ class action extends app
 			$tmparray[intval($lesson['coursedirid'])][] = $lesson;
 		}
 		$ids = array();
-		$ids = $this->content->dgCourse(0,$tmparray,$ids);
+		$ids = M('content','course')->dgCourse(0,$tmparray,$ids);
 		foreach($ids as $id)
 		{
 			if($lessons[$id]['coursemoduleid'] != 40)
@@ -254,10 +180,10 @@ class action extends app
 		}
 		if($content['courseid'])
 		{
-			$r = $this->log->getLogByArgs(array(array('AND',"loguserid = :loguserid",'loguserid',$this->_user['sessionuserid']),array('AND',"logcourseid = :logcourseid",'logcourseid',$content['courseid'])));
-			if(!$r)$this->log->addLog(array('loguserid' => $this->_user['sessionuserid'],'logcourseid' => $content['courseid']));
+			$r = M('log','course')->getLogByArgs(array(array('AND',"loguserid = :loguserid",'loguserid',$this->user['userid']),array('AND',"logcourseid = :logcourseid",'logcourseid',$content['courseid'])));
+			if(!$r)M('log','course')->addLog(array('loguserid' => $this->user['userid'],'logcourseid' => $content['courseid']));
 		}
-		$module = $this->module->getModuleById($content['coursemoduleid']);
+		$module = M('module')->getModuleById($content['coursemoduleid']);
 		switch($module['modulecode'])
 		{
 			case 'pdf':
@@ -268,16 +194,16 @@ class action extends app
 			$template = 'course_default';
 			break;
 		}
-		$logs = $this->log->getLogsByCsid($course['csid'],$this->_user['sessionuserid']);
-		$this->tpl->assign('logs',$logs);
-		$this->tpl->assign('cat',$cat);
-		$this->tpl->assign('page',$page);
-		$this->tpl->assign('catbread',$catbread);
-		$this->tpl->assign('course',$course);
-		$this->tpl->assign('lessons',$lessons);
-		$this->tpl->assign('ids',$ids);
-		$this->tpl->assign('content',$content);
-		$this->tpl->display($template);
+		$logs = M('log','course')->getLogsByCsid($course['csid'],$this->user['userid']);
+		M('tpl')->assign('logs',$logs);
+		M('tpl')->assign('cat',$cat);
+		M('tpl')->assign('page',$page);
+		M('tpl')->assign('catbread',$catbread);
+		M('tpl')->assign('course',$course);
+		M('tpl')->assign('lessons',$lessons);
+		M('tpl')->assign('ids',$ids);
+		M('tpl')->assign('content',$content);
+		M('tpl')->display($template);
 	}
 }
 

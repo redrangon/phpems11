@@ -13,7 +13,7 @@ class action extends app
 {
 	public function display()
 	{
-	    $action = $this->ev->url(3);
+	    $action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -22,25 +22,24 @@ class action extends app
 	
 	public function sendmail()
 	{
-        $this->user = M('user','user');
-	    $email = $this->ev->get('email');
+        $email = M('ev')->get('email');
         if(!M('strings')->isEmail($email))
         {
             $message = array(
                 'statusCode' => 300,
                 'message' => '错误的邮箱'
             );
-            \PHPEMS\ginkgo::R($message);
+            R($message);
         }
-        $action = $this->ev->get('action');
-        $user = $this->user->getUserByEmail($email);
+        $action = M('ev')->get('action');
+        $user = M('user','user')->getUserByEmail($email);
         if(!$user && $action != 'reg')
         {
             $message = array(
                 'statusCode' => 300,
                 'message' => '该邮箱未注册'
             );
-            \PHPEMS\ginkgo::R($message);
+            R($message);
         }
         if($user && $action == 'reg')
         {
@@ -48,7 +47,7 @@ class action extends app
                 'statusCode' => 300,
                 'message' => '该邮箱已注册'
             );
-            \PHPEMS\ginkgo::R($message);
+            R($message);
         }
         if(!$action)$action = 'findpassword';
         $randcode = rand(1000,9999);
@@ -63,7 +62,7 @@ class action extends app
                 'statusCode' => 300,
                 'message' => '管理员未开启邮箱验证'
             );
-            \PHPEMS\ginkgo::R($message);
+            R($message);
 		}
         if($app['appsetting']['emailaccount'] && $app['appsetting']['emailpassword'])
 		{
@@ -79,7 +78,7 @@ class action extends app
                 'statusCode' => 300,
                 'message' => '管理邮箱设置错误，请联系管理员'
             );
-            \PHPEMS\ginkgo::R($message);
+            R($message);
         }
         if($user)
         {
@@ -103,31 +102,15 @@ class action extends app
                 'statusCode' => 200
             );
         }
-        \PHPEMS\ginkgo::R($message);
+        R($message);
 
 	}
 
 	private function qrcode()
 	{
 		header("Content-type: image/png");
-		require_once("lib/include/phpqrcode.php");
-		$data = urldecode($this->ev->get('data'));
-		QRcode::png($data);
-	}
-	
-	public function csp()
-	{
-		$this->excel = M('excel');
-		$this->user = M('user','user');
-		$data = $this->excel->getExcelContent('x1.xlsx');
-		foreach($data as $data)
-		{
-			$username = $data[0];
-			$clsname = $data[1];
-			$user = $this->user->getUserByUserName($username);
-			$this->user->modifyUserInfo($user['userid'],array("normal_classs" => $clsname));
-			echo "{$username}<br />";
-		}
+		$data = urldecode(M('ev')->get('data'));
+		M('peqr')->pngString($data);
 	}
 
 	public function index()

@@ -10,9 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$this->ask = M('ask','ask');
-		$this->tpl->assign('status',array("未回答","已回答"));
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -21,13 +19,14 @@ class action extends app
 
 	public function index()
 	{
-		$page = $this->ev->get('page');
+		$page = M('ev')->get('page');
 		$args = array(
-			array("AND","askuserid = :askuserid","askuserid",$this->_user['sessionuserid'])
+			array("AND","askuserid = :askuserid","askuserid",$this->user['userid'])
 		);
-		$asks = $this->ask->getAskList($args,$page);
-		$this->tpl->assign('asks',$asks);
-		$this->tpl->display('ask');
+		$asks = M('ask','ask')->getAskList($args,$page);
+		M('tpl')->assign('status',array("未回答","已回答"));
+		M('tpl')->assign('asks',$asks);
+		M('tpl')->display('ask');
 	}
 }
 

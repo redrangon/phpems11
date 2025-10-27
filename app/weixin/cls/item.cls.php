@@ -4,20 +4,15 @@ namespace PHPEMS\weixin;
 use function \PHPEMS\M;
 class item
 {
-	public $db;
-    public function __construct($parms = 'default')
-	{
-		$this->db = M('pepdo');
-	}
 
     public function addItem($args)
     {
-        return $this->db->insertElement(array('table' => 'items','query' => $args));
+        return M('pepdo')->insertElement(array('table' => 'items','query' => $args));
     }
 	
 	public function modifyItem($itemid,$args)
     {
-        return $this->db->updateElement(array(
+        return M('pepdo')->updateElement(array(
 				'table' => 'items',
 				'value' => $args,
 				'query' => array(array('AND',"itemid = :itemid",'itemid',$itemid))
@@ -27,7 +22,7 @@ class item
 
     public function delItem($itemid)
     {
-        return $this->db->delElement(array('table' => 'items','query' => array(array('AND',"itemid = :itemid",'itemid',$itemid))));
+        return M('pepdo')->delElement(array('table' => 'items','query' => array(array('AND',"itemid = :itemid",'itemid',$itemid))));
     }
 
     public function getItemList($args = array(),$page = 1,$number = 20, $orderby = "itemid desc")
@@ -39,7 +34,7 @@ class item
             'orderby' => $orderby,
             'serial' => 'itemimages'
         );
-        return $this->db->listElements($page,$number,$data);
+        return M('pepdo')->listElements($page,$number,$data);
     }
 
     public function getItemById($itemid)
@@ -53,7 +48,7 @@ class item
             'query' => $args,
             'serial' => 'itemimages'
         );
-        return $this->db->getElement($data);
+        return M('pepdo')->getElement($data);
     }
 
     public function getItemByCode($itemcode)
@@ -67,7 +62,7 @@ class item
             'query' => $args,
             'serial' => 'itemimages'
         );
-        return $this->db->getElement($data);
+        return M('pepdo')->getElement($data);
     }
 
     public function getItemsByArgs($args = array())
@@ -79,7 +74,7 @@ class item
             'serial' => 'itemimages',
             'limit' => 20
         );
-        return $this->db->getElements($data);
+        return M('pepdo')->getElements($data);
     }
 }
 

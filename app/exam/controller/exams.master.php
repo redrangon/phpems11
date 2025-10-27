@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,7 +19,7 @@ class action extends app
 
 	private function showsetting()
 	{
-		$setting = $this->ev->get('setting');
+		$setting = M('ev')->get('setting');
 		$setting = explode("|",$setting);
 		$rs = array();
 		foreach($setting as $p)
@@ -27,7 +27,7 @@ class action extends app
 			if($p)
 			{
 				$tp = explode(':',$p);
-				$knows = $this->section->getKnowsListByArgs(array(array("AND","find_in_set(knowsid,:knowsid)",'knowsid',$tp[0])));
+				$knows = M('section','exam')->getKnowsListByArgs(array(array("AND","find_in_set(knowsid,:knowsid)",'knowsid',$tp[0])));
 				$n = array();
 				foreach($knows as $s)
 				{
@@ -37,16 +37,16 @@ class action extends app
 				$rs[] = array('knows' => implode(',',$n),'number' => $tp[1],'easy' => intval($o[0]),'mid' => intval($o[1]),'hard' => intval($o[2]));
 			}
 		}
-		$this->tpl->assign('rs',$rs);
-		$this->tpl->display('exams_autosetting');
+		M('tpl')->assign('rs',$rs);
+		M('tpl')->display('exams_autosetting');
 	}
 
 	private function selectexams()
 	{
-		$search = $this->ev->get('search');
-		$useframe = $this->ev->get('useframe');
-		$target = $this->ev->get('target');
-		$page = $this->ev->get('page');
+		$search = M('ev')->get('search');
+		$useframe = M('ev')->get('useframe');
+		$target = M('ev')->get('target');
+		$page = M('ev')->get('page');
 		$page = $page > 0?$page:1;
 		$this->pg->setUrlTarget('modal-body" class="ajax');
 		$args = array();
@@ -55,19 +55,19 @@ class action extends app
 			if($search['subjectid'])$args[] = array("AND","examsubject = :examsubject",'examsubject',$search['subjectid']);
 		}
 		if(!count($args))$args = 1;
-		$exams = $this->exam->getExamSettingList($args,$page,10);
-		$subjects = $this->basic->getSubjectList();
-		$this->tpl->assign('subjects',$subjects);
-		$this->tpl->assign('target',$target);
-		$this->tpl->assign('exams',$exams);
-		$this->tpl->display('exams_ajax');
+		$exams = M('exam','exam')->getExamSettingList($args,$page,10);
+		$subjects = M('basic','exam')->getSubjectList();
+		M('tpl')->assign('subjects',$subjects);
+		M('tpl')->assign('target',$target);
+		M('tpl')->assign('exams',$exams);
+		M('tpl')->display('exams_ajax');
 	}
 
 	private function delexam()
 	{
-		$examid = $this->ev->get('examid');
-		$page = $this->ev->get('page');
-		$this->exam->delExamSetting($examid);
+		$examid = M('ev')->get('examid');
+		$page = M('ev')->get('page');
+		M('exam','exam')->delExamSetting($examid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -79,13 +79,13 @@ class action extends app
 
 	private function download()
 	{
-		$questype = $this->basic->getQuestypeList();
-		$this->tpl->assign('questype',$questype);
-		$examids = $this->ev->get('examids');
+		$questype = M('basic','exam')->getQuestypeList();
+		M('tpl')->assign('questype',$questype);
+		$examids = M('ev')->get('examids');
 		$sessionvars = array();
 		foreach($examids as $examid => $tmp)
 		{
-			$r = $this->exam->getExamSettingById($examid);
+			$r = M('exam','exam')->getExamSettingById($examid);
 			$args = array();
 			if($r['examtype'] == 2)
 			{
@@ -97,14 +97,14 @@ class action extends app
 					$qrids = '';
 					if($p['questions'])$qids = trim($p['questions']," ,");
 					if($qids)
-						$questions[$key] = $this->exam->getQuestionListByIds($qids);
+						$questions[$key] = M('exam','exam')->getQuestionListByIds($qids);
 					if($p['rowsquestions'])$qrids = trim($p['rowsquestions']," ,");
 					if($qrids)
 					{
 						$qrids = explode(",",$qrids);
 						foreach($qrids as $t)
 						{
-							$qr = $this->exam->getQuestionRowsById($t);
+							$qr = M('exam','exam')->getQuestionRowsById($t);
 							if($qr)
 								$questionrows[$key][$t] = $qr;
 						}
@@ -132,8 +132,8 @@ class action extends app
 			}
 			$sessionvars[] = $args;
 		}
-		$this->tpl->assign("sessionvars",$sessionvars);
-		$content = $this->tpl->fetchExeCnt('exams_download');
+		M('tpl')->assign("sessionvars",$sessionvars);
+		$content = M('tpl')->fetchExeCnt('exams_download');
 		$content = M('word')->WordMake($content);
 		$fname = 'data/word/'.uniqid().".doc";//转换好生成的word文件名编码
 		$fp = fopen($fname, 'w');//打开生成的文档
@@ -150,9 +150,9 @@ class action extends app
 
 	private function preview()
 	{
-		$examid = $this->ev->get('examid');
-		$r = $this->exam->getExamSettingById($examid);
-		$this->tpl->assign("setting",$r);
+		$examid = M('ev')->get('examid');
+		$r = M('exam','exam')->getExamSettingById($examid);
+		M('tpl')->assign("setting",$r);
 		if($r['examtype'] == 2)
 		{
 			$questions = array();
@@ -163,14 +163,14 @@ class action extends app
 				$qrids = '';
 				if($p['questions'])$qids = trim($p['questions']," ,");
 				if($qids)
-				$questions[$key] = $this->exam->getQuestionListByIds($qids);
+				$questions[$key] = M('exam','exam')->getQuestionListByIds($qids);
 				if($p['rowsquestions'])$qrids = trim($p['rowsquestions']," ,");
 				if($qrids)
 				{
 					$qrids = explode(",",$qrids);
 					foreach($qrids as $t)
 					{
-						$qr = $this->exam->getQuestionRowsById($t);
+						$qr = M('exam','exam')->getQuestionRowsById($t);
 						if($qr)
 						$questionrows[$key][$t] = $qr;
 					}
@@ -196,24 +196,24 @@ class action extends app
 			$args['examsessiontype'] = 2;
 			$args['examsessionkey'] = $r['examid'];
 		}
-		$questype = $this->basic->getQuestypeList();
-		$this->tpl->assign('questype',$questype);
-		$this->tpl->assign("sessionvars",$args);
-		$this->tpl->display('exams_paper');
+		$questype = M('basic','exam')->getQuestypeList();
+		M('tpl')->assign('questype',$questype);
+		M('tpl')->assign("sessionvars",$args);
+		M('tpl')->display('exams_paper');
 	}
 
 	private function modifypaper()
 	{
-		$examid = $this->ev->get('examid');
-		$questionid = $this->ev->get('questionid');
-		$qrid = $this->ev->get('qrid');
-		$r = $this->exam->getExamSettingById($examid);
-		$questypes = $this->basic->getQuestypeList();
-		$this->tpl->assign("questypes",$questypes);
-		if($this->ev->get('modifypaper'))
+		$examid = M('ev')->get('examid');
+		$questionid = M('ev')->get('questionid');
+		$qrid = M('ev')->get('qrid');
+		$r = M('exam','exam')->getExamSettingById($examid);
+		$questypes = M('basic','exam')->getQuestypeList();
+		M('tpl')->assign("questypes",$questypes);
+		if(M('ev')->get('modifypaper'))
 		{
-			$args = $this->ev->get('args');
-			$targs = $this->ev->get('targs');
+			$args = M('ev')->get('args');
+			$targs = M('ev')->get('targs');
 			$q = null;
 			if($qrid)
 			{
@@ -241,7 +241,7 @@ class action extends app
 						if($p['questionid'] == $questionid)
 						{
 							$args['questionid'] = $questionid;
-							$questype = $this->basic->getQuestypeById($args['questiontype']);
+							$questype = M('basic','exam')->getQuestypeById($args['questiontype']);
 							if($questype['questsort'])$choice = 0;
 							else $choice = $questype['questchoice'];
 							$args['questionanswer'] = $targs['questionanswer'.$choice];
@@ -262,7 +262,7 @@ class action extends app
 							if($p['questionid'] == $questionid)
 							{
 								$args['questionid'] = $questionid;
-								$questype = $this->basic->getQuestypeById($args['questiontype']);
+								$questype = M('basic','exam')->getQuestypeById($args['questiontype']);
 								if($questype['questsort'])$choice = 0;
 								else $choice = $questype['questchoice'];
 								$args['questionanswer'] = $targs['questionanswer'.$choice];
@@ -276,7 +276,7 @@ class action extends app
 					if($q)break;
 				}
 			}
-			$this->exam->modifyExamSetting($examid,array('examquestions' => $r['examquestions']));
+			M('exam','exam')->modifyExamSetting($examid,array('examquestions' => $r['examquestions']));
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -335,19 +335,19 @@ class action extends app
 					if($question)break;
 				}
 			}
-			$this->tpl->assign("examid",$examid);
-			$this->tpl->assign("questionid",$questionid);
-			$this->tpl->assign("qrid",$qrid);
-			$this->tpl->assign("question",$question);
-			$this->tpl->display('exams_modifypaper');
+			M('tpl')->assign("examid",$examid);
+			M('tpl')->assign("questionid",$questionid);
+			M('tpl')->assign("qrid",$qrid);
+			M('tpl')->assign("question",$question);
+			M('tpl')->display('exams_modifypaper');
 		}
 	}
 
 	private function downloadexam()
 	{
-		$examid = $this->ev->get('examid');
-		$r = $this->exam->getExamSettingById($examid);
-		$this->tpl->assign("setting",$r);
+		$examid = M('ev')->get('examid');
+		$r = M('exam','exam')->getExamSettingById($examid);
+		M('tpl')->assign("setting",$r);
 		$questions = array();
 		$questionrows = array();
 		foreach($r['examquestions'] as $key => $p)
@@ -356,14 +356,14 @@ class action extends app
 			$qrids = '';
 			if($p['questions'])$qids = trim($p['questions']," ,");
 			if($qids)
-				$questions[$key] = $this->exam->getQuestionListByIds($qids);
+				$questions[$key] = M('exam','exam')->getQuestionListByIds($qids);
 			if($p['rowsquestions'])$qrids = trim($p['rowsquestions']," ,");
 			if($qrids)
 			{
 				$qrids = explode(",",$qrids);
 				foreach($qrids as $t)
 				{
-					$qr = $this->exam->getQuestionRowsById($t);
+					$qr = M('exam','exam')->getQuestionRowsById($t);
 					if($qr)
 						$questionrows[$key][$t] = $qr;
 				}
@@ -371,10 +371,10 @@ class action extends app
 		}
 		$args['examsessionquestion'] = array('questions'=>$questions,'questionrows'=>$questionrows);
 		$args['examsessionsetting'] = $r;
-		$questype = $this->basic->getQuestypeList();
-		$this->tpl->assign('questype',$questype);
-		$this->tpl->assign("sessionvars",$args);
-		$content = $this->tpl->fetchExeCnt('exam_download');
+		$questype = M('basic','exam')->getQuestypeList();
+		M('tpl')->assign('questype',$questype);
+		M('tpl')->assign("sessionvars",$args);
+		$content = M('tpl')->fetchExeCnt('exam_download');
 		$content = M('word')->WordMake($content);
 		$this->files->mdir("data/word/");
 		$fname = 'data/word/'.uniqid().".doc";//转换好生成的word文件名编码
@@ -393,9 +393,9 @@ class action extends app
 	private function outcsv()
 	{
 		$this->files = M('files');
-		$examid = $this->ev->get('examid');
-		$exam = $this->exam->getExamSettingById($examid);
-		$questypes = $this->basic->getQuestypeList();
+		$examid = M('ev')->get('examid');
+		$exam = M('exam','exam')->getExamSettingById($examid);
+		$questypes = M('basic','exam')->getQuestypeList();
 		$data = array();
 		foreach($exam['examquestions'] as $tp)
 		{
@@ -420,53 +420,53 @@ class action extends app
 
 	private function ajax()
 	{
-		switch($this->ev->url(4))
+		switch(M('ev')->url(4))
 		{
 			case 'getsubjectknows':
-			$subjectid = $this->ev->get('subjectid');
-			$questype = $this->ev->get('questype');
-			$tmpknows = $this->section->getAllKnowsBySubject($subjectid);
+			$subjectid = M('ev')->get('subjectid');
+			$questype = M('ev')->get('questype');
+			$tmpknows = M('section','exam')->getAllKnowsBySubject($subjectid);
 			$knows = array();
 			$numbers = array();
-			$sections = $this->section->getSectionListByArgs(array(array("AND","sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$subjectid)));
+			$sections = M('section','exam')->getSectionListByArgs(array(array("AND","sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$subjectid)));
 			foreach($tmpknows as $p)
 			{
 				$knows[$p['knowssectionid']][] = $p;
-				$numbers[$p['knowsid']] = intval(ceil($this->exam->getQuestionNumberByQuestypeAndKnowsid($questype,$p['knowsid'])));
+				$numbers[$p['knowsid']] = intval(ceil(M('exam','exam')->getQuestionNumberByQuestypeAndKnowsid($questype,$p['knowsid'])));
 			}
-			$this->tpl->assign('sections',$sections);
-			$this->tpl->assign('numbers',$numbers);
-			$this->tpl->assign('knows',$knows);
-			$this->tpl->display('exam_ajax_getsubjectknows');
+			M('tpl')->assign('sections',$sections);
+			M('tpl')->assign('numbers',$numbers);
+			M('tpl')->assign('knows',$knows);
+			M('tpl')->display('exam_ajax_getsubjectknows');
 			break;
 
 			default:
-			$subjectid = $this->ev->get('subjectid');
-			$type = $this->ev->get('type');
+			$subjectid = M('ev')->get('subjectid');
+			$type = M('ev')->get('type');
 			if($subjectid)
 			{
-				$basic = $this->basic->getBasicBySubjectId($subjectid);
-				$questypes = $this->basic->getQuestypeList();
-				$this->tpl->assign('questypes',$questypes);
-				$this->tpl->assign("type",$type);
-				$this->tpl->assign("subjectid",$subjectid);
-				$this->tpl->assign("basic",$basic);
-				$this->tpl->display('exams_ajaxsetting');
+				$basic = M('basic','exam')->getBasicBySubjectId($subjectid);
+				$questypes = M('basic','exam')->getQuestypeList();
+				M('tpl')->assign('questypes',$questypes);
+				M('tpl')->assign("type",$type);
+				M('tpl')->assign("subjectid",$subjectid);
+				M('tpl')->assign("basic",$basic);
+				M('tpl')->display('exams_ajaxsetting');
 			}
 		}
 	}
 
 	private function score()
 	{
-		$examid = $this->ev->get('examid');
-		$exam = $this->exam->getExamSettingById($examid);
-		$questypes = $this->basic->getQuestypeList();
-		$this->tpl->assign("questypes",$questypes);
-		if($this->ev->get('scoreself'))
+		$examid = M('ev')->get('examid');
+		$exam = M('exam','exam')->getExamSettingById($examid);
+		$questypes = M('basic','exam')->getQuestypeList();
+		M('tpl')->assign("questypes",$questypes);
+		if(M('ev')->get('scoreself'))
 		{
-			$score = $this->ev->get('score');
+			$score = M('ev')->get('score');
 			$exam['examsetting']['scores'] = $score;
-			$this->exam->modifyExamSetting($examid,array('examsetting' => $exam['examsetting']));
+			M('exam','exam')->modifyExamSetting($examid,array('examsetting' => $exam['examsetting']));
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -487,7 +487,7 @@ class action extends app
 				}
 				if($qids)
 				{
-					$questions[$key] = $this->exam->getQuestionListByIds($qids);
+					$questions[$key] = M('exam','exam')->getQuestionListByIds($qids);
 				}
 				if($p['rowsquestions'])
 				{
@@ -498,7 +498,7 @@ class action extends app
 					$qrids = explode(",",$qrids);
 					foreach($qrids as $t)
 					{
-						$qr = $this->exam->getQuestionRowsById($t);
+						$qr = M('exam','exam')->getQuestionRowsById($t);
 						if($qr)
 						{
 							$questionrows[$key][$t] = $qr;
@@ -507,16 +507,16 @@ class action extends app
 				}
 			}
 			$exam['examquestions'] = array('questions'=>$questions,'questionrows'=>$questionrows);
-			$this->tpl->assign("exam",$exam);
-			$this->tpl->display('exams_scoreself');
+			M('tpl')->assign("exam",$exam);
+			M('tpl')->display('exams_scoreself');
 		}
 	}
 
 	private function del()
 	{
-		$page = $this->ev->get('page');
-		$examid = $this->ev->get('examid');
-		$this->exam->delExamSetting($examid);
+		$page = M('ev')->get('page');
+		$examid = M('ev')->get('examid');
+		M('exam','exam')->delExamSetting($examid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -528,12 +528,12 @@ class action extends app
 
 	private function autopage()
 	{
-		if($this->ev->get('submitsetting'))
+		if(M('ev')->get('submitsetting'))
 		{
-			$args = $this->ev->get('args');
+			$args = M('ev')->get('args');
 			$args['examsetting'] = $args['examsetting'];
-			$args['examauthorid'] = $this->_user['sessionuserid'];
-			$args['examauthor'] = $this->_user['sessionusername'];
+			$args['examauthorid'] = $this->user['userid'];
+			$args['examauthor'] = $this->user['sessionusername'];
 			$args['examtype'] = 1;
 
 			$totalscore = 0;
@@ -553,7 +553,7 @@ class action extends app
 				);
 				\PHPEMS\ginkgo::R($message);
 			}
-			$this->exam->addExamSetting($args);
+			M('exam','exam')->addExamSetting($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -563,22 +563,22 @@ class action extends app
 		}
 		else
 		{
-			$subjects = $this->basic->getSubjectList();
-			$questypes = $this->basic->getQuestypeList();
-			$this->tpl->assign('questypes',$questypes);
-			$this->tpl->assign('subjects',$subjects);
-			$this->tpl->display('exams_auto');
+			$subjects = M('basic','exam')->getSubjectList();
+			$questypes = M('basic','exam')->getQuestypeList();
+			M('tpl')->assign('questypes',$questypes);
+			M('tpl')->assign('subjects',$subjects);
+			M('tpl')->display('exams_auto');
 		}
 	}
 
 	private function selfpage()
 	{
-		if($this->ev->get('submitsetting'))
+		if(M('ev')->get('submitsetting'))
 		{
-			$args = $this->ev->get('args');
+			$args = M('ev')->get('args');
 			$args['examsetting'] = $args['examsetting'];
-			$args['examauthorid'] = $this->_user['sessionuserid'];
-			$args['examauthor'] = $this->_user['sessionusername'];
+			$args['examauthorid'] = $this->user['userid'];
+			$args['examauthor'] = $this->user['sessionusername'];
 			$args['examtype'] = 2;
 			$args['examquestions'] = $args['examquestions'];
 
@@ -590,7 +590,7 @@ class action extends app
 				}
 			}
 
-			$id = $this->exam->addExamSetting($args);
+			$id = M('exam','exam')->addExamSetting($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -601,20 +601,20 @@ class action extends app
 		}
 		else
 		{
-			$subjects = $this->basic->getSubjectList();
-			$questypes = $this->basic->getQuestypeList();
-			$this->tpl->assign('questypes',$questypes);
-			$this->tpl->assign('subjects',$subjects);
-			$this->tpl->display('exams_self');
+			$subjects = M('basic','exam')->getSubjectList();
+			$questypes = M('basic','exam')->getQuestypeList();
+			M('tpl')->assign('questypes',$questypes);
+			M('tpl')->assign('subjects',$subjects);
+			M('tpl')->display('exams_self');
 		}
 	}
 
 	private function temppage()
 	{
-		if($this->ev->get('submitsetting'))
+		if(M('ev')->get('submitsetting'))
 		{
-			$args = $this->ev->get('args');
-			$uploadfile = $this->ev->get('uploadfile');
+			$args = M('ev')->get('args');
+			$uploadfile = M('ev')->get('uploadfile');
 			if(!$uploadfile)
 			{
 				$message = array(
@@ -624,8 +624,8 @@ class action extends app
 				\PHPEMS\ginkgo::R($message);
 			}
 			$args['examsetting'] = $args['examsetting'];
-			$args['examauthorid'] = $this->_user['sessionuserid'];
-			$args['examauthor'] = $this->_user['sessionusername'];
+			$args['examauthorid'] = $this->user['userid'];
+			$args['examauthor'] = $this->user['sessionusername'];
 			$args['examtype'] = 3;
 			setlocale(LC_ALL,'zh_CN');
 			$handle = fopen($uploadfile,"r");
@@ -647,7 +647,7 @@ class action extends app
 							$rindex ++;
 							$targs['qrid'] = 'qr_'.$rindex;
 							$targs['qrtype'] = $question[0];
-							$targs['qrquestion'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[1])," \n\t"))));
+							$targs['qrquestion'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[1])," \n\t"))));
 							$targs['qrcreatetime'] = TIME;
 							$questionrows[$targs['qrtype']][intval($rindex - 1)] = $targs;
 						}
@@ -656,13 +656,13 @@ class action extends app
 							$index ++;
 							$targs['questionid'] = 'q_'.$index;
 							$targs['questiontype'] = $question[0];
-							$targs['question'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[1])," \n\t"))));
-							$targs['questionselect'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[2])," \n\t"))));
+							$targs['question'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[1])," \n\t"))));
+							$targs['questionselect'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[2])," \n\t"))));
 							if(!$targs['questionselect'] && $targs['questiontype'] == 3)
 							$targs['questionselect'] = '<p>A、对<p><p>B、错<p>';
 							$targs['questionselectnumber'] = $question[3];
-							$targs['questionanswer'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim($question[4]," \n\t"))));
-							$targs['questiondescribe'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim($question[5]," \n\t"))));
+							$targs['questionanswer'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim($question[4]," \n\t"))));
+							$targs['questiondescribe'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim($question[5]," \n\t"))));
 							$targs['questioncreatetime'] = TIME;
 							$questionrows[$targs['questiontype']][intval($rindex - 1)]['data'][] = $targs;
 							//$qustionnumber++;
@@ -673,13 +673,13 @@ class action extends app
 						$index++;
 						$targs['questionid'] = 'q_'.$index;
 						$targs['questiontype'] = $question[0];
-						$targs['question'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[1])," \n\t"))));
-						$targs['questionselect'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[2])," \n\t"))));
+						$targs['question'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[1])," \n\t"))));
+						$targs['questionselect'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[2])," \n\t"))));
 						if(!$targs['questionselect'] && $targs['questiontype'] == 3)
 						$targs['questionselect'] = '<p>A、对<p><p>B、错<p>';
 						$targs['questionselectnumber'] = intval($question[3]);
-						$targs['questionanswer'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim($question[4]," \n\t"))));
-						$targs['questiondescribe'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim($question[5]," \n\t"))));
+						$targs['questionanswer'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim($question[4]," \n\t"))));
+						$targs['questiondescribe'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim($question[5]," \n\t"))));
 						$targs['questioncreatetime'] = TIME;
 						$questions[$targs['questiontype']][] = $targs;
 						//$qustionnumber++;
@@ -689,7 +689,7 @@ class action extends app
 			$args['examquestions'] = array('questions' => $questions,'questionrows' => $questionrows);
 			//$args['examsetting']['questype'][1]['number'] = $qustionnumber;
 			//$args['examsetting']['questype'][1]['score'] = intval(100/$qustionnumber);
-			$id = $this->exam->addExamSetting($args);
+			$id = M('exam','exam')->addExamSetting($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -700,40 +700,40 @@ class action extends app
 		}
 		else
 		{
-			$subjects = $this->basic->getSubjectList();
-			$questypes = $this->basic->getQuestypeList();
-			$this->tpl->assign('questypes',$questypes);
-			$this->tpl->assign('subjects',$subjects);
-			$this->tpl->display('exams_temp');
+			$subjects = M('basic','exam')->getSubjectList();
+			$questypes = M('basic','exam')->getQuestypeList();
+			M('tpl')->assign('questypes',$questypes);
+			M('tpl')->assign('subjects',$subjects);
+			M('tpl')->display('exams_temp');
 		}
 	}
 
 	private function selected()
 	{
-		$show = $this->ev->get('show');
-			$questionids = trim($this->ev->get('questionids')," ,");
-			$rowsquestionids = trim($this->ev->get('rowsquestionids')," ,");
+		$show = M('ev')->get('show');
+			$questionids = trim(M('ev')->get('questionids')," ,");
+			$rowsquestionids = trim(M('ev')->get('rowsquestionids')," ,");
 			if(!$questionids)$questionids = '0';
 			if(!$rowsquestionids)$rowsquestionids = '0';
-			$questions = $this->exam->getQuestionListByArgs(array(array("AND","questionstatus = 1"),array("AND","find_in_set(questionid,:questionid)",'questionid',$questionids)));
+			$questions = M('exam','exam')->getQuestionListByArgs(array(array("AND","questionstatus = 1"),array("AND","find_in_set(questionid,:questionid)",'questionid',$questionids)));
 			$rowsquestions = array();
 			$rowsquestionids = explode(',',$rowsquestionids);
 			foreach($rowsquestionids as $p)
 			{
 				if($p)
-				$rowsquestions[$p] = $this->exam->getQuestionRowsByArgs(array(array("AND","qrstatus = 1"),array("AND","qrid = :qrid",'qrid',$p)));
+				$rowsquestions[$p] = M('exam','exam')->getQuestionRowsByArgs(array(array("AND","qrstatus = 1"),array("AND","qrid = :qrid",'qrid',$p)));
 			}
-			$this->tpl->assign('rowsquestions',$rowsquestions);
-			$this->tpl->assign('questions',$questions);
-			$this->tpl->assign('show',$show);
-			$this->tpl->display('exams_selected');
+			M('tpl')->assign('rowsquestions',$rowsquestions);
+			M('tpl')->assign('questions',$questions);
+			M('tpl')->assign('show',$show);
+			M('tpl')->display('exams_selected');
 	}
 
 	private function selectquestions()
 	{
-		$search = $this->ev->get('search');
-		$useframe = $this->ev->get('useframe');
-		$page = $this->ev->get('page');
+		$search = M('ev')->get('search');
+		$useframe = M('ev')->get('useframe');
+		$page = M('ev')->get('page');
 		$page = $page > 0?$page:1;
 		$this->pg->setUrlTarget('modal-body" class="ajax');
 		if(!$search['questionisrows'])
@@ -772,7 +772,7 @@ class action extends app
 				$tmpknows = '0';
 				if($search['questionsectionid'])
 				{
-					$knows = $this->section->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
+					$knows = M('section','exam')->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
 					foreach($knows as $p)
 					{
 						if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -781,7 +781,7 @@ class action extends app
 				}
 				elseif($search['questionsubjectid'])
 				{
-					$knows = $this->section->getAllKnowsBySubject($search['questionsubjectid']);
+					$knows = M('section','exam')->getAllKnowsBySubject($search['questionsubjectid']);
 					foreach($knows as $p)
 					{
 						if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -790,7 +790,7 @@ class action extends app
 				}
 				else
 				{
-					$knows = $this->section->getAllKnowsBySubjects($this->teachsubjects);
+					$knows = M('section','exam')->getAllKnowsBySubjects($this->teachsubjects);
 					foreach($knows as $p)
 					{
 						if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -799,7 +799,7 @@ class action extends app
 				}
 			}
 
-			$questions = $this->exam->getQuestionsList($page,10,$args);
+			$questions = M('exam','exam')->getQuestionsList($page,10,$args);
 		}
 		else
 		{
@@ -833,7 +833,7 @@ class action extends app
 				$tmpknows = '0';
 				if($search['questionsectionid'])
 				{
-					$knows = $this->section->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
+					$knows = M('section','exam')->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
 					foreach($knows as $p)
 					{
 						if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -842,7 +842,7 @@ class action extends app
 				}
 				elseif($search['questionsubjectid'])
 				{
-					$knows = $this->section->getAllKnowsBySubject($search['questionsubjectid']);
+					$knows = M('section','exam')->getAllKnowsBySubject($search['questionsubjectid']);
 					foreach($knows as $p)
 					{
 						if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -851,7 +851,7 @@ class action extends app
 				}
 				else
 				{
-					$knows = $this->section->getAllKnowsBySubjects($this->teachsubjects);
+					$knows = M('section','exam')->getAllKnowsBySubjects($this->teachsubjects);
 					foreach($knows as $p)
 					{
 						if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -859,35 +859,35 @@ class action extends app
 					$args[] = array("AND","find_in_set(quest2knows.qkknowsid,:qkknowsid)",'qkknowsid',$tmpknows);
 				}
 			}
-			$questions = $this->exam->getQuestionrowsList($page,10,$args);
+			$questions = M('exam','exam')->getQuestionrowsList($page,10,$args);
 		}
 		if($useframe)$questions['pages'] = str_replace('&useframe=1','',$questions['pages']);
-		$questypes = $this->basic->getQuestypeList();
-		$sections = $this->section->getSectionListByArgs(array(array("AND","sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$search['questionsubjectid'])));
-		$knows = $this->section->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
-		//$this->tpl->assign('subjects',$subjects);
-		$this->tpl->assign('search',$search);
-		$this->tpl->assign('sections',$sections);
-		$this->tpl->assign('knows',$knows);
-		$this->tpl->assign('questypes',$questypes);
-		$this->tpl->assign('questiontype',$search['questiontype']);
-		$this->tpl->assign('questions',$questions);
-		$this->tpl->assign('useframe',$useframe);
-		$this->tpl->display('selectquestions');
+		$questypes = M('basic','exam')->getQuestypeList();
+		$sections = M('section','exam')->getSectionListByArgs(array(array("AND","sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$search['questionsubjectid'])));
+		$knows = M('section','exam')->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
+		//M('tpl')->assign('subjects',$subjects);
+		M('tpl')->assign('search',$search);
+		M('tpl')->assign('sections',$sections);
+		M('tpl')->assign('knows',$knows);
+		M('tpl')->assign('questypes',$questypes);
+		M('tpl')->assign('questiontype',$search['questiontype']);
+		M('tpl')->assign('questions',$questions);
+		M('tpl')->assign('useframe',$useframe);
+		M('tpl')->display('selectquestions');
 	}
 
 	private function modify()
 	{
-		$search = $this->ev->get('search');
-		$examid = $this->ev->get('examid');
-		$exam = $this->exam->getExamSettingById($examid);
-		if($this->ev->get('submitsetting'))
+		$search = M('ev')->get('search');
+		$examid = M('ev')->get('examid');
+		$exam = M('exam','exam')->getExamSettingById($examid);
+		if(M('ev')->get('submitsetting'))
 		{
-			$args = $this->ev->get('args');
+			$args = M('ev')->get('args');
 			$args['examsetting'] = $args['examsetting'];
 			if($exam['examtype'] == 3)
 			{
-				$uploadfile = $this->ev->get('uploadfile');
+				$uploadfile = M('ev')->get('uploadfile');
 				if($uploadfile)
 				{
 					setlocale(LC_ALL,'zh_CN');
@@ -910,7 +910,7 @@ class action extends app
 									$rindex ++;
 									$targs['qrid'] = 'qr_'.$rindex;
 									$targs['qrtype'] = $question[0];
-									$targs['qrquestion'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[1])," \n\t"))));
+									$targs['qrquestion'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[1])," \n\t"))));
 									$targs['qrcreatetime'] = TIME;
 									$questionrows[$targs['qrtype']][intval($rindex - 1)] = $targs;
 								}
@@ -919,13 +919,13 @@ class action extends app
 									$index ++;
 									$targs['questionid'] = 'q_'.$index;
 									$targs['questiontype'] = $question[0];
-									$targs['question'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[1])," \n\t"))));
-									$targs['questionselect'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[2])," \n\t"))));
+									$targs['question'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[1])," \n\t"))));
+									$targs['questionselect'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[2])," \n\t"))));
 									if(!$targs['questionselect'] && $targs['questiontype'] == 3)
 									$targs['questionselect'] = '<p>A、对<p><p>B、错<p>';
 									$targs['questionselectnumber'] = intval($question[3]);
-									$targs['questionanswer'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim($question[4]," \n\t"))));
-									$targs['questiondescribe'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim($question[5]," \n\t"))));
+									$targs['questionanswer'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim($question[4]," \n\t"))));
+									$targs['questiondescribe'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim($question[5]," \n\t"))));
 									$targs['questioncreatetime'] = TIME;
 									$questionrows[$targs['questiontype']][intval($rindex - 1)]['data'][] = $targs;
 									//$qustionnumber++;
@@ -936,7 +936,7 @@ class action extends app
 								$index++;
 								$targs['questionid'] = 'q_'.$index;
 								$targs['questiontype'] = $question[0];
-								$targs['question'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[1])," \n\t"))));
+								$targs['question'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[1])," \n\t"))));
 								/**
 								$ei = md5($targs['question']);
 								if($isexit[$ei])
@@ -950,12 +950,12 @@ class action extends app
 								else
 								$isexit[$ei] = 1;
 								**/
-								$targs['questionselect'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[2])," \n\t"))));
+								$targs['questionselect'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim(nl2br($question[2])," \n\t"))));
 								if(!$targs['questionselect'] && $targs['questiontype'] == 3)
 								$targs['questionselect'] = '<p>A、对<p><p>B、错<p>';
 								$targs['questionselectnumber'] = $question[3];
-								$targs['questionanswer'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim($question[4]," \n\t"))));
-								$targs['questiondescribe'] = $this->ev->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim($question[5]," \n\t"))));
+								$targs['questionanswer'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim($question[4]," \n\t"))));
+								$targs['questiondescribe'] = M('ev')->addSlashes(htmlspecialchars(iconv("GBK","UTF-8//IGNORE",trim($question[5]," \n\t"))));
 								$targs['questioncreatetime'] = TIME;
 								$questions[$targs['questiontype']][] = $targs;
 								//$qustionnumber++;
@@ -975,7 +975,7 @@ class action extends app
 				}
 			}
 
-			$this->exam->modifyExamSetting($examid,$args);
+			M('exam','exam')->modifyExamSetting($examid,$args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -986,11 +986,11 @@ class action extends app
 		}
 		else
 		{
-			$subjects = $this->basic->getSubjectList();
-			$questypes = $this->basic->getQuestypeList();
+			$subjects = M('basic','exam')->getSubjectList();
+			$questypes = M('basic','exam')->getQuestypeList();
 			foreach($exam['examquestions'] as $key => $p)
 			{
-				$exam['examnumber'][$key] = $this->exam->getExamQuestionNumber($p);
+				$exam['examnumber'][$key] = M('exam','exam')->getExamQuestionNumber($p);
 			}
 			foreach($exam['examsetting']['questypelite'] as $key => $p)
 			{
@@ -1006,23 +1006,23 @@ class action extends app
 					$exam['examsetting']['questypelite'][$key] = 1;
 				}
 			}
-			$this->tpl->assign('search',$search);
-			$this->tpl->assign('subjects',$subjects);
-			$this->tpl->assign('exam',$exam);
-			$this->tpl->assign('questypes',$questypes);
+			M('tpl')->assign('search',$search);
+			M('tpl')->assign('subjects',$subjects);
+			M('tpl')->assign('exam',$exam);
+			M('tpl')->assign('questypes',$questypes);
 			if($exam['examtype'] == 1)
-			$this->tpl->display('exams_modifyauto');
+			M('tpl')->display('exams_modifyauto');
 			elseif($exam['examtype'] == 2)
-			$this->tpl->display('exams_modifyself');
+			M('tpl')->display('exams_modifyself');
 			else
-			$this->tpl->display('exams_modifytemp');
+			M('tpl')->display('exams_modifytemp');
 		}
 	}
 
 	private function index()
 	{
-		$search = $this->ev->get('search');
-		$page = $this->ev->get('page');
+		$search = M('ev')->get('search');
+		$page = M('ev')->get('page');
 		$page = $page > 0?$page:1;
 		$args = array();
 		if($search)
@@ -1030,11 +1030,11 @@ class action extends app
 			if($search['examsubject'])$args[] = array("AND","examsubject = :examsubject",'examsubject',$search['examsubject']);
 			if($search['examtype'])$args[] = array("AND","examtype = :examtype",'examtype',$search['examtype']);
 		}
-		$exams = $this->exam->getExamSettingList($args,$page,10);
-		$subjects = $this->basic->getSubjectList();
-		$this->tpl->assign('subjects',$subjects);
-		$this->tpl->assign('exams',$exams);
-		$this->tpl->display('exams');
+		$exams = M('exam','exam')->getExamSettingList($args,$page,10);
+		$subjects = M('basic','exam')->getSubjectList();
+		M('tpl')->assign('subjects',$subjects);
+		M('tpl')->assign('exams',$exams);
+		M('tpl')->display('exams');
 	}
 }
 

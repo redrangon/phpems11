@@ -10,8 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$this->feedback = M('feedback','exam');
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -20,8 +19,8 @@ class action extends app
 
 	private function del()
 	{
-		$fbid = $this->ev->get('fbid');
-		$this->feedback->delFeedBack($fbid);
+		$fbid = M('ev')->get('fbid');
+		M('feedback','exam')->delFeedBack($fbid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -33,9 +32,9 @@ class action extends app
 
 	private function donefeedback()
 	{
-		$fbid = $this->ev->get('fbid');
-		$status = $this->ev->get('status');
-		$this->feedback->modifyFeedBackById($fbid,array('fbstatus' => $status,'fbdoneuserid' => $this->_user['sessionuserid'],'fbdonetime' => TIME));
+		$fbid = M('ev')->get('fbid');
+		$status = M('ev')->get('status');
+		M('feedback','exam')->modifyFeedBackById($fbid,array('fbstatus' => $status,'fbdoneuserid' => $this->user['userid'],'fbdonetime' => TIME));
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -47,13 +46,13 @@ class action extends app
 
 	private function index()
 	{
-		$page = $this->ev->get('page');
+		$page = M('ev')->get('page');
 		$page = $page > 0?$page:1;
-		$feedback = $this->feedback->getFeedBackList(1,$page);
-		$this->tpl->assign('page',$page);
-		$this->tpl->assign('feedback',$feedback);
-		$this->tpl->assign('status',array('待处理','已处理'));
-		$this->tpl->display('feedback');
+		$feedback = M('feedback','exam')->getFeedBackList(1,$page);
+		M('tpl')->assign('page',$page);
+		M('tpl')->assign('feedback',$feedback);
+		M('tpl')->assign('status',array('待处理','已处理'));
+		M('tpl')->display('feedback');
 	}
 }
 

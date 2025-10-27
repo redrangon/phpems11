@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,11 +19,11 @@ class action extends app
 
 	private function index()
 	{
-		$page = $this->ev->get('page');
-		$keyword = $this->ev->get('keyword');
-		$contents = $this->course->getCourseList(array(array("AND","cstitle LIKE :cstitle",'cstitle',"%{$keyword}%")),$page);
-		$this->tpl->assign('contents',$contents);
-		$this->tpl->display('search_default');
+		$page = M('ev')->get('page');
+		$keyword = M('ev')->get('keyword');
+		$contents = M('course','course')->getCourseList(array(array("AND","cstitle LIKE :cstitle",'cstitle',"%{$keyword}%")),$page);
+		M('tpl')->assign('contents',$contents);
+		M('tpl')->display('search_default');
 	}
 }
 

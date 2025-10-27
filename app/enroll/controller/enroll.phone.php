@@ -10,22 +10,22 @@ class action extends app
 {
     public function display()
     {
-        $this->search = $this->ev->get('search');
+        $this->search = M('ev')->get('search');
         if($this->search)
         {
             $this->u = '';
-            $this->tpl->assign('search',$this->search);
+            M('tpl')->assign('search',$this->search);
             foreach($this->search as $key => $arg)
             {
                 $this->u .= "&search[{$key}]={$arg}";
             }
-            $this->tpl->assign('u',$this->u);
+            M('tpl')->assign('u',$this->u);
         }
-	    $this->enroll = M('enroll','enroll');
+	    M('enroll','enroll') = M('enroll','enroll');
         $this->order = M('orders','bank');
-        $this->module = M('module');
-        $this->html = M('html');
-		$action = $this->ev->url(3);
+        M('module') = M('module');
+        M('html') = M('html');
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -34,32 +34,32 @@ class action extends app
 
     public function detail()
     {
-        $enrollid = $this->ev->get('enrollid');
-        $enroll = $this->enroll->getEnrollById($enrollid);
-        $enbat = $this->enroll->getEnrollBatById($enroll['enrollbatid']);
+        $enrollid = M('ev')->get('enrollid');
+        $enroll = M('enroll','enroll')->getEnrollById($enrollid);
+        $enbat = M('enroll','enroll')->getEnrollBatById($enroll['enrollbatid']);
         $args = array();
         $args[] = array("AND","enbstarttime <= :stime","stime",TIME);
         $args[] = array("AND","enbendtime >= :etime","etime",TIME);
-        $enbats = $this->enroll->getEnrollBatsList($args,1,10);
-		$fields = $this->module->getMoudleFields($enbat['enbmoduleid'],1);
-		$forms = $this->html->buildInfo($fields,$enroll);
-		$this->tpl->assign('forms',$forms);
-        $this->tpl->assign("enroll",$enroll);
-        $this->tpl->assign("enbat",$enbat);
-        $this->tpl->assign("enbats",$enbats);
-        $this->tpl->display('enroll_detail');
+        $enbats = M('enroll','enroll')->getEnrollBatsList($args,1,10);
+		$fields = M('module')->getMoudleFields($enbat['enbmoduleid'],1);
+		$forms = M('html')->buildInfo($fields,$enroll);
+		M('tpl')->assign('forms',$forms);
+        M('tpl')->assign("enroll",$enroll);
+        M('tpl')->assign("enbat",$enbat);
+        M('tpl')->assign("enbats",$enbats);
+        M('tpl')->display('enroll_detail');
     }
 
     public function modify()
     {
-        $enrollid = $this->ev->get('enrollid');
-        $enroll = $this->enroll->getEnrollById($enrollid);
-        $enbat = $this->enroll->getEnrollBatById($enroll['enrollbatid']);
-        if($this->ev->get('submit'))
+        $enrollid = M('ev')->get('enrollid');
+        $enroll = M('enroll','enroll')->getEnrollById($enrollid);
+        $enbat = M('enroll','enroll')->getEnrollBatById($enroll['enrollbatid']);
+        if(M('ev')->get('submit'))
         {
-            $args = $this->ev->get('args');
+            $args = M('ev')->get('args');
             $args['enrollverify'] = 1;
-            $this->enroll->modifyEnroll($enrollid,$args);
+            M('enroll','enroll')->modifyEnroll($enrollid,$args);
             $message = array(
                 'statusCode' => 200,
                 "message" => "操作成功",
@@ -70,24 +70,24 @@ class action extends app
         }
         else
         {
-            $fields = $this->module->getMoudleFields($enbat['enbmoduleid'],1);
-            $forms = $this->html->buildHtml($fields,$enroll);
-            $this->tpl->assign('forms',$forms);
-            $this->tpl->assign('enroll',$enroll);
-            $this->tpl->assign('enbat',$enbat);
-            $this->tpl->display('enroll_modify');
+            $fields = M('module')->getMoudleFields($enbat['enbmoduleid'],1);
+            $forms = M('html')->buildHtml($fields,$enroll);
+            M('tpl')->assign('forms',$forms);
+            M('tpl')->assign('enroll',$enroll);
+            M('tpl')->assign('enbat',$enbat);
+            M('tpl')->display('enroll_modify');
         }
     }
 
     public function add()
     {
-        $enbid = $this->ev->get('enbid');
-        $enbat = $this->enroll->getEnrollBatById($enbid);
+        $enbid = M('ev')->get('enbid');
+        $enbat = M('enroll','enroll')->getEnrollBatById($enbid);
         $args = array(
-            array("AND","enrolluserid = :enrolluserid","enrolluserid",$this->_user['sessionuserid']),
+            array("AND","enrolluserid = :enrolluserid","enrolluserid",$this->user['userid']),
             array("AND","enrollbatid = :enrollbatid","enrollbatid",$enbid)
         );
-        $enroll = $this->enroll->getEnrollByArgs($args);
+        $enroll = M('enroll','enroll')->getEnrollByArgs($args);
         if($enroll['enrollid'])
         {
             $message = array(
@@ -107,14 +107,14 @@ class action extends app
             );
             ginkgo::R($message);
         }
-        if($this->ev->get('submit'))
+        if(M('ev')->get('submit'))
         {
-            $args = $this->ev->get('args');
+            $args = M('ev')->get('args');
             $args['enrollbatid'] = $enbid;
-            $args['enrolluserid'] = $this->_user['sessionuserid'];
+            $args['enrolluserid'] = $this->user['userid'];
             $args['enrolltime'] = TIME;
             $args['enrollverify'] = 1;
-            $enrollid = $this->enroll->addEnroll($args);
+            $enrollid = M('enroll','enroll')->addEnroll($args);
             $message = array(
                 'statusCode' => 200,
                 "message" => "操作成功",
@@ -125,31 +125,31 @@ class action extends app
         }
         else
         {
-            $fields = $this->module->getMoudleFields($enbat['enbmoduleid'],1);
-            $forms = $this->html->buildHtml($fields);
-            $this->tpl->assign('forms',$forms);
-            $this->tpl->assign('enbat',$enbat);
-            $this->tpl->display('enroll_add');
+            $fields = M('module')->getMoudleFields($enbat['enbmoduleid'],1);
+            $forms = M('html')->buildHtml($fields);
+            M('tpl')->assign('forms',$forms);
+            M('tpl')->assign('enbat',$enbat);
+            M('tpl')->display('enroll_add');
         }
     }
 
     public function index()
     {
-        $enbid = $this->ev->get('enbid');
-        $enbat = $this->enroll->getEnrollBatById($enbid);
+        $enbid = M('ev')->get('enbid');
+        $enbat = M('enroll','enroll')->getEnrollBatById($enbid);
         $args = array(
-            array("AND","enrolluserid = :enrolluserid","enrolluserid",$this->_user['sessionuserid']),
+            array("AND","enrolluserid = :enrolluserid","enrolluserid",$this->user['userid']),
             array("AND","enrollbatid = :enrollbatid","enrollbatid",$enbid)
         );
-        $enroll = $this->enroll->getEnrollByArgs($args);
+        $enroll = M('enroll','enroll')->getEnrollByArgs($args);
         $args = array();
         //$args[] = array("AND","enbstarttime <= :stime","stime",TIME);
         //$args[] = array("AND","enbendtime >= :etime","etime",TIME);
-        $enbats = $this->enroll->getEnrollBatsList($args,1,10);
-        $this->tpl->assign("enroll",$enroll);
-        $this->tpl->assign("enbat",$enbat);
-        $this->tpl->assign("enbats",$enbats);
-        $this->tpl->display('enroll');
+        $enbats = M('enroll','enroll')->getEnrollBatsList($args,1,10);
+        M('tpl')->assign("enroll",$enroll);
+        M('tpl')->assign("enbat",$enbat);
+        M('tpl')->assign("enbats",$enbats);
+        M('tpl')->display('enroll');
     }
 }
 

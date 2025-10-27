@@ -11,8 +11,7 @@ class action extends app
 {
 	public function display()
 	{
-		$this->config = M('config','certificate');
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -21,15 +20,15 @@ class action extends app
 
 	private function index()
 	{
-		$page = intval($this->ev->get('page'));
-		$certificates = $this->ce->getCeList(array(),$page,10);
+		$page = intval(M('ev')->get('page'));
+		$certificates = M('ce','certificate')->getCeList(array(),$page,PN);
 		$args = array();
-		$args[] = array("AND","cequserid = :cequserid","cequserid",$this->_user['sessionuserid']);
-		$news = $this->ce->getCeList(array(),1,10);
-		$this->tpl->assign('news',$news);
-		$this->tpl->assign('certificates',$certificates);
-		$this->tpl->assign('page',$page);
-		$this->tpl->display('index');
+		$args[] = array("AND","cequserid = :cequserid","cequserid",$this->user['userid']);
+		$news = M('ce','certificate')->getCeList(array(),1,10);
+		M('tpl')->assign('news',$news);
+		M('tpl')->assign('certificates',$certificates);
+		M('tpl')->assign('page',$page);
+		M('tpl')->display('index');
 	}
 }
 

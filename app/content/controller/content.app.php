@@ -10,8 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-        $this->position = M('position','content');
-		$action = $this->ev->url(3);
+        $action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -20,17 +19,17 @@ class action extends app
 
 	private function buy()
 	{
-		$contentid = $this->ev->get('contentid');
-        $content = $this->content->getContentById($contentid);
-        if($this->_user['sessionuserid'])
+		$contentid = M('ev')->get('contentid');
+        $content = M('content','content')->getContentById($contentid);
+        if($this->user['userid'])
         {
             if($content['contentcoin'])
 			{
                 $args = array(
-                    array("AND","cturuserid = :cturuserid","cturuserid",$this->_user['sessionuserid']),
+                    array("AND","cturuserid = :cturuserid","cturuserid",$this->user['userid']),
                     array("AND","cturcontentid = :cturcontentid","cturcontentid",$contentid)
                 );
-                $ctur = $this->content->getCturByArgs($args);
+                $ctur = M('content','content')->getCturByArgs($args);
                 if($ctur['cturid'])
 				{
                     $message = array(
@@ -41,14 +40,14 @@ class action extends app
 				}
 				else
 				{
-					$user = $this->user->getUserById($this->_user['sessionuserid']);
+					$user = M('user','user')->getUserById($this->user['userid']);
 					if($user['usercoin'] >= $content['contentcoin'])
 					{
 
 						$coin = $user['usercoin'] - $content['contentcoin'];
-                        $this->user->modifyUserInfo($this->_user['sessionuserid'],array('usercoin' => $coin));
-                        $this->content->addCtur(array('cturuserid' => $this->_user['sessionuserid'],'cturcontentid' => $contentid));
-                        M('consume','bank')->addConsumeLog(array('conluserid' => $this->_user['sessionuserid'],'conlcost' => $content['contentcoin'],'conltype' => 1,'conltime' => TIME,'conlinfo' => '购买内容'.$content['contenttitle']));
+                        M('user','user')->modifyUserInfo($this->user['userid'],array('usercoin' => $coin));
+                        M('content','content')->addCtur(array('cturuserid' => $this->user['userid'],'cturcontentid' => $contentid));
+                        M('consume','bank')->addConsumeLog(array('conluserid' => $this->user['userid'],'conlcost' => $content['contentcoin'],'conltype' => 1,'conltime' => TIME,'conlinfo' => '购买内容'.$content['contenttitle']));
                         $message = array(
                             'statusCode' => 200,
                             "message" => "购买成功",
@@ -88,43 +87,43 @@ class action extends app
 
 	private function setview()
 	{
-		$contentid = $this->ev->get('contentid');
-		echo $this->content->setViewNumber($contentid);
+		$contentid = M('ev')->get('contentid');
+		echo M('content','content')->setViewNumber($contentid);
 	}
 
 	public function index()
 	{
-		$page = $this->ev->get('page');
-		$contentid = $this->ev->get('contentid');
-		$content = $this->content->getContentById($contentid);
+		$page = M('ev')->get('page');
+		$contentid = M('ev')->get('contentid');
+		$content = M('content','content')->getContentById($contentid);
 		if($content['contentlink'])header("location:".html_entity_decode($content['contentlink'])."");
 		else
 		{
-			if($this->_user['sessionuserid'] && $content['contentcoin'])
+			if($this->user['userid'] && $content['contentcoin'])
 			{
                 $args = array(
-                    array("AND","cturuserid = :cturuserid","cturuserid",$this->_user['sessionuserid']),
+                    array("AND","cturuserid = :cturuserid","cturuserid",$this->user['userid']),
 					array("AND","cturcontentid = :cturcontentid","cturcontentid",$contentid)
                 );
-                $ctur = $this->content->getCturByArgs($args);
-                $this->tpl->assign('status',$ctur['cturid']);
+                $ctur = M('content','content')->getCturByArgs($args);
+                M('tpl')->assign('status',$ctur['cturid']);
 			}
-			$catbread = $this->category->getCategoryPos($content['contentcatid']);
-			$cat = $this->category->getCategoryById($content['contentcatid']);
-			$catbrother = $this->category->getCategoriesByArgs(array(array('AND',"catparent = :catparent",'catparent',$cat['catparent']),array('AND',"catinmenu = '0'")));
+			$catbread = M('category')->getCategoryPos($content['contentcatid']);
+			$cat = M('category')->getCategoryById($content['contentcatid']);
+			$catbrother = M('category')->getCategoriesByArgs(array(array('AND',"catparent = :catparent",'catparent',$cat['catparent']),array('AND',"catinmenu = '0'")));
 			if($content['contenttemplate'])$template = $content['contenttemplate'];
 			else $template = 'content_default';
-			$nearContent = $this->content->getNearContentById($contentid,$content['contentcatid']);
+			$nearContent = M('content','content')->getNearContentById($contentid,$content['contentcatid']);
 			if(!$template)$template = 'content_default';
-            $topnews = $this->position->getPosContentList(array(array("AND","pcposid = 2")),1,10);
-            $this->tpl->assign('topnews',$topnews);
-			$this->tpl->assign('cat',$cat);
-			$this->tpl->assign('nearContent',$nearContent);
-			$this->tpl->assign('page',$page);
-			$this->tpl->assign('catbread',$catbread);
-			$this->tpl->assign('content',$content);
-			$this->tpl->assign('catbrother',$catbrother);
-			$this->tpl->display($template);
+            $topnews = M('position','content')->getPosContentList(array(array("AND","pcposid = 2")),1,10);
+            M('tpl')->assign('topnews',$topnews);
+			M('tpl')->assign('cat',$cat);
+			M('tpl')->assign('nearContent',$nearContent);
+			M('tpl')->assign('page',$page);
+			M('tpl')->assign('catbread',$catbread);
+			M('tpl')->assign('content',$content);
+			M('tpl')->assign('catbrother',$catbrother);
+			M('tpl')->display($template);
 		}
 	}
 }

@@ -40,9 +40,9 @@
 								<td><span>{x2;v:pos['posname']}</span></td>
 								<td>
 									<div class="btn-group">
-										<a class="btn" href="index.php?content-master-positions-poscontent&posid={x2;v:pos['posid']}{x2;$u}"><em class="glyphicon glyphicon-list"></em></a>
-										<a class="btn" href="index.php?{x2;$_app}-master-positions-modify&posid={x2;v:pos['posid']}{x2;$u}"><em class="glyphicon glyphicon-edit"></em></a>
-										<a class="btn confirm" href="index.php?{x2;$_app}-master-positions-del&posid={x2;v:pos['posid']}&page={x2;$page}{x2;$u}"><em class="glyphicon glyphicon-remove"></em></a>
+										<a class="btn" href="index.php?content-master-positions-poscontent&posid={x2;v:pos['posid']}{x2;$u}">列表</a>
+										<a class="btn" href="index.php?{x2;$_app}-master-positions-modify&posid={x2;v:pos['posid']}{x2;$u}">修改</a>
+										<a class="btn confirm" href="index.php?{x2;$_app}-master-positions-del&posid={x2;v:pos['posid']}{x2;$u}">删除</a>
 									</div>
 								</td>
 							</tr>

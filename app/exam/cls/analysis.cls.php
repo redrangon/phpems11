@@ -10,19 +10,13 @@ use function \PHPEMS\M;
  */
 class analysis
 {
-	public $db;
-
-	public function __construct()
-	{
-		$this->db = M('pepdo');
-	}
 
 	public function insertAnalysis($args)
 	{
 		$data = array('answer',$args);
 		$sql = $this->sql->makeInsert($data);
-		$this->db->exec($sql);
-		return $this->db->lastInsertId();
+		M('pepdo')->exec($sql);
+		return M('pepdo')->lastInsertId();
 	}
 
 	public function getAnalysisList($page,$number = 20,$args)
@@ -36,28 +30,28 @@ class analysis
 			'orderby' => 'qaid DESC',
 			'groupby' => false
 		);
-		return $this->db->listElements($page,20,$data);
+		return M('pepdo')->listElements($page,20,$data);
 	}
 
 	public function modifyAnalysis($qaid,$args)
 	{
 		$data = array('questionanalysis',$args,array(array("AND","qaid = :qaid",'qaid',$qaid)));
 		$sql = $this->sql->makeUpdate($data);
-        return $this->db->exec($sql);
+        return M('pepdo')->exec($sql);
 	}
 
 	public function getAnalysisByArgs($args)
 	{
         $data = array(false,'questionanalysis',$args);
         $sql = $this->sql->makeSelect($data);
-        return $this->db->fetch($sql);
+        return M('pepdo')->fetch($sql);
 	}
 
 	public function getAnalysisById($qaid)
 	{
 		$data = array(false,'questionanalysis',array(array("AND","qaid = :qaid",'qaid',$qaid)));
 		$sql = $this->sql->makeSelect($data);
-		return $this->db->fetch($sql);
+		return M('pepdo')->fetch($sql);
 	}
 }
 

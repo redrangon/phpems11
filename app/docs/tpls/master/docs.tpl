@@ -207,18 +207,20 @@
 		</div>
 	</div>
 </div>
-<script src="index.php?docs-master-docs-catsmenu&catid={x2;$catid}"></script>
 <script>
-    $('#catsmenu').treeview({
-        levels: {x2;$catlevel},
-        expandIcon: 'glyphicon glyphicon-chevron-right',
-        collapseIcon: 'glyphicon glyphicon-chevron-down',
-        selectedColor: "#000000",
-        selectedBackColor: "#FFFFFF",
-        enableLinks: true,
-        data: treeData
-    });
+	$.getJSON('index.php?docs-master-docs-catsmenu&catid={x2;$catid}',function(treeData){
+		$('#catsmenu').treeview({
+			levels: {x2;$catlevel},
+			expandIcon: 'glyphicon glyphicon-chevron-right',
+			collapseIcon: 'glyphicon glyphicon-chevron-down',
+			selectedColor: "#FFFFFF",
+			selectedBackColor: "transparent",
+			enableLinks: true,
+			data: treeData
+		});
+	});
 </script>
+
 {x2;include:footer}
 </body>
 </html>

@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,11 +19,11 @@ class action extends app
 
 	private function finish()
 	{
-		$ordersn = $this->ev->get('ordersn');
-		$order = $this->order->getOrderById($ordersn,$this->_user['sessionuserid']);
+		$ordersn = M('ev')->get('ordersn');
+		$order = M('orders','bank')->getOrderById($ordersn,$this->user['userid']);
 		if($order['orderstatus'] == 3)
 		{
-			$this->order->modifyOrder($ordersn,array('orderstatus' => 4));
+			M('orders','bank')->modifyOrder($ordersn,array('orderstatus' => 4));
 			$message = array(
 				'statusCode' => 200,
 				"message" => "订单设置成功",
@@ -44,8 +44,8 @@ class action extends app
 	
 	private function alipay()
 	{
-		$ordersn = $this->ev->get('ordersn');
-		$order = $this->order->getOrderById($ordersn,$this->_user['sessionuserid']);
+		$ordersn = M('ev')->get('ordersn');
+		$order = M('orders','bank')->getOrderById($ordersn,$this->user['userid']);
 		$alipay = M('alipay');	
 		if($order['orderstatus'] == 1)
 		{
@@ -56,7 +56,7 @@ class action extends app
 					"callbackType" => 'forward',
 					"forwardUrl" => $payforurl
 				);
-			}catch(Exception $e){
+			}catch(\Exception $e){
 				$message = array(
 					'statusCode' => 300,
 					"message" => "订单错误，稍后重试"
@@ -73,31 +73,20 @@ class action extends app
 
 	private function wxpay()
 	{
-		$ordersn = $this->ev->get('ordersn');
-		$order = $this->order->getOrderById($ordersn,$this->_user['sessionuserid']);
+		$ordersn = M('ev')->get('ordersn');
+		$order = M('orders','bank')->getOrderById($ordersn,$this->user['userid']);
 		$wxpay = M('wxpay');
 		$result = $wxpay->outNativeUrl($order);
-		$this->tpl->assign('order',$order);
-		$this->tpl->assign('result',$result);
-		$this->tpl->assign('img',M('peqr')->pngString($result['code_url']));
-		$this->tpl->display('payfor_wxpay');
+		M('tpl')->assign('order',$order);
+		M('tpl')->assign('result',$result);
+		M('tpl')->assign('img',M('peqr')->pngString($result['code_url']));
+		M('tpl')->display('payfor_wxpay');
 	}
-
-    private function payjs()
-    {
-        $ordersn = $this->ev->get('ordersn');
-        $order = $this->order->getOrderById($ordersn,$this->_user['sessionuserid']);
-        $payjs = M('payjs');
-        $result = $payjs->outQrcodePay($order);
-        $this->tpl->assign('order',$order);
-        $this->tpl->assign('result',$result);
-        $this->tpl->display('payfor_payjs');
-    }
 
 	private function ispayfor()
 	{
-		$ordersn = $this->ev->get('ordersn');
-		$order = $this->order->getOrderById($ordersn,$this->_user['sessionuserid']);
+		$ordersn = M('ev')->get('ordersn');
+		$order = M('orders','bank')->getOrderById($ordersn,$this->user['userid']);
 		if($order['orderstatus'] == 2)
 		{
 			$message = array(
@@ -117,11 +106,11 @@ class action extends app
 
 	private function remove()
 	{
-		$oid = $this->ev->get('ordersn');
-		$order = $this->order->getOrderById($oid,$this->_user['sessionuserid']);
+		$oid = M('ev')->get('ordersn');
+		$order = M('orders','bank')->getOrderById($oid,$this->user['userid']);
 		if($order['orderstatus'] == 1)
 		{
-			$this->order->delOrder($oid);
+			M('orders','bank')->delOrder($oid);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "订单删除成功",
@@ -139,28 +128,28 @@ class action extends app
 
 	private function orderdetail()
 	{
-		$oid = $this->ev->get('ordersn');
+		$oid = M('ev')->get('ordersn');
 		if(!$oid)exit(header("location:index.php?user-app"));
-		$order = $this->order->getOrderById($oid,$this->_user['sessionuserid']);
+		$order = M('orders','bank')->getOrderById($oid,$this->user['userid']);
 		if($order['orderapp'] == 'item')
 		{
-			$modules = $this->module->getModulesByApp('item');
+			$modules = M('module')->getModulesByApp('item');
 			$mfields = array();
 			foreach($modules as $p)
 			{
-				$mfields[$p['moduleid']] = $this->module->getMoudleFields($p['moduleid'],1,false,'item');
+				$mfields[$p['moduleid']] = M('module')->getMoudleFields($p['moduleid'],1,false,'item');
 			}
-			$this->tpl->assign('mfields',$mfields);
+			M('tpl')->assign('mfields',$mfields);
 		}		
-		$this->tpl->assign('order',$order);
-		$this->tpl->display('payfor_detail');
+		M('tpl')->assign('order',$order);
+		M('tpl')->display('payfor_detail');
 	}
 
 	public function index()
 	{
-		if($this->ev->get('payforit'))
+		if(M('ev')->get('payforit'))
 		{
-			$money = intval($this->ev->get('money'));
+			$money = intval(M('ev')->get('money'));
 			if($money < 1)
 			{
 				$message = array(
@@ -174,10 +163,10 @@ class action extends app
 			$args['ordertitle'] = "考试系统充值 {$args['orderprice']} 元";
 			$args['ordersn'] = date('YmdHis').rand(100,999);
 			$args['orderstatus'] = 1;
-			$args['orderuserid'] = $this->_user['sessionuserid'];
+			$args['orderuserid'] = $this->user['userid'];
 			$args['ordercreatetime'] = TIME;
-			$args['orderuserinfo'] = array('username' => $this->_user['sessionusername']);
-			$this->order->addOrder($args);
+			$args['orderuserinfo'] = array('username' => $this->user['sessionusername']);
+			M('orders','bank')->addOrder($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "订单创建成功",
@@ -189,11 +178,11 @@ class action extends app
 		}
 		else
 		{
-			$page = $this->ev->get('page');
-			$args = array(array("AND","orderuserid = :orderuserid",'orderuserid',$this->_user['sessionuserid']));
-			$myorders = $this->order->getOrderList($args,$page);
-			$this->tpl->assign('orders',$myorders);
-			$this->tpl->display('payfor');
+			$page = M('ev')->get('page');
+			$args = array(array("AND","orderuserid = :orderuserid",'orderuserid',$this->user['userid']));
+			$myorders = M('orders','bank')->getOrderList($args,$page);
+			M('tpl')->assign('orders',$myorders);
+			M('tpl')->display('payfor');
 		}
 	}
 }

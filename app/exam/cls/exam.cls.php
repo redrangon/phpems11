@@ -3,13 +3,6 @@ namespace PHPEMS\exam;
 use function \PHPEMS\M;
 class exam
 {
-	public $db;
-    public $ev;
-
-	public function __construct()
-	{
-        $this->db = M('pepdo');
-	}
 
 	//增加一个考试会话
 	//参数：会话信息数组
@@ -18,8 +11,8 @@ class exam
 	{
 		$args['examsessionstarttime'] = TIME;
 		$data = array('examsession',$args);
-		$sql = $this->db->makeInsert($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeInsert($data);
+		M('pepdo')->exec($sql);
 		return true;
 	}
 
@@ -30,8 +23,8 @@ class exam
     	else
     	$date = $time;
     	$data = array('examsession',array(array("AND","examsessionstarttime < :date",'date',$date)));
-    	$sql = $this->db->makeDelete($data);
-	    $this->db->exec($sql);
+    	$sql = M('pepdo')->makeDelete($data);
+	    M('pepdo')->exec($sql);
     	return true;
     }
 
@@ -43,8 +36,8 @@ class exam
         if(!$sessionid)return false;
         unset($args['examsessionid']);
 		$data = array('examsession',$args,array(array("AND","examsessionid = :examsessionid",'examsessionid',$sessionid)));
-		$sql = $this->db->makeUpdate($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		M('pepdo')->exec($sql);
 		return true;
 	}
 
@@ -53,8 +46,8 @@ class exam
 	{
 		if(!$sessionid)return false;
 		$data = array('examsession',array(array("AND","examsessionid = :examsessionid",'examsessionid',$sessionid)));
-		$sql = $this->db->makeDelete($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeDelete($data);
+		M('pepdo')->exec($sql);
 		return true;
 	}
 
@@ -65,8 +58,8 @@ class exam
 	{
         if(!$sessionid)return false;
 		$data = array(false,'examsession',array(array("AND","examsessionid = :examsessionid",'examsessionid',$sessionid)));
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql,array('examsessionquestion','examsessionsign','examsessionsetting','examsessionuseranswer','examsessionscorelist'));
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql,array('examsessionquestion','examsessionsign','examsessionsetting','examsessionuseranswer','examsessionscorelist'));
 	}
 
 	public function getExamSessionByUserid($userid,$basicid,$sessionid = 0,$usesession = 0,$type = 2)
@@ -76,8 +69,8 @@ class exam
 		if($usesession)$args[] = array("AND","examsessionid = :examsessionid",'examsessionid',$sessionid);
 		if($type)$args[] = array("AND","examsessiontype = :examsessiontype",'examsessiontype',$type);
 		$data = array(false,'examsession',$args,false,"examsessionstarttime DESC");
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql,array('examsessionquestion','examsessionsign','examsessionsetting','examsessionuseranswer','examsessionscorelist'));
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql,array('examsessionquestion','examsessionsign','examsessionsetting','examsessionuseranswer','examsessionscorelist'));
 	}
 
 	public function getExamSessionByArgs($args = array(),$page = 1,$number = 20)
@@ -90,7 +83,7 @@ class exam
 			'orderby' => 'examsessionstarttime DESC',
 			'serial' => array('examsessionsetting')
 		);
-        return $this->db->listElements($page,$number,$data);
+        return M('pepdo')->listElements($page,$number,$data);
 	}
 
 	//获取考试设置信息列表
@@ -105,14 +98,14 @@ class exam
             'orderby' => 'examid DESC',
             'serial' => 'examsetting'
         );
-	    return $this->db->listElements($page,$number,$data);
+	    return M('pepdo')->listElements($page,$number,$data);
 	}
 
 	public function getExamSettingsByArgs($args = array())
 	{
 		$data = array(false,'exams',$args,false,'examid DESC',false);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetchAll($sql,false,array('examsetting','examquestions','examscore'));
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetchAll($sql,false,array('examsetting','examquestions','examscore'));
 	}
 
 	//根据参数获取设置好的考试信息列表，用于抽题使用
@@ -121,12 +114,12 @@ class exam
 	public function getRandExamSetting($subjectid)
 	{
 		$data = array("examid","exams",array(array("AND","examsubject = :examsubject",'examsubject',$subjectid),array("AND","examtype = 2")),false,false,false);
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetchAll($sql);
 		$examid = $r[array_rand($r,1)]['examid'];
 		$data = array(false,"exams","examid = '{$examid}'",false,false,false);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql,array('examsetting','examquestions'));
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql,array('examsetting','examquestions'));
 	}
 
 	//根据ID获取一个考试设置
@@ -135,8 +128,8 @@ class exam
 	public function getExamSettingById($id)
 	{
 		$data = array(false,'exams',array(array("AND","examid = :examid",'examid',$id)));
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql,array('examsetting','examquestions'));
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql,array('examsetting','examquestions'));
 	}
 
 	//获取已设置考题的数量
@@ -150,8 +143,8 @@ class exam
 			if($number['questions'])
 			{
 				$data = array('count(*) as number','questions',array(array("AND","find_in_set(questionid,:questionid)",'questionid',$number['questions']),array("AND","questionstatus = 1")));
-				$sql = $this->db->makeSelect($data);
-				$stmp = $this->db->fetch($sql);
+				$sql = M('pepdo')->makeSelect($data);
+				$stmp = M('pepdo')->fetch($sql);
 				$snumber = $stmp['number'];
 			}
 			else
@@ -159,8 +152,8 @@ class exam
 			if($number['rowsquestions'])
 			{
 				$data = array('sum(qrnumber) as number','questionrows',array(array("AND","find_in_set(qrid,:qrid)",'qrid',$number['rowsquestions']),array("AND","qrstatus = 1")));
-				$sql = $this->db->makeSelect($data);
-				$tmp = $this->db->fetch($sql);
+				$sql = M('pepdo')->makeSelect($data);
+				$tmp = M('pepdo')->fetch($sql);
 				return $snumber+$tmp['number'];
 			}
 			else return $snumber;
@@ -173,8 +166,8 @@ class exam
 	public function getExamSettingByArgs($args = array())
 	{
 		$data = array(false,'exams',$args);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql,'examsetting');
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql,'examsetting');
 	}
 
 	//根据参数修改一个考试设置
@@ -183,9 +176,9 @@ class exam
 	public function modifyExamSetting($id,$args = array())
 	{
 		$data = array('exams',$args,array(array("AND","examid = :examid",'examid',$id)));
-		$sql = $this->db->makeUpdate($data);
-		return $this->db->exec($sql);
-		//return $this->db->affectedRows();
+		$sql = M('pepdo')->makeUpdate($data);
+		return M('pepdo')->exec($sql);
+		//return M('pepdo')->affectedRows();
 	}
 
 	//删除考试设置
@@ -194,11 +187,11 @@ class exam
 	public function delExamSetting($id)
 	{
 		$data = array('exams',array(array("AND","examid = :examid",'examid',$id)));
-		$sql = $this->db->makeDelete($data);
+		$sql = M('pepdo')->makeDelete($data);
 		//$data = array('exams',array("examstatus"=>0),"examid = '{$id}'");
-		//$sql = $this->db->makeUpdate($data);
-		return $this->db->exec($sql);
-		//$this->db->affectedRows();
+		//$sql = M('pepdo')->makeUpdate($data);
+		return M('pepdo')->exec($sql);
+		//M('pepdo')->affectedRows();
 	}
 
 	//增加考试设置
@@ -208,9 +201,9 @@ class exam
 	{
 		$args['examtime'] = TIME;
 		$data = array('exams',$args);
-		$sql = $this->db->makeInsert($data);
-		$this->db->exec($sql);
-		return $this->db->lastInsertId();
+		$sql = M('pepdo')->makeInsert($data);
+		M('pepdo')->exec($sql);
+		return M('pepdo')->lastInsertId();
 	}
 
 	//增加试题
@@ -220,16 +213,16 @@ class exam
 	{
 		$args['questionstatus'] = 1;
 		$data = array('questions',$args);
-		$sql = $this->db->makeInsert($data);
-		$this->db->exec($sql);
-		$r = $this->db->lastInsertId();
+		$sql = M('pepdo')->makeInsert($data);
+		M('pepdo')->exec($sql);
+		$r = M('pepdo')->lastInsertId();
 		if($args['questionparent'])$qktype = 1;
 		else $qktype = 0;
 		$question = $this->getQuestionByArgs(array(array("AND","questionid = :questionid",'questionid',$r)));
 		$questionknowsid = $this->parseQuestionKnows($args['questionknowsid'],$r,$qktype);
 		$data = array('questions',array('questionknowsid'=>$questionknowsid),array(array("AND","questionid = :questionid",'questionid',$r)));
-		$sql = $this->db->makeUpdate($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		M('pepdo')->exec($sql);
 		return $r;
 	}
 
@@ -246,8 +239,8 @@ class exam
 				if($questionid)
 				{
 					$sqldata = array('quest2knows',array('qkquestionid'=>$questionid,'qkknowsid'=>$p[0],'qktype'=>$qktype));
-					$sql = $this->db->makeInsert($sqldata);
-					$this->db->exec($sql);
+					$sql = M('pepdo')->makeInsert($sqldata);
+					M('pepdo')->exec($sql);
 				}
 			}
 		}
@@ -260,13 +253,13 @@ class exam
 	{
 		$args['qrstatus'] = 1;
 		$data = array('questionrows',$args);
-		$sql = $this->db->makeInsert($data);
-		$this->db->exec($sql);
-		$r = $this->db->lastInsertId();
+		$sql = M('pepdo')->makeInsert($data);
+		M('pepdo')->exec($sql);
+		$r = M('pepdo')->lastInsertId();
 		$questionknowsid = $this->parseQuestionKnows($args['qrknowsid'],$r,1);
 		$data = array('questionrows',array('qrknowsid'=>$questionknowsid),array(array("AND","qrid = :qrid",'qrid',$r)));
-		$sql = $this->db->makeUpdate($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		M('pepdo')->exec($sql);
 		return $r;
 	}
 
@@ -522,12 +515,12 @@ class exam
 	//返回值：受影响记录数
 	public function delQuestions($id)
 	{
-        $this->_user = M('session')->getSessionUser();
-        $username = $this->_user['sessionusername'];
+        $this->user = M('session')->getSessionUser();
+        $username = $this->user['sessionusername'];
 	    $data = array('questions',array('questionstatus'=>'0','questiondeler'=>$username,'questiondeltime'=>TIME),array(array("AND","questionid = :questionid",'questionid',$id)));
-		$sql = $this->db->makeUpdate($data);
-		return $this->db->exec($sql);
-		//$this->db->affectedRows();
+		$sql = M('pepdo')->makeUpdate($data);
+		return M('pepdo')->exec($sql);
+		//M('pepdo')->affectedRows();
 	}
 
 	//按照参数删除试题
@@ -535,12 +528,12 @@ class exam
 	//返回值：受影响记录数
 	public function delQuestionsByArgs($args)
 	{
-        $this->_user = M('session')->getSessionUser();
-        $username = $this->_user['sessionusername'];
+        $this->user = M('session')->getSessionUser();
+        $username = $this->user['sessionusername'];
 	    $data = array('questions',array('questionstatus'=>'0','questiondeler'=>$username,'questiondeltime'=>TIME),$args);
-		$sql = $this->db->makeUpdate($data);
-		return $this->db->exec($sql);
-		//$this->db->affectedRows();
+		$sql = M('pepdo')->makeUpdate($data);
+		return M('pepdo')->exec($sql);
+		//M('pepdo')->affectedRows();
 	}
 
 	//按照ID彻底删除试题
@@ -549,9 +542,9 @@ class exam
 	public function fanalDelQuestions($id)
 	{
 		$data = array('questions',array(array("AND","questionid = :questionid",'questionid',$id)));
-		$sql = $this->db->makeDelete($data);
-		return $this->db->exec($sql);
-		//$this->db->affectedRows();
+		$sql = M('pepdo')->makeDelete($data);
+		return M('pepdo')->exec($sql);
+		//M('pepdo')->affectedRows();
 	}
 
 	//按照参数彻底删除试题
@@ -560,9 +553,9 @@ class exam
 	public function fanalDelQuestionsByArgs($args)
 	{
 		$data = array('questions',$args);
-		$sql = $this->db->makeDelete($data);
-		return $this->db->exec($sql);
-		//$this->db->affectedRows();
+		$sql = M('pepdo')->makeDelete($data);
+		return M('pepdo')->exec($sql);
+		//M('pepdo')->affectedRows();
 	}
 
 	//按照ID删除题帽题
@@ -570,12 +563,12 @@ class exam
 	//返回值：受影响记录数
 	public function delQuestionRows($id)
 	{
-        $this->_user = M('session')->getSessionUser();
-        $username = $this->_user['sessionusername'];
+        $this->user = M('session')->getSessionUser();
+        $username = $this->user['sessionusername'];
 	    $data = array('questionrows',array('qrstatus'=>'0','qrdeler'=>$username,'qrdeltime'=>TIME),array(array("AND","qrid = :qrid",'qrid',$id)));
-		$sql = $this->db->makeUpdate($data);
-		return $this->db->exec($sql);
-		//$this->db->affectedRows();
+		$sql = M('pepdo')->makeUpdate($data);
+		return M('pepdo')->exec($sql);
+		//M('pepdo')->affectedRows();
 	}
 
 	//按照ID彻底删除题帽题
@@ -584,9 +577,9 @@ class exam
 	public function finalDelQuestionRows($id)
 	{
 		$data = array('questionrows',array(array("AND","qrid = :qrid",'qrid',$id)));
-		$sql = $this->db->makeDelete($data);
-		return $this->db->exec($sql);
-		//$this->db->affectedRows();
+		$sql = M('pepdo')->makeDelete($data);
+		return M('pepdo')->exec($sql);
+		//M('pepdo')->affectedRows();
 	}
 
 	//按照ID删除题帽题下子试题
@@ -594,12 +587,12 @@ class exam
 	//返回值：受影响记录数
 	public function delRowsQuestions($id)
 	{
-        $this->_user = M('session')->getSessionUser();
-        $username = $this->_user['sessionusername'];
+        $this->user = M('session')->getSessionUser();
+        $username = $this->user['sessionusername'];
 	    $r = $this->getQuestionByArgs(array(array("AND","questionid = :questionid",'questionid',$id)));
 		$data = array('questions',array('questionstatus'=>'0','questiondeler'=>$username,'questiondeltime'=>TIME),array(array("AND","questionid = :questionid",'questionid',$id)));
-		$sql = $this->db->makeUpdate($data);
-		$num = $this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		$num = M('pepdo')->exec($sql);
 		if($r['questionparent'])
 		{
 			$this->resetRowsQuestionNumber($id);
@@ -611,12 +604,12 @@ class exam
 	{
 		if(!$id)return false;
 		$data = array('count(*) AS number','questions',array(array('AND',"questionparent = :questionparent",'questionparent',$id),array('AND',"questionstatus = 1")));
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetch($sql);
 		$data = array('questionrows',array('qrnumber'=>$r['number']),array(array("AND","qrid = :qrid",'qrid',$id)));
-		$sql = $this->db->makeUpdate($data);
-		$this->db->exec($sql);
-		return $this->db->affectedRows();
+		$sql = M('pepdo')->makeUpdate($data);
+		M('pepdo')->exec($sql);
+		return M('pepdo')->affectedRows();
 	}
 
 	//恢复试题
@@ -625,9 +618,9 @@ class exam
 	public function backQuestions($id)
 	{
 		$data = array('questions',array('questionstatus'=>'1'),array(array("AND","questionid = :questionid",'questionid',$id)));
-		$sql = $this->db->makeUpdate($data);
-		$this->db->exec($sql);
-		return $this->db->affectedRows();
+		$sql = M('pepdo')->makeUpdate($data);
+		M('pepdo')->exec($sql);
+		return M('pepdo')->affectedRows();
 	}
 
 	//恢复题帽题
@@ -636,13 +629,13 @@ class exam
 	public function backQuestionRows($id)
 	{
 		$data = array('questionrows',array('qrstatus'=>'1'),array(array("AND","qrid = :qrid",'qrid',$id)));
-		$sql = $this->db->makeUpdate($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		M('pepdo')->exec($sql);
 		$data = array('questions',array('questionstatus'=>'1'),array(array('AND',"questionparent = :questionparent",'questionparent',$id)));
-		$sql = $this->db->makeUpdate($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		M('pepdo')->exec($sql);
 		$this->resetRowsQuestionNumber($id);
-		return $this->db->affectedRows();
+		return M('pepdo')->affectedRows();
 	}
 
 	//修改试题
@@ -653,16 +646,16 @@ class exam
 		if($args['questionknowsid'])
 		$this->clearQuestKnowsByQuestionid($id);
 		$data = array('questions',$args,array(array("AND","questionid = :questionid",'questionid',$id)));
-		$sql = $this->db->makeUpdate($data);
-		$rs = $this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		$rs = M('pepdo')->exec($sql);
 		$r = $this->getQuestionByArgs(array(array("AND","questionid = :questionid",'questionid',$id)));
 		$nargs = array();
 		if($args['questionknowsid'])
 		{
 			$nargs['questionknowsid'] = $this->parseQuestionKnows($args['questionknowsid'],$id,0);
 			$data = array('questions',$nargs,array(array("AND","questionid = :questionid","questionid",$id)));
-			$sql = $this->db->makeUpdate($data);
-			$rs = $this->db->exec($sql);
+			$sql = M('pepdo')->makeUpdate($data);
+			$rs = M('pepdo')->exec($sql);
 		}
 		return $rs;
 	}
@@ -670,28 +663,28 @@ class exam
 	public function modifyQuestionSequence($id,$args)
 	{
 		$data = array('questions',$args,array(array("AND","questionid = :questionid",'questionid',$id)));
-		$sql = $this->db->makeUpdate($data);
-		return $this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		return M('pepdo')->exec($sql);
 	}
 
 	public function modifyQuestionRows($id,$args)
 	{
 		$this->clearQuestKnowsByQuestionid($id,1);
 		$data = array('questionrows',$args,array(array("AND","qrid = :qrid",'qrid',$id)));
-		$sql = $this->db->makeUpdate($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		M('pepdo')->exec($sql);
 		$r = $this->getQuestionRowsByArgs(array(array("AND","qrid = :qrid",'qrid',$id)));
 		$nargs['qrknowsid'] = $this->parseQuestionKnows($args['qrknowsid'],$id,1);
 		$data = array('questionrows',$nargs,array(array("AND","qrid = :qrid",'qrid',$id)));
-		$sql = $this->db->makeUpdate($data);
-		return $this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		return M('pepdo')->exec($sql);
 	}
 
 	public function clearQuestKnowsByQuestionid($questionid,$qktype = 0)
 	{
 		$data = array('quest2knows',array(array("AND","qkquestionid = :qkquestionid",'qkquestionid',$questionid),array("AND","qktype = :qktype",'qktype',$qktype)));
-		$sql = $this->db->makeDelete($data);
-		return $this->db->exec($sql);
+		$sql = M('pepdo')->makeDelete($data);
+		return M('pepdo')->exec($sql);
 	}
 
 	//根据参数获取单一普通试题
@@ -700,8 +693,8 @@ class exam
 	public function getQuestionByArgs($args)
 	{
 		$data = array(false,'questions',$args);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql,array('questionhtml','questionknowsid'));
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql,array('questionhtml','questionknowsid'));
 	}
 
 	//根据参数获取试题总数量
@@ -714,11 +707,11 @@ class exam
 		{
 			if(!$knowsid)$knowsid = '0';
 			$data = array("count(*) AS number",array('questions','quest2knows'),array(array("AND","questions.questiontype = :questype",'questype',$questype),array("AND","questions.questionparent = 0"),array("AND","questions.questionstatus = 1"),array("AND","questions.questionid = quest2knows.qkquestionid"),array("AND","find_in_set(quest2knows.qkknowsid,:knowsid)",'knowsid',$knowsid),array("AND","quest2knows.qktype = 0")),false,false,false);
-			$sql = $this->db->makeSelect($data);
-			$r = $this->db->fetch($sql);
+			$sql = M('pepdo')->makeSelect($data);
+			$r = M('pepdo')->fetch($sql);
 			$data = array("sum(qrnumber) AS number",array('questionrows','quest2knows'),array(array("AND","questionrows.qrtype = :questype",'questype',$questype),array("AND","questionrows.qrstatus = 1"),array("AND","questionrows.qrid = quest2knows.qkquestionid"),array("AND","find_in_set(quest2knows.qkknowsid,:knowsid)",'knowsid',$knowsid),array("AND","quest2knows.qktype = 1")),false,false,false);
-			$sql = $this->db->makeSelect($data);
-			$m = $this->db->fetch($sql);
+			$sql = M('pepdo')->makeSelect($data);
+			$m = M('pepdo')->fetch($sql);
 			$number = $r['number']+$m['number'];
 			$ca->writeCache("n-{$questype}-{$knowsid}",$number);
 			return $number;
@@ -733,8 +726,8 @@ class exam
 	public function getQuestionRowsByArgs($args,$fields = false)
 	{
 		$data = array($fields,array('questionrows','quest2knows'),$args);
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetch($sql,array('qrknowsid'));
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetch($sql,array('qrknowsid'));
 		if($r['qrid'])
 		$r['data'] = $this->getSimpleQuestionListByArgs(array(array("AND","questionparent = :questionparent",'questionparent',$r['qrid']),array("AND","questionstatus = 1")));
 		return $r;
@@ -743,15 +736,15 @@ class exam
 	public function getAllQuestionRowsByArgs($args)
 	{
 		$data = array(false,array('questionrows','quest2knows'),$args,false,false,false);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetchAll($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetchAll($sql);
 	}
 
 	public function getQuestionRowsById($id,$fields = false,$childs = true)
 	{
 		$data = array($fields,'questionrows',array(array("AND","qrid = :qrid",'qrid',$id),array("AND","qrstatus = 1")));
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetch($sql,array('qrknowsid'));
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetch($sql,array('qrknowsid'));
 		if($r['qrid'] && $childs)
 		$r['data'] = $this->getSimpleQuestionListByArgs(array(array("AND","questionparent = :qrid",'qrid',$r['qrid']),array("AND","questionstatus = 1")));
 		return $r;
@@ -764,15 +757,15 @@ class exam
 	{
         $args[] = array("AND","quest2knows.qkquestionid = questions.questionid");
         $data = array($fields,array('questions','quest2knows'),$args,false,array("questionsequence ASC","questionid ASC"),false);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetchAll($sql,'questionid',array('questionhtml','questionknowsid'));
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetchAll($sql,'questionid',array('questionhtml','questionknowsid'));
 	}
 
 	public function getSimpleQuestionListByArgs($args,$fields = false)
 	{
 		$data = array($fields,'questions',$args,false,array("questionsequence ASC","questionid ASC"),false);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetchAll($sql,'questionid',array('questionhtml','questionknowsid'));
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetchAll($sql,'questionid',array('questionhtml','questionknowsid'));
 	}
 
 	public function getQuestionListByIds($ids,$fields = false)
@@ -782,8 +775,8 @@ class exam
             $ids = explode(',',$ids);
         }
 	    $data = array($fields,'questions',array(array("AND","questionid in (:ids)",'ids',$ids),array("AND","questionstatus = 1")),false,array("questionsequence ASC","questionid ASC"),false);
-        $sql = $this->db->makeSelect($data);
-		return $this->db->fetchAll($sql,'questionid',array('questionknowsid'));
+        $sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetchAll($sql,'questionid',array('questionknowsid'));
 	}
 
 	//根据知识点获取试题列表
@@ -797,7 +790,7 @@ class exam
             'query' => $args,
             'orderby' => 'questions.questionid DESC'
         );
-        return $this->db->listElements($page,$number,$data);
+        return M('pepdo')->listElements($page,$number,$data);
 	}
 
 	public function getSimpleQuestionsList($page,$number = 20,$args = 1)
@@ -807,7 +800,7 @@ class exam
             'query' => $args,
             'orderby' => 'questionid DESC'
         );
-        return $this->db->listElements($page,$number,$data);
+        return M('pepdo')->listElements($page,$number,$data);
 	}
 
 	//根据知识点获取题帽试题列表
@@ -821,7 +814,7 @@ class exam
             'query' => $args,
             'orderby' => 'questionrows.qrid DESC'
         );
-        return $this->db->listElements($page,$number,$data);
+        return M('pepdo')->listElements($page,$number,$data);
 	}
 
     public function markscore($sessionvars,$questypes,$batch = '')
@@ -1008,8 +1001,8 @@ class exam
         $args[] = array("AND","questionstatus = 0");
         $args[] = array("AND","questionparent = 0");
         $data = array(array('questions','quest2knows'),$args,false,false,false);
-        $sql = $this->db->makeDelete($data);
-        return $this->db->exec($sql);
+        $sql = M('pepdo')->makeDelete($data);
+        return M('pepdo')->exec($sql);
     }
 
     public function clearDeletedQuestionrows($args = array())
@@ -1018,16 +1011,16 @@ class exam
         $args[] = array("AND","qktype = 1");
         $args[] = array("AND","qrstatus = 0");
         $data = array('qrid',array('questionrows','quest2knows'),$args,false,false,false);
-        $sql = $this->db->makeSelect($data);
-        $r = $this->db->fetchAll($sql);
+        $sql = M('pepdo')->makeSelect($data);
+        $r = M('pepdo')->fetchAll($sql);
         foreach($r as $q)
         {
             $data = array('questionrows',array(array("AND","qrid = :qrid",'qrid',$q['qrid'])),false,false,false);
-            $sql = $this->db->makeDelete($data);
-            $this->db->exec($sql);
+            $sql = M('pepdo')->makeDelete($data);
+            M('pepdo')->exec($sql);
             $data = array('questions',array(array("AND","questionparent = :questionparent",'questionparent',$q['qrid'])),false,false,false);
-            $sql = $this->db->makeDelete($data);
-            $this->db->exec($sql);
+            $sql = M('pepdo')->makeDelete($data);
+            M('pepdo')->exec($sql);
         }
         return true;
     }

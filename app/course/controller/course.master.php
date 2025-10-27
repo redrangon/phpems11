@@ -10,10 +10,9 @@ class action extends app
 {
 	public function display()
 	{
-		$this->log = M('log','course');
-		$action = $this->ev->url(3);
-		$subjects = $this->basic->getSubjectList();
-		$this->tpl->assign('subjects',$subjects);
+		$action = M('ev')->url(3);
+		M('tpl')->assign('subjects',M('basic','exam')->getSubjectList());
+		M('tpl')->assign('groups',M('user','user')->getUserGroups());
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -22,21 +21,21 @@ class action extends app
 
     private function catsmenu()
     {
-        $catid = $this->ev->get('catid');
-        $categories = $this->category->getAllCategory();
+        $catid = M('ev')->get('catid');
+        $categories = M('category')->getAllCategory();
         $r = array();
-        $this->category->selected = $catid;
-        $this->category->hrefpre = 'index.php?course-master-course&catid=';
-        $this->category->levelCategory($r,0,$this->category->tidycategories);
-        $this->category->resetCategoryIndex($r);
+        M('category')->selected = $catid;
+        M('category')->hrefpre = 'index.php?course-master-course&catid=';
+        M('category')->levelCategory($r,0,M('category')->tidycategories);
+        M('category')->resetCategoryIndex($r);
         echo json_encode($r,JSON_UNESCAPED_UNICODE);
         exit();
     }
 
 	public function delopen()
 	{
-		$ocid = $this->ev->get('ocid');
-        $this->course->delOpenCourse($ocid);
+		$ocid = M('ev')->get('ocid');
+        M('course','course')->delOpenCourse($ocid);
         $message = array(
             'statusCode' => 200,
             "message" => "操作成功",
@@ -48,25 +47,25 @@ class action extends app
 
 	private function progress()
 	{
-		$ocid = $this->ev->get('ocid');
-		$oc = $this->course->getOpenCourseById($ocid);
-		$user = $this->user->getUserById($oc['occourseid']);
-		$course = $this->course->getCourseById($oc['occourseid']);
-		$logs = $this->log->getLogsByCsid($oc['occourseid'],$oc['ocuserid']);
-		$contents = $this->content->getCoursesByCsid($oc['occourseid']);
-		$this->tpl->assign('user',$user);
-		$this->tpl->assign('course',$course);
-		$this->tpl->assign('contents',$contents);
-		$this->tpl->assign('logs',$logs);
-		$this->tpl->display('course_progress');
+		$ocid = M('ev')->get('ocid');
+		$oc = M('course','course')->getOpenCourseById($ocid);
+		$user = M('user','user')->getUserById($oc['occourseid']);
+		$course = M('course','course')->getCourseById($oc['occourseid']);
+		$logs = M('log','course')->getLogsByCsid($oc['occourseid'],$oc['ocuserid']);
+		$contents = M('content','course')->getCoursesByCsid($oc['occourseid']);
+		M('tpl')->assign('user',$user);
+		M('tpl')->assign('course',$course);
+		M('tpl')->assign('contents',$contents);
+		M('tpl')->assign('logs',$logs);
+		M('tpl')->display('course_progress');
 	}
 
 	private function selectmember()
 	{
-		$page = intval($this->ev->get('page'));
-		$courseid = intval($this->ev->get('courseid'));
-		$course = $this->course->getCourseById($courseid);
-		$search = $this->ev->get('search');
+		$page = intval(M('ev')->get('page'));
+		$courseid = intval(M('ev')->get('courseid'));
+		$course = M('course','course')->getCourseById($courseid);
+		$search = M('ev')->get('search');
 		$u = '';
 		if($search)
 		{
@@ -75,15 +74,15 @@ class action extends app
 				$u .= "&search[{$key}]={$arg}";
 			}
 		}
-		if($this->ev->get('submit'))
+		if(M('ev')->get('submit'))
 		{
-			$userids = $this->ev->get('delids');
-			$days = $this->ev->get('days');
+			$userids = M('ev')->get('delids');
+			$days = M('ev')->get('days');
 			if($userids && $days)
 			{
 				foreach($userids as $userid => $p)
 				{
-					$this->course->openCourse(array('ocuserid'=>$userid,'occourseid'=>$courseid,'ocendtime' => TIME + $days*24*3600));
+					M('course','course')->openCourse(array('ocuserid'=>$userid,'occourseid'=>$courseid,'ocendtime' => TIME + $days*24*3600));
 				}
 				$message = array(
 					'statusCode' => 200,
@@ -120,24 +119,24 @@ class action extends app
 					$args[] = array('AND',"userregtime <= :userregtime",'userregtime',$etime);
 				}
 			}
-			$users = $this->user->getUserList($args,$page,10);
-			$this->tpl->assign('course',$course);
-			$this->tpl->assign('users',$users);
-			$this->tpl->assign('search',$search);
-			$this->tpl->assign('u',$u);
-			$this->tpl->assign('page',$page);
-			$this->tpl->display('course_selectmember');
+			$users = M('user','user')->getUserList($args,$page,10);
+			M('tpl')->assign('course',$course);
+			M('tpl')->assign('users',$users);
+			M('tpl')->assign('search',$search);
+			M('tpl')->assign('u',$u);
+			M('tpl')->assign('page',$page);
+			M('tpl')->display('course_selectmember');
 		}
 	}
 
 	private function add()
 	{
-		if($this->ev->get('submit'))
+		if(M('ev')->get('submit'))
 		{
-			$args = $this->ev->get('args');
-			$args['csuserid'] = $this->_user['sessionuserid'];
+			$args = M('ev')->get('args');
+			$args['csuserid'] = $this->user['userid'];
 			$args['cstime'] = TIME;
-			$id = $this->course->addCourse($args);
+			$id = M('course','course')->addCourse($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -148,23 +147,23 @@ class action extends app
 		}
 		else
 		{
-			$catid = intval($this->ev->get('catid'));
-			$parentcat = $this->category->getCategoriesByArgs(array(array("AND","catparent = 0"),array("AND","catapp = 'course'")));
-			$this->tpl->assign('parentcat',$parentcat);
-			$this->tpl->assign('catid',$catid);
-			$this->tpl->display('course_add');
+			$catid = intval(M('ev')->get('catid'));
+			$parentcat = M('category')->getCategoriesByArgs(array(array("AND","catparent = 0"),array("AND","catapp = 'course'")));
+			M('tpl')->assign('parentcat',$parentcat);
+			M('tpl')->assign('catid',$catid);
+			M('tpl')->display('course_add');
 		}
 	}
 
 	private function edit()
 	{
-		$page = intval($this->ev->get('page'));
-		$courseid = intval($this->ev->get('courseid'));
-		$course = $this->course->getCourseById($courseid);
-		if($this->ev->get('submit'))
+		$page = intval(M('ev')->get('page'));
+		$courseid = intval(M('ev')->get('courseid'));
+		$course = M('course','course')->getCourseById($courseid);
+		if(M('ev')->get('submit'))
 		{
-			$args = $this->ev->get('args');
-			$this->course->modifyCourse($courseid,$args);
+			$args = M('ev')->get('args');
+			M('course','course')->modifyCourse($courseid,$args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -175,27 +174,27 @@ class action extends app
 		}
 		else
 		{
-			$catid = intval($this->ev->get('catid'));
-			$cat = $this->category->getCategoryById($catid);
-			$parentcat = $this->category->getCategoriesByArgs(array(array("AND","catparent = 0")));
-			$this->tpl->assign('parentcat',$parentcat);
-			$this->tpl->assign('catid',$catid);
-			$this->tpl->assign('cat',$cat);
-			$this->tpl->assign('courseid',$courseid);
-			$this->tpl->assign('course',$course);
-			$this->tpl->assign('page',$page);
-			$this->tpl->display('course_edit');
+			$catid = intval(M('ev')->get('catid'));
+			$cat = M('category')->getCategoryById($catid);
+			$parentcat = M('category')->getCategoriesByArgs(array(array("AND","catparent = 0")));
+			M('tpl')->assign('parentcat',$parentcat);
+			M('tpl')->assign('catid',$catid);
+			M('tpl')->assign('cat',$cat);
+			M('tpl')->assign('courseid',$courseid);
+			M('tpl')->assign('course',$course);
+			M('tpl')->assign('page',$page);
+			M('tpl')->display('course_edit');
 		}
 	}
 
 	private function del()
 	{
-		$page = intval($this->ev->get('page'));
-		$courseid = intval($this->ev->get('courseid'));
-		$number = $this->content->getCourseContentNumber($courseid);
+		$page = intval(M('ev')->get('page'));
+		$courseid = intval(M('ev')->get('courseid'));
+		$number = M('content','course')->getCourseContentNumber($courseid);
 		if(!$number)
 		{
-			$this->course->delCourse($courseid);
+			M('course','course')->delCourse($courseid);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -215,20 +214,20 @@ class action extends app
 
 	private function addmember()
 	{
-		$courseid = $this->ev->get('courseid');
-		$this->tpl->assign('courseid',$courseid);
-		if($this->ev->get('addmember'))
+		$courseid = M('ev')->get('courseid');
+		M('tpl')->assign('courseid',$courseid);
+		if(M('ev')->get('addmember'))
 		{
-			$userids = $this->ev->get('userids');
-			$usernames = $this->ev->get('usernames');
-			$usergroupids = $this->ev->get('usergroupids');
-			$days = $this->ev->get('days');
+			$userids = M('ev')->get('userids');
+			$usernames = M('ev')->get('usernames');
+			$usergroupids = M('ev')->get('usergroupids');
+			$days = M('ev')->get('days');
 			if($userids && $days)
 			{
 				$userids = explode(",",$userids);
 				foreach($userids as $userid)
 				{
-					$this->course->openCourse(array('ocuserid'=>$userid,'occourseid'=>$courseid,'ocendtime' => TIME + $days*24*3600));
+					M('course','course')->openCourse(array('ocuserid'=>$userid,'occourseid'=>$courseid,'ocendtime' => TIME + $days*24*3600));
 				}
 				$message = array(
 					'statusCode' => 200,
@@ -240,10 +239,10 @@ class action extends app
 			elseif($usernames && $days)
 			{
 				$usernames = implode(",",array_unique(explode(",",$usernames)));
-				$userids = $this->user->getUsersByArgs(array(array("AND","find_in_set(username,:username)",'username',$usernames),array("AND","user.usergroupid = user_group.groupid")),false,false,false);
+				$userids = M('user','user')->getUsersByArgs(array(array("AND","find_in_set(username,:username)",'username',$usernames),array("AND","user.usergroupid = user_group.groupid")),false,false,false);
 				foreach($userids as $user)
 				{
-					$this->course->openCourse(array('ocuserid'=>$user['userid'],'occourseid'=>$courseid,'ocendtime' => TIME + $days*24*3600));
+					M('course','course')->openCourse(array('ocuserid'=>$user['userid'],'occourseid'=>$courseid,'ocendtime' => TIME + $days*24*3600));
 				}
 				$message = array(
 					'statusCode' => 200,
@@ -255,10 +254,10 @@ class action extends app
 			elseif($usergroupids && $days)
 			{
 				$usergroupids = implode(",",array_unique(explode(",",$usergroupids)));
-				$userids = $this->user->getUsersByArgs(array(array("AND","find_in_set(usergroupid,:usergroupid)",'usergroupid',$usergroupids),array("AND","user.usergroupid = user_group.groupid")),false,false,false);
+				$userids = M('user','user')->getUsersByArgs(array(array("AND","find_in_set(usergroupid,:usergroupid)",'usergroupid',$usergroupids),array("AND","user.usergroupid = user_group.groupid")),false,false,false);
 				foreach($userids as $user)
 				{
-					$this->course->openCourse(array('ocuserid'=>$user['userid'],'occourseid'=>$courseid,'ocendtime' => TIME + $days*24*3600));
+					M('course','course')->openCourse(array('ocuserid'=>$user['userid'],'occourseid'=>$courseid,'ocendtime' => TIME + $days*24*3600));
 				}
 				$message = array(
 					'statusCode' => 200,
@@ -278,22 +277,22 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->display('course_addmember');
+			M('tpl')->display('course_addmember');
 		}
 	}
 
 	private function getcoursemembernumber()
 	{
-		$courseid = $this->ev->get('courseid');
-		$number = $this->course->getOpenCourseNumber($courseid);
+		$courseid = M('ev')->get('courseid');
+		$number = M('course','course')->getOpenCourseNumber($courseid);
 		echo intval($number);
 	}
 
 	private function members()
 	{
-		$courseid = $this->ev->get('courseid');
-		$search = $this->ev->get('search');
-		$page = $this->ev->get('page');
+		$courseid = M('ev')->get('courseid');
+		$search = M('ev')->get('search');
+		$page = M('ev')->get('page');
 		$args = array();
 		$args[] = array("AND",'opencourse.occourseid = :occourseid','occourseid',$courseid);
 		$args[] = array("AND",'opencourse.ocendtime >= :ocendtime','ocendtime',TIME);
@@ -305,55 +304,55 @@ class action extends app
 		{
 			$args[] = array("AND",'user.username LIKE :username','username','%'.$search['username'].'%');
 		}
-		$members = $this->course->getOpenCourseMember($args,$page);
-		$course = $this->course->getCourseById($courseid);
-		$this->tpl->assign('search',$search);
-		$this->tpl->assign('courseid',$courseid);
-		$this->tpl->assign('course',$course);
-		$this->tpl->assign('members',$members);
-		$this->tpl->assign('page',$page);
-		$this->tpl->display('course_members');
+		$members = M('course','course')->getOpenCourseMember($args,$page);
+		$course = M('course','course')->getCourseById($courseid);
+		M('tpl')->assign('search',$search);
+		M('tpl')->assign('courseid',$courseid);
+		M('tpl')->assign('course',$course);
+		M('tpl')->assign('members',$members);
+		M('tpl')->assign('page',$page);
+		M('tpl')->display('course_members');
 	}
 
 	private function lite()
 	{
-		$catid = $this->ev->get('catid');
-		$page = $this->ev->get('page');
-		$this->tpl->assign('catid',$catid);
-		$this->tpl->assign('page',$page);
-		if($this->ev->get('modifycoursesequence'))
+		$catid = M('ev')->get('catid');
+		$page = M('ev')->get('page');
+		M('tpl')->assign('catid',$catid);
+		M('tpl')->assign('page',$page);
+		if(M('ev')->get('modifycoursesequence'))
 		{
-			if($this->ev->get('action') == 'delete')
+			if(M('ev')->get('action') == 'delete')
 			{
-				$ids = $this->ev->get('delids');
+				$ids = M('ev')->get('delids');
 				foreach($ids as $key => $id)
 				{
-					$number = $this->content->getCourseContentNumber($key);
+					$number = M('content','course')->getCourseContentNumber($key);
 					if(!$number)
-					$this->course->delCourse($key);
+					M('course','course')->delCourse($key);
 				}
 			}
-			elseif($this->ev->get('action') == 'movecategory')
+			elseif(M('ev')->get('action') == 'movecategory')
 			{
 				$courseids = array();
-				$ids = $this->ev->get('delids');
+				$ids = M('ev')->get('delids');
 				foreach($ids as $key => $id)
 				{
 					if($key)$courseids[] = $key;
 				}
 				$courseids = implode(',',$courseids);
-				$parentcat = $this->category->getCategoriesByArgs(array(array("AND","catparent = 0")));
-				$this->tpl->assign('parentcat',$parentcat);
-				$this->tpl->assign('courseids',$courseids);
-				$this->tpl->display('course_move');
+				$parentcat = M('category')->getCategoriesByArgs(array(array("AND","catparent = 0")));
+				M('tpl')->assign('parentcat',$parentcat);
+				M('tpl')->assign('courseids',$courseids);
+				M('tpl')->display('course_move');
 				exit;
 			}
 			else
 			{
-				$ids = $this->ev->get('ids');
+				$ids = M('ev')->get('ids');
 				foreach($ids as $key => $id)
 				{
-					$this->course->modifyBasciCourse($key,array('cssequence' => $id));
+					M('course','course')->modifyBasciCourse($key,array('cssequence' => $id));
 				}
 			}
 			$message = array(
@@ -364,15 +363,15 @@ class action extends app
 			);
 			\PHPEMS\ginkgo::R($message);
 		}
-		elseif($this->ev->get('movecategory'))
+		elseif(M('ev')->get('movecategory'))
 		{
-			$courseids = explode(',',$this->ev->get('courseids'));
-			$targetcatid = $this->ev->get('targetcatid');
+			$courseids = explode(',',M('ev')->get('courseids'));
+			$targetcatid = M('ev')->get('targetcatid');
 			if($targetcatid)
 			{
 				foreach($courseids as $key => $id)
 				{
-					if($id)$this->course->modifyBasciCourse($id,array('cscatid' => $targetcatid));
+					if($id)M('course','course')->modifyBasciCourse($id,array('cscatid' => $targetcatid));
 				}
 				$message = array(
 					'statusCode' => 200,
@@ -399,16 +398,16 @@ class action extends app
 	}
 	public function index()
 	{
-		$search = $this->ev->get('search');
-		$catid = intval($this->ev->get('catid'));
+		$search = M('ev')->get('search');
+		$catid = intval(M('ev')->get('catid'));
 		if(!$catid)$catid = $search['cscatid'];
-		$page = $this->ev->get('page');
+		$page = M('ev')->get('page');
 		$page = $page?$page:1;
-		$categories = $this->category->getAllCategory();
-		$parentcat = $this->category->getCategoriesByArgs(array(array("AND","catparent = 0"),array("AND","catapp = 'course'")));
+		$categories = M('category')->getAllCategory();
+		$parentcat = M('category')->getCategoriesByArgs(array(array("AND","catparent = 0"),array("AND","catapp = 'course'")));
 		if($catid)
 		{
-			$childstring = $this->category->getChildCategoryString($catid);
+			$childstring = M('category')->getChildCategoryString($catid);
 			$args = array(array("AND","find_in_set(cscatid,:cscatid)",'cscatid',$childstring));
 		}
 		else $args = array();
@@ -423,25 +422,25 @@ class action extends app
 			if($search['keyword'])$args[] = array("AND","cstitle LIKE :cstitle",'cstitle',"%{$search['keyword']}%");
 			if($search['username'])
 			{
-				$user = $this->user->getUserByUserName($search['username']);
+				$user = M('user','user')->getUserByUserName($search['username']);
 				$args[] = array("AND","csuserid = :csuserid",'csuserid',$user['userid']);
 			}
 		}
-		$courses = $this->course->getCourseList($args,$page,10);
+		$courses = M('course','course')->getCourseList($args,$page,10);
         $catlevel = 1;
         if($catid)
         {
-            $pos = $this->category->getCategoryPos($catid);
+            $pos = M('category')->getCategoryPos($catid);
             if(count($pos))
                 $catlevel = count($pos) + 1;
         }
-        $this->tpl->assign('catlevel',$catlevel);
-		$this->tpl->assign('page',$page);
-		$this->tpl->assign('catid',$catid);
-		$this->tpl->assign('courses',$courses);
-		$this->tpl->assign('categories',$categories);
-		$this->tpl->assign('parentcat',$parentcat);
-		$this->tpl->display('course');
+        M('tpl')->assign('catlevel',$catlevel);
+		M('tpl')->assign('page',$page);
+		M('tpl')->assign('catid',$catid);
+		M('tpl')->assign('courses',$courses);
+		M('tpl')->assign('categories',$categories);
+		M('tpl')->assign('parentcat',$parentcat);
+		M('tpl')->display('course');
 	}
 }
 

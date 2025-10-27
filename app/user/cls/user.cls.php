@@ -6,29 +6,16 @@ use function \PHPEMS\M;
 
 class user
 {
-	public $db;
-	public $ev;
-	public $module;
-	public $session;
-
-	public function __construct()
-	{
-		$this->db = M('pepdo');
-		$this->module = M('module');
-		$this->session = M('session');
-		$this->ev = M('ev');
-	}
-
 	public function autoLoginWxUser($openid)
 	{
         $user = $this->getUserByOpenId($openid);
 		if(!$user)return false;
 		$app = M('apps','core')->getApp('user');
-		if($app['appsetting']['loginmodel'] == 1)$this->session->offOnlineUser($user['userid']);
-		$this->session->setSessionUser(array(
+		if($app['appsetting']['loginmodel'] == 1)M('session')->offOnlineUser($user['userid']);
+		M('session')->setSessionUser(array(
 			'sessionuserid'=>$user['userid'],
 			'sessionpassword'=>$user['userpassword'],
-			'sessionip'=>$this->ev->getClientIp(),
+			'sessionip'=>M('ev')->getClientIp(),
 			'sessiongroupid'=>$user['usergroupid'],
 			'sessionlogintime'=>TIME,
 			'sessionusername'=>$user['username']
@@ -43,12 +30,12 @@ class user
 		$app = M('apps','core')->getApp('user');
 		if($app['appsetting']['loginmodel'] == 1)
 		{
-			$this->session->offOnlineUser($user['userid']);
+			M('session')->offOnlineUser($user['userid']);
 		}
-		$this->session->setSessionUser(array(
+		M('session')->setSessionUser(array(
 			'sessionuserid'=>$user['userid'],
 			'sessionpassword'=>$user['userpassword'],
-			'sessionip'=>$this->ev->getClientIp(),
+			'sessionip'=>M('ev')->getClientIp(),
 			'sessiongroupid'=>$user['usergroupid'],
 			'sessionlogintime'=>TIME,
 			'sessionusername'=>$user['username']
@@ -64,35 +51,36 @@ class user
 
     public function insertUser($args)
     {
-        $args['userregip'] = $this->ev->getClientIp();
+        $args['userregip'] = M('ev')->getClientIp();
         $args['userregtime'] = TIME;
-        return $this->db->insertElement(array('table' => 'user','query' => $args));
+        return M('pepdo')->insertElement(array('table' => 'user','query' => $args));
     }
 
     public function delUserById($userid)
     {
-        return $this->db->delElement(array('table' => 'user','query' => array(array('AND',"userid = :userid",'userid',$userid))));
+        return M('pepdo')->delElement(array('table' => 'user','query' => array(array('AND',"userid = :userid",'userid',$userid))));
     }
 
     public function getUserById($id)
     {
-        $data = array(false,array('user','user_group'),array(array('AND',"user.userid = :id",'id',$id),array('AND','user.usergroupid = user_group.groupid')));
-        $sql = $this->db->makeSelect($data);
-        return $this->db->fetch($sql,array('userinfo','groupright'));
+		$args = array(
+			array("AND","userid = :userid","userid",$id)
+		);
+		return $this->getUserByArgs($args);
     }
 
     public function getUserByArgs($args)
     {
         $data = array(false,array('user','user_group'),$args);
-        $sql = $this->db->makeSelect($data);
-        return $this->db->fetch($sql,array('userinfo','groupright'));
+        $sql = M('pepdo')->makeSelect($data);
+        return M('pepdo')->fetch($sql,array('userinfo','groupright','manager_apps'));
     }
 
     public function getUsersByArgs($args)
     {
         $data = array(false,array('user','user_group'),$args,false,false,false);
-        $sql = $this->db->makeSelect($data);
-        return $this->db->fetchAll($sql,'userid',array('userinfo','groupright'));
+        $sql = M('pepdo')->makeSelect($data);
+        return M('pepdo')->fetchAll($sql,'userid',array('userinfo','groupright'));
     }
 
     public function getUserList($args,$page,$number = 10,$orderby = "userid desc")
@@ -101,11 +89,10 @@ class user
     	$data = array(
             'table' => array('user','user_group'),
             'query' => $args,
-            'serial' => 'groupright',
             'index' => 'userid',
 			'orderby' => $orderby
         );
-        return $this->db->listElements($page,$number,$data);
+        return M('pepdo')->listElements($page,$number,$data);
     }
 
 	public function modifyUserGroup($userid,$groupid)
@@ -116,21 +103,21 @@ class user
 		if($group['groupmoduleid'] == $user['groupmoduleid'])
 		{
 			$data = array('user',array('usergroupid'=>$groupid),array(array("AND","userid = :userid",'userid',$userid)));
-			$sql = $this->db->makeUpdate($data);
-			$this->db->exec($sql);
+			$sql = M('pepdo')->makeUpdate($data);
+			M('pepdo')->exec($sql);
 			return true;
 		}
 		else
 		{
 			$args = array('usergroupid'=>$groupid);
-			$fields = $this->module->getPrivateMoudleFields($user['groupmoduleid']);
+			$fields = M('module')->getPrivateMoudleFields($user['groupmoduleid']);
 			foreach($fields as $p)
 			{
 				$args[$p['field']] = NULL;
 			}
 			$data = array('user',$args,array(array("AND","userid = :userid",'userid',$userid)));
-			$sql = $this->db->makeUpdate($data);
-			$this->db->exec($sql);
+			$sql = M('pepdo')->makeUpdate($data);
+			M('pepdo')->exec($sql);
 			return true;
 		}
 	}
@@ -138,8 +125,8 @@ class user
 	public function modifyUserPassword($userid,$args)
 	{
 		$data = array('user',array('userpassword'=>md5($args['password'])),array(array("AND","userid = :userid",'userid',$userid)));
-		$sql = $this->db->makeUpdate($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		M('pepdo')->exec($sql);
 		return true;
 	}
 
@@ -147,15 +134,15 @@ class user
 	{
 		if(!$args)return false;
 		$data = array('user',$args,array(array('AND',"userid = :userid",'userid',$userid)));
-		$sql = $this->db->makeUpdate($data);
-		return $this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		return M('pepdo')->exec($sql);
 	}
 
 	public function delActorById($groupid)
 	{
 		$data = array('count(*) as number','user',array(array("AND","usergroupid = :usergroupid","usergroupid",$groupid)));
-        $sql = $this->db->makeSelect($data);
-		$r = $this->db->fetch($sql);
+        $sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetch($sql);
 		if($r['number'])return false;
 		else
 		{
@@ -163,43 +150,43 @@ class user
 				'table' => "user_group",
 				'query' => array(array('AND',"groupid = :groupid",'groupid',$groupid))
 			);
-			return $this->db->delElement($args);
+			return M('pepdo')->delElement($args);
 		}
 	}
 
 	public function getUserByUserName($username)
 	{
 		$data = array(false,array('user','user_group'),array(array('AND',"user.username = :username",'username',$username),array('AND','user.usergroupid = user_group.groupid')));
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql,array('userinfo','groupright'));
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql,array('userinfo','groupright'));
 	}
 
 	public function getUserByEmail($email)
 	{
 		$data = array(false,array('user','user_group'),array(array('AND',"user.useremail = :email",'email',$email),array('AND','user.usergroupid = user_group.groupid')));
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql,array('userinfo','groupright'));
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql,array('userinfo','groupright'));
 	}
 
 	public function getGroupById($groupid)
 	{
 		$data = array(false,'user_group',array(array('AND',"groupid = :groupid",'groupid',$groupid)),false,'groupid DESC',false);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql,'groupright');
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql,'groupright');
 	}
 
 	public function getGroupByArgs($args)
 	{
 		$data = array(false,'user_group',$args);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql,'groupright');
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql,'groupright');
 	}
 
 	public function getUserGroups()
 	{
 		$data = array(false,'user_group',1,false,'groupid DESC',false);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetchAll($sql,'groupid','groupright');
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetchAll($sql,'groupid','groupright');
 	}
 
 	public function getUserGroupList($args,$page = 1,$number = 10)
@@ -210,30 +197,30 @@ class user
 			'index' => 'groupid',
 			'serial' => 'groupright'
 		);
-		return $this->db->listElements($page,$number,$data);
+		return M('pepdo')->listElements($page,$number,$data);
 	}
 
 	public function getGroupsByModuleid($moduleid)
 	{
 		$data = array(false,'user_group',array(array('AND',"groupmoduleid = :groupmoduleid",'groupmoduleid',$moduleid)),false,false,false);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetchAll($sql,'groupid','groupright');
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetchAll($sql,'groupid','groupright');
 	}
 
 	public function getDefaultGroupByModuleid($moduleid)
 	{
 		$data = array(false,'user_group',array(array('AND',"groupmoduledefault = 1"),array('AND',"groupmoduleid = :groupmoduleid",'groupmoduleid',$moduleid)),false,'groupid DESC',false);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql);
 	}
 
 	public function insertActor($args)
 	{
 		unset($args['groupmoduledefault']);
 		$data = array('user_group',$args);
-		$sql = $this->db->makeInsert($data);
-		$this->db->exec($sql);
-		return $this->db->lastInsertId();
+		$sql = M('pepdo')->makeInsert($data);
+		M('pepdo')->exec($sql);
+		return M('pepdo')->lastInsertId();
 	}
 
 	public function modifyActor($groupid,$args)
@@ -241,34 +228,34 @@ class user
 		$r = $this->getGroupByArgs(array(array('AND',"groupname = :groupname",'groupname',$args['groupname']),array('AND',"groupid != :groupid",'groupid',$groupid)));
 		if($r)return false;
 		$data = array('user_group',$args,array(array('AND',"groupid = :groupid",'groupid',$groupid)));
-		$sql = $this->db->makeUpdate($data);
-        return $this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+        return M('pepdo')->exec($sql);
 	}
 
 	public function selectDefaultActor($groupid)
 	{
 		$args = array("groupdefault" => 0);
 		$data = array('user_group',$args);
-		$sql = $this->db->makeUpdate($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		M('pepdo')->exec($sql);
 		$args = array("groupdefault" => 1);
 		$data = array('user_group',$args,array(array('AND',"groupid = :groupid",'groupid',$groupid)));
-		$sql = $this->db->makeUpdate($data);
-        return $this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+        return M('pepdo')->exec($sql);
 	}
 
 	public function getDefaultGroup()
 	{
 		$data = array(false,'user_group',array(array('AND',"groupdefault = 1")));
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql);
 	}
 
 	public function insertUserLog($args)
 	{
-		$args['ulip'] = $this->ev->getClientIp();
+		$args['ulip'] = M('ev')->getClientIp();
 		$args['ultime'] = TIME;
-		return $this->db->insertElement(array('table' => 'user_log','query' => $args));
+		return M('pepdo')->insertElement(array('table' => 'user_log','query' => $args));
 	}
 
 	public function getUserLogList($args,$page = 1,$number = 10)
@@ -278,17 +265,17 @@ class user
 			'table' => array('user_log','user'),
 			'query' => $args
 		);
-		return $this->db->listElements($page,$number,$data);
+		return M('pepdo')->listElements($page,$number,$data);
 	}
 
 	public function delUserLogById($ulid)
 	{
-		return $this->db->delElement(array('table' => 'user_log','query' => array(array('AND',"ulid = :ulid",'ulid',$ulid))));
+		return M('pepdo')->delElement(array('table' => 'user_log','query' => array(array('AND',"ulid = :ulid",'ulid',$ulid))));
 	}
 
 	public function clearUserLogByArgs($args)
 	{
-		return $this->db->delElement(array('table' => 'user_log','query' => $args));
+		return M('pepdo')->delElement(array('table' => 'user_log','query' => $args));
 	}
 
 }

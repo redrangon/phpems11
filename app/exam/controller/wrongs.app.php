@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,13 +19,13 @@ class action extends app
 
 	private function ajax()
 	{
-		switch($this->ev->url(4))
+		switch(M('ev')->url(4))
 		{
 			//获取剩余考试时间
 			case 'getexamlefttime':
-			//$sessionvars = $this->exam->getExamSessionBySessionid();
+			//$sessionvars = M('exam','exam')->getExamSessionBySessionid();
 			$lefttime = 0;
-			$sessionvars = $this->exam->getExamSessionBySessionid();
+			$sessionvars = M('exam','exam')->getExamSessionBySessionid();
 			if($this->data['currentbasic']['basicexam']['opentime']['start'] && $this->data['currentbasic']['basicexam']['opentime']['end'])
 			$t = $this->data['currentbasic']['basicexam']['opentime']['end']-300;
 			else
@@ -36,12 +36,12 @@ class action extends app
 			break;
 
 			case 'saveUserAnswer':
-			$question = $this->ev->post('question');
+			$question = M('ev')->post('question');
 			foreach($question as $key => $t)
 			{
 				if($t == '')unset($question[$key]);
 			}
-			$this->exam->modifyExamSession(array('examsessionuseranswer'=>$question));
+			M('exam','exam')->modifyExamSession(array('examsessionuseranswer'=>$question));
 			echo is_array($question)?count($question):0;
 			exit;
 			break;
@@ -52,7 +52,7 @@ class action extends app
 
 	private function view()
 	{
-		$sessionvars = $this->exam->getExamSessionBySessionid();
+		$sessionvars = M('exam','exam')->getExamSessionBySessionid();
 		if($sessionvars['examsessiontype'] != 2)
 		{
 			if($sessionvars['examsessiontype'])
@@ -61,18 +61,18 @@ class action extends app
 			header("location:index.php?exam-app-exercise-view");
 			exit;
 		}
-		$this->tpl->assign('questype',$this->basic->getQuestypeList());
-		$this->tpl->assign('sessionvars',$sessionvars);
-		$this->tpl->display('exam_view');
+		M('tpl')->assign('questype',M('basic','exam')->getQuestypeList());
+		M('tpl')->assign('sessionvars',$sessionvars);
+		M('tpl')->display('exam_view');
 	}
 
 	private function makescore()
 	{
-		$questype = $this->basic->getQuestypeList();
-		$sessionvars = $this->exam->getExamSessionBySessionid();
-		if($this->ev->get('makescore'))
+		$questype = M('basic','exam')->getQuestypeList();
+		$sessionvars = M('exam','exam')->getExamSessionBySessionid();
+		if(M('ev')->get('makescore'))
 		{
-			$score = $this->ev->get('score');
+			$score = M('ev')->get('score');
 			$sumscore = 0;
 			if(is_array($score))
 			{
@@ -90,9 +90,9 @@ class action extends app
 			$allnumber = floatval(count($sessionvars['examsessionscorelist']));
 			$args['examsessionscore'] = $sessionvars['examsessionscore'];
 			$args['examsessionstatus'] = 2;
-			$this->exam->modifyExamSession($args);
-			$id = $this->favor->addExamHistory();
-			if($this->ev->get('direct'))
+			M('exam','exam')->modifyExamSession($args);
+			$id = M('favor','exam')->addExamHistory();
+			if(M('ev')->get('direct'))
 			{
 				if($id)
 				header("location:index.php?exam-app-exam-makescore&ehid={$id}");
@@ -119,8 +119,8 @@ class action extends app
 		}
 		else
 		{
-			$ehid = $this->ev->get('ehid');
-			$eh = $this->favor->getExamHistoryById($ehid);
+			$ehid = M('ev')->get('ehid');
+			$eh = M('favor','exam')->getExamHistoryById($ehid);
 			$sessionvars = array(
 				'examsession' => $eh['ehexam'],
 				'examsessiontype'=> $eh['ehtype'] == 2?1:$eh['ehtype'],
@@ -209,23 +209,23 @@ class action extends app
                 }
             }
 
-            $this->tpl->assign('stats',$stats);
-			$this->tpl->assign('ehid',$ehid);
-			$this->tpl->assign('allright',$allright);
-			$this->tpl->assign('allnumber',$allnumber);
-			$this->tpl->assign('right',$right);
-			$this->tpl->assign('score',$score);
-			$this->tpl->assign('number',$number);
-			$this->tpl->assign('questype',$questype);
-			$this->tpl->assign('sessionvars',$sessionvars);
-			$this->tpl->display('exam_score');
+            M('tpl')->assign('stats',$stats);
+			M('tpl')->assign('ehid',$ehid);
+			M('tpl')->assign('allright',$allright);
+			M('tpl')->assign('allnumber',$allnumber);
+			M('tpl')->assign('right',$right);
+			M('tpl')->assign('score',$score);
+			M('tpl')->assign('number',$number);
+			M('tpl')->assign('questype',$questype);
+			M('tpl')->assign('sessionvars',$sessionvars);
+			M('tpl')->display('exam_score');
 		}
 	}
 
 	private function score()
 	{
-		$questype = $this->basic->getQuestypeList();
-		$sessionvars = $this->exam->getExamSessionBySessionid();
+		$questype = M('basic','exam')->getQuestypeList();
+		$sessionvars = M('exam','exam')->getExamSessionBySessionid();
 		$needhand = 0;
 		if($this->data['currentbasic']['basicexam']['examnumber'])
 		{
@@ -238,7 +238,7 @@ class action extends app
 				$ids = explode(',',$ids);
 				foreach($ids as $t)
 				{
-					$num = $this->favor->getExamUseNumber($this->_user['sessionuserid'],$t,$this->data['currentbasic']['basicid']);
+					$num = M('favor','exam')->getExamUseNumber($this->user['userid'],$t,$this->data['currentbasic']['basicid']);
 					$number['child'][$t] = $num;
 					$number['all'] = intval($number['all'])+$num;
 				}
@@ -266,10 +266,10 @@ class action extends app
 				\PHPEMS\ginkgo::R($message);
 			}
 		}
-		if($this->ev->get('insertscore'))
+		if(M('ev')->get('insertscore'))
 		{
-			$question = $this->ev->get('question');
-			$time = $this->ev->get('time');
+			$question = M('ev')->get('question');
+			$time = M('ev')->get('time');
 			foreach($question as $key => $a)
 			$sessionvars['examsessionuseranswer'][$key] = $a;
 			foreach($sessionvars['examsessionquestion']['questions'] as $key => $tmp)
@@ -386,7 +386,7 @@ class action extends app
 			{
 				$args['examsessionstatus'] = 2;
 				$args['examsessionscore'] = array_sum($scorelist);
-				$this->exam->modifyExamSession($args);
+				M('exam','exam')->modifyExamSession($args);
 				$message = array(
 					'statusCode' => 200,
 					"message" => "操作成功",
@@ -399,8 +399,8 @@ class action extends app
 				if($sessionvars['examsessionsetting']['examdecide'])
 				{
 					$args['examsessionstatus'] = 2;
-					$this->exam->modifyExamSession($args);
-					$id = $this->favor->addExamHistory(0,0);
+					M('exam','exam')->modifyExamSession($args);
+					$id = M('favor','exam')->addExamHistory(0,0);
 					if($id)
 					$message = array(
 						'statusCode' => 200,
@@ -417,8 +417,8 @@ class action extends app
 				else
 				{
 					$args['examsessionstatus'] = 1;
-					$this->exam->modifyExamSession($args);
-					//$this->favor->addExamHistory(1);
+					M('exam','exam')->modifyExamSession($args);
+					//M('favor','exam')->addExamHistory(1);
 					$message = array(
 						'statusCode' => 200,
 						"message" => "操作成功",
@@ -438,18 +438,18 @@ class action extends app
 			}
 			else
 			{
-				$this->tpl->assign('sessionvars',$sessionvars);
-				$this->tpl->assign('questype',$questype);
-				$this->tpl->display('exam_mkscore');
+				M('tpl')->assign('sessionvars',$sessionvars);
+				M('tpl')->assign('questype',$questype);
+				M('tpl')->display('exam_mkscore');
 			}
 		}
 	}
 
 	private function paper()
 	{
-		$sessionvars = $this->exam->getExamSessionBySessionid();
+		$sessionvars = M('exam','exam')->getExamSessionBySessionid();
 		$lefttime = 0;
-		$questype = $this->basic->getQuestypeList();
+		$questype = M('basic','exam')->getQuestypeList();
 		if($sessionvars['examsessionstatus'] == 2)
 		{
 			header("location:index.php?exam-app-exam-makescore");
@@ -462,21 +462,21 @@ class action extends app
 		}
 		else
 		{
-			//$exams = $this->exam->getExamSettingList(1,3,array(array("AND","examsubject = :examsubject",'examsubject',$this->data['currentsubject']['subjectid']),array("AND","examtype = 1")));
-			$this->tpl->assign('questype',$questype);
-			$this->tpl->assign('sessionvars',$sessionvars);
-			$this->tpl->assign('lefttime',$lefttime);
-			$this->tpl->assign('donumber',is_array($sessionvars['examsessionuseranswer'])?count($sessionvars['examsessionuseranswer']):0);
+			//$exams = M('exam','exam')->getExamSettingList(1,3,array(array("AND","examsubject = :examsubject",'examsubject',$this->data['currentsubject']['subjectid']),array("AND","examtype = 1")));
+			M('tpl')->assign('questype',$questype);
+			M('tpl')->assign('sessionvars',$sessionvars);
+			M('tpl')->assign('lefttime',$lefttime);
+			M('tpl')->assign('donumber',is_array($sessionvars['examsessionuseranswer'])?count($sessionvars['examsessionuseranswer']):0);
 			if($this->data['currentbasic']['basicexam']['selftemplate'])
-			$this->tpl->display($this->data['currentbasic']['basicexam']['selftemplate']);
+			M('tpl')->display($this->data['currentbasic']['basicexam']['selftemplate']);
 			else
-			$this->tpl->display('exam_paper');
+			M('tpl')->display('exam_paper');
 		}
 	}
 
 	private function selectquestions()
 	{
-		$sessionvars = $this->exam->getExamSessionBySessionid();
+		$sessionvars = M('exam','exam')->getExamSessionBySessionid();
 		if($this->data['currentbasic']['basicexam']['examnumber'])
 		{
 			$overflow = false;
@@ -488,7 +488,7 @@ class action extends app
 				$ids = explode(',',$ids);
 				foreach($ids as $t)
 				{
-					$num = $this->favor->getExamUseNumber($this->_user['sessionuserid'],$t,$this->data['currentbasic']['basicid']);
+					$num = M('favor','exam')->getExamUseNumber($this->user['userid'],$t,$this->data['currentbasic']['basicid']);
 					$number['child'][$t] = $num;
 					$number['all'] = intval($number['all'])+$num;
 				}
@@ -523,8 +523,8 @@ class action extends app
 			$examid = $ids[$p];
 		}
 		else
-		$examid = $this->ev->get('examid');
-		$r = $this->exam->getExamSettingById($examid);
+		$examid = M('ev')->get('examid');
+		$r = M('exam','exam')->getExamSettingById($examid);
 		if(!$r['examid'])
 		{
 			$message = array(
@@ -537,7 +537,7 @@ class action extends app
 		{
 			if($r['examtype'] == 1)
 			{
-				$questionids = $this->question->selectQuestions($examid,$this->data['currentbasic']);
+				$questionids = M('question','exam')->selectQuestions($examid,$this->data['currentbasic']);
 				$questions = array();
 				$questionrows = array();
 				foreach($questionids['question'] as $key => $p)
@@ -551,7 +551,7 @@ class action extends app
 						}
 						$ids = trim($ids," ,");
 						if(!$ids)$ids = 0;
-						$questions[$key] = $this->exam->getQuestionListByIds($ids);
+						$questions[$key] = M('exam','exam')->getQuestionListByIds($ids);
 					}
 				}
 				foreach($questionids['questionrow'] as $key => $p)
@@ -563,11 +563,11 @@ class action extends app
 						{
 							foreach($p as $t)
 							{
-								$questionrows[$key][$t] = $this->exam->getQuestionRowsById($t);
+								$questionrows[$key][$t] = M('exam','exam')->getQuestionRowsById($t);
 							}
 						}
 					}
-					else $questionrows[$key][$p] = $this->exam->getQuestionRowsById($p);
+					else $questionrows[$key][$p] = M('exam','exam')->getQuestionRowsById($p);
 				}
 				$sargs['examsessionquestion'] = array('questionids'=>$questionids,'questions'=>$questions,'questionrows'=>$questionrows);
 				$sargs['examsessionsetting'] = $questionids['setting'];
@@ -582,11 +582,11 @@ class action extends app
 				$sargs['examsessionkey'] = $examid;
 				$sargs['examsessionissave'] = 0;
 				$sargs['examsessionsign'] = '';
-				$sargs['examsessionuserid'] = $this->_user['sessionuserid'];
+				$sargs['examsessionuserid'] = $this->user['userid'];
 				if($sessionvars['examsessionid'])
-				$this->exam->modifyExamSession($sargs);
+				M('exam','exam')->modifyExamSession($sargs);
 				else
-				$this->exam->insertExamSession($sargs);
+				M('exam','exam')->insertExamSession($sargs);
 				$message = array(
 					'statusCode' => 200,
 					"message" => "抽题完毕，转入试卷页面",
@@ -597,7 +597,7 @@ class action extends app
 			}
 			elseif($r['examtype'] == 2)
 			{
-				$sessionvars = $this->exam->getExamSessionBySessionid();
+				$sessionvars = M('exam','exam')->getExamSessionBySessionid();
 				$questions = array();
 				$questionrows = array();
 				foreach($r['examquestions'] as $key => $p)
@@ -606,14 +606,14 @@ class action extends app
 					$qrids = '';
 					if($p['questions'])$qids = trim($p['questions']," ,");
 					if($qids)
-					$questions[$key] = $this->exam->getQuestionListByIds($qids);
+					$questions[$key] = M('exam','exam')->getQuestionListByIds($qids);
 					if($p['rowsquestions'])$qrids = trim($p['rowsquestions']," ,");
 					if($qrids)
 					{
 						$qrids = explode(",",$qrids);
 						foreach($qrids as $t)
 						{
-							$qr = $this->exam->getQuestionRowsById($t);
+							$qr = M('exam','exam')->getQuestionRowsById($t);
 							if($qr)
 							$questionrows[$key][$t] = $qr;
 						}
@@ -633,11 +633,11 @@ class action extends app
 				$args['examsessionkey'] = $r['examid'];
 				$args['examsessionissave'] = 0;
 				$args['examsessionbasic'] = $this->data['currentbasic']['basicid'];
-				$args['examsessionuserid'] = $this->_user['sessionuserid'];
+				$args['examsessionuserid'] = $this->user['userid'];
 				if($sessionvars['examsessionid'])
-				$this->exam->modifyExamSession($args);
+				M('exam','exam')->modifyExamSession($args);
 				else
-				$this->exam->insertExamSession($args);
+				M('exam','exam')->insertExamSession($args);
 				$message = array(
 					'statusCode' => 200,
 					"message" => "抽题完毕，转入试卷页面",
@@ -648,7 +648,7 @@ class action extends app
 			}
 			else
 			{
-				$sessionvars = $this->exam->getExamSessionBySessionid();
+				$sessionvars = M('exam','exam')->getExamSessionBySessionid();
 				$args['examsessionquestion'] = $r['examquestions'];
 				$args['examsessionsetting'] = $r;
 				$args['examsessionstarttime'] = TIME;
@@ -663,11 +663,11 @@ class action extends app
 				$args['examsessionkey'] = $r['examid'];
 				$args['examsessionissave'] = 0;
 				$args['examsessionbasic'] = $this->data['currentbasic']['basicid'];
-				$args['examsessionuserid'] = $this->_user['sessionuserid'];
+				$args['examsessionuserid'] = $this->user['userid'];
 				if($sessionvars['examsessionid'])
-				$this->exam->modifyExamSession($args);
+				M('exam','exam')->modifyExamSession($args);
 				else
-				$this->exam->insertExamSession($args);
+				M('exam','exam')->insertExamSession($args);
 				$message = array(
 					'statusCode' => 200,
 					"message" => "抽题完毕，转入试卷页面",
@@ -681,27 +681,27 @@ class action extends app
 
 	private function index()
 	{
-		$page = $this->ev->get('page');
+		$page = M('ev')->get('page');
 		$ids = trim($this->data['currentbasic']['basicexam']['self'],', ');
 		if(!$ids)$ids = '0';
-		$exams = $this->exam->getExamSettingList($page,20,array(array("AND","find_in_set(examid,:examid)",'examid',$ids)));
+		$exams = M('exam','exam')->getExamSettingList($page,20,array(array("AND","find_in_set(examid,:examid)",'examid',$ids)));
 		$number = array();
 		if($ids)
 		{
 			$ids = explode(',',$ids);
 			foreach($ids as $t)
 			{
-				$num = $this->favor->getExamUseNumber($this->_user['sessionuserid'],$t,$this->data['currentbasic']['basicid']);
+				$num = M('favor','exam')->getExamUseNumber($this->user['userid'],$t,$this->data['currentbasic']['basicid']);
 				$number['child'][$t] = $num;
 				$number['all'] = intval($number['all'])+$num;
 			}
 		}
-		$sessionvars = $this->exam->getExamSessionByUserid($this->_user['sessionuserid'],$this->data['currentbasic']['basicid']);
-		if($sessionvars && ($sessionvars['examsessionbasic'] == $this->_user['sessioncurrent']) && ($sessionvars['examsessionstatus'] < 2) && ($sessionvars['examsessiontype'] == 2))
-		$this->tpl->assign('sessionvars',$sessionvars);
-		$this->tpl->assign('number',$number);
-		$this->tpl->assign('exams',$exams);
-		$this->tpl->display('exam');
+		$sessionvars = M('exam','exam')->getExamSessionByUserid($this->user['userid'],$this->data['currentbasic']['basicid']);
+		if($sessionvars && ($sessionvars['examsessionbasic'] == $this->user['sessioncurrent']) && ($sessionvars['examsessionstatus'] < 2) && ($sessionvars['examsessiontype'] == 2))
+		M('tpl')->assign('sessionvars',$sessionvars);
+		M('tpl')->assign('number',$number);
+		M('tpl')->assign('exams',$exams);
+		M('tpl')->display('exam');
 	}
 }
 

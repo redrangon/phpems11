@@ -10,18 +10,18 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
-		$search = $this->ev->get('search');
+		$action = M('ev')->url(3);
+		$search = M('ev')->get('search');
 		$this->u = '';
 		if($search)
 		{
-			$this->tpl->assign('search',$search);
+			M('tpl')->assign('search',$search);
 			foreach($search as $key => $arg)
 			{
 				$this->u .= "&search[{$key}]={$arg}";
 			}
 		}
-		$this->tpl->assign('search',$search);
+		M('tpl')->assign('search',$search);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -30,38 +30,38 @@ class action extends app
 
     private function setdochistory()
     {
-        if($this->ev->get('setdochistory'))
+        if(M('ev')->get('setdochistory'))
         {
-        	if($this->ev->get('action') == 'delete')
+        	if(M('ev')->get('action') == 'delete')
             {
-                $ids = $this->ev->get('delids');
+                $ids = M('ev')->get('delids');
                 foreach($ids as $key => $id)
                 {
-                    $this->doc->delDocHistory($key);
+                    M('doc','docs')->delDocHistory($key);
                 }
             }
-			elseif($this->ev->get('action') == 'pass')
+			elseif(M('ev')->get('action') == 'pass')
             {
-                $ids = $this->ev->get('delids');
+                $ids = M('ev')->get('delids');
                 foreach($ids as $key => $id)
                 {
-                    $this->doc->modifyDocHistory($key,array('dhstatus' => 1));
+                    M('doc','docs')->modifyDocHistory($key,array('dhstatus' => 1));
                 }
             }
-			elseif($this->ev->get('action') == 'unpass')
+			elseif(M('ev')->get('action') == 'unpass')
             {
-                $ids = $this->ev->get('delids');
+                $ids = M('ev')->get('delids');
                 foreach($ids as $key => $id)
                 {
-                    $this->doc->modifyDocHistory($key,array('dhstatus' => 2));
+                    M('doc','docs')->modifyDocHistory($key,array('dhstatus' => 2));
                 }
             }
-			elseif($this->ev->get('action') == 'waitpass')
+			elseif(M('ev')->get('action') == 'waitpass')
             {
-                $ids = $this->ev->get('delids');
+                $ids = M('ev')->get('delids');
                 foreach($ids as $key => $id)
                 {
-                    $this->doc->modifyDocHistory($key,array('dhstatus' => 0));
+                    M('doc','docs')->modifyDocHistory($key,array('dhstatus' => 0));
                 }
             }
             $message = array(
@@ -72,11 +72,11 @@ class action extends app
             );
             \PHPEMS\ginkgo::R($message);
         }
-		elseif($this->ev->get('action') == 'nowuse')
+		elseif(M('ev')->get('action') == 'nowuse')
         {
-            $dhid = $this->ev->get('dhid');
-            $history = $this->doc->getDocHistroyById($dhid);
-            $this->doc->modifyDoc($history['dhdocid'],array('doccontentid' => $dhid));
+            $dhid = M('ev')->get('dhid');
+            $history = M('doc','docs')->getDocHistroyById($dhid);
+            M('doc','docs')->modifyDoc($history['dhdocid'],array('doccontentid' => $dhid));
             $message = array(
                 'statusCode' => 200,
                 "message" => "操作成功",
@@ -97,39 +97,39 @@ class action extends app
 
 	private function history()
 	{
-		$docid = $this->ev->get('docid');
-        $page = $this->ev->get('page');
-        $doc = $this->doc->getDocById($docid,false);
+		$docid = M('ev')->get('docid');
+        $page = M('ev')->get('page');
+        $doc = M('doc','docs')->getDocById($docid,false);
         $args = array();
         $args[] = array("AND","dhdocid = :dhdocid","dhdocid",$docid);
-        $histories = $this->doc->getDocHistoryListByArgs($args,$page);
-        $this->tpl->assign('doc',$doc);
-        $this->tpl->assign('histories',$histories);
-        $this->tpl->display('docs_history');
+        $histories = M('doc','docs')->getDocHistoryListByArgs($args,$page);
+        M('tpl')->assign('doc',$doc);
+        M('tpl')->assign('histories',$histories);
+        M('tpl')->display('docs_history');
 	}
 
     private function catsmenu()
     {
-        $catid = $this->ev->get('catid');
-        $categories = $this->category->getAllCategory();
+        $catid = M('ev')->get('catid');
+        $categories = M('category')->getAllCategory();
         $r = array();
-        $this->category->selected = $catid;
-        $this->category->hrefpre = 'index.php?docs-master-docs&catid=';
-        $this->category->levelCategory($r,0,$this->category->tidycategories);
-        $this->category->resetCategoryIndex($r);
-        echo 'var treeData = '.json_encode($r);
+        M('category')->selected = $catid;
+        M('category')->hrefpre = 'index.php?docs-master-docs&catid=';
+        M('category')->levelCategory($r,0,M('category')->tidycategories);
+        M('category')->resetCategoryIndex($r);
+        echo json_encode($r);
         exit();
     }
 
 	private function add()
 	{
-		if($this->ev->get('submit'))
+		if(M('ev')->get('submit'))
 		{
-			$args = $this->ev->get('args');
+			$args = M('ev')->get('args');
 			$args['docusername'] = $this->_user['sessionusername'];
 			$args['docinputtime'] = TIME;
             $args['docneedmore'] = 1;
-			$id = $this->doc->addDoc($args);
+			$id = M('doc','docs')->addDoc($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -140,26 +140,26 @@ class action extends app
 		}
 		else
 		{
-			$catid = intval($this->ev->get('catid'));
-			$parentcat = $this->category->getCategoriesByArgs(array(array("AND","catparent = 0")));
-			$this->tpl->assign('parentcat',$parentcat);
-			$this->tpl->assign('catid',$catid);
-			$this->tpl->display('docs_add');
+			$catid = intval(M('ev')->get('catid'));
+			$parentcat = M('category')->getCategoriesByArgs(array(array("AND","catparent = 0")));
+			M('tpl')->assign('parentcat',$parentcat);
+			M('tpl')->assign('catid',$catid);
+			M('tpl')->display('docs_add');
 		}
 	}
 
 	private function edit()
 	{
-		$page = intval($this->ev->get('page'));
-        $docid = intval($this->ev->get('docid'));
-        $doc = $this->doc->getDocById($docid,false);
-		if($this->ev->get('submit'))
+		$page = intval(M('ev')->get('page'));
+        $docid = intval(M('ev')->get('docid'));
+        $doc = M('doc','docs')->getDocById($docid,false);
+		if(M('ev')->get('submit'))
 		{
 
-			$args = $this->ev->get('args');
+			$args = M('ev')->get('args');
 			$args['docmodifytime'] = TIME;
 			unset($args['doccatid']);
-			$this->doc->modifyDoc($docid,$args);
+			M('doc','docs')->modifyDoc($docid,$args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -170,24 +170,24 @@ class action extends app
 		}
 		else
 		{
-			$catid = intval($this->ev->get('catid'));
-			$cat = $this->category->getCategoryById($catid);
-			$this->tpl->assign('catid',$catid);
-			$this->tpl->assign('cat',$cat);
-			$this->tpl->assign('docid',$docid);
-			$this->tpl->assign('doc',$doc);
-			$this->tpl->assign('page',$page);
-			$this->tpl->display('docs_edit');
+			$catid = intval(M('ev')->get('catid'));
+			$cat = M('category')->getCategoryById($catid);
+			M('tpl')->assign('catid',$catid);
+			M('tpl')->assign('cat',$cat);
+			M('tpl')->assign('docid',$docid);
+			M('tpl')->assign('doc',$doc);
+			M('tpl')->assign('page',$page);
+			M('tpl')->display('docs_edit');
 		}
 	}
 
 	private function del()
 	{
-		$page = intval($this->ev->get('page'));
-        $docid = intval($this->ev->get('docid'));
-		$doc = $this->doc->getDocById($docid);
+		$page = intval(M('ev')->get('page'));
+        $docid = intval(M('ev')->get('docid'));
+		$doc = M('doc','docs')->getDocById($docid);
 		if($doc)
-		$this->doc->delDoc($docid);
+		M('doc','docs')->delDoc($docid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -199,89 +199,89 @@ class action extends app
 
 	private function lite()
 	{
-		$catid = $this->ev->get('catid');
-		$page = $this->ev->get('page');
-		$this->tpl->assign('catid',$catid);
-		$this->tpl->assign('page',$page);
-		if($this->ev->get('modifycontentsequence'))
+		$catid = M('ev')->get('catid');
+		$page = M('ev')->get('page');
+		M('tpl')->assign('catid',$catid);
+		M('tpl')->assign('page',$page);
+		if(M('ev')->get('modifycontentsequence'))
 		{
-			if($this->ev->get('action') == 'delete')
+			if(M('ev')->get('action') == 'delete')
 			{
-				$ids = $this->ev->get('delids');
+				$ids = M('ev')->get('delids');
 				foreach($ids as $key => $id)
 				{
-					$this->doc->delDoc($key);
+					M('doc','docs')->delDoc($key);
 				}
 			}
-			elseif($this->ev->get('action') == 'move')
+			elseif(M('ev')->get('action') == 'move')
 			{
 				$docids = array();
-				$ids = $this->ev->get('delids');
+				$ids = M('ev')->get('delids');
 				foreach($ids as $key => $id)
 				{
 					if($key)$docids[] = $key;
 				}
                 $docids = implode(',',$docids);
-				$parentcat = $this->category->getCategoriesByArgs(array(array("AND","catparent = 0")));
-				$this->tpl->assign('parentcat',$parentcat);
-				$this->tpl->assign('docids',$docids);
-				$this->tpl->display('docs_move');
+				$parentcat = M('category')->getCategoriesByArgs(array(array("AND","catparent = 0")));
+				M('tpl')->assign('parentcat',$parentcat);
+				M('tpl')->assign('docids',$docids);
+				M('tpl')->display('docs_move');
 				exit;
 			}
-            elseif($this->ev->get('action') == 'more')
+            elseif(M('ev')->get('action') == 'more')
             {
-                $ids = $this->ev->get('delids');
+                $ids = M('ev')->get('delids');
                 foreach($ids as $key => $id)
                 {
-                    $this->doc->modifyDoc($key,array('docneedmore' => 1));
+                    M('doc','docs')->modifyDoc($key,array('docneedmore' => 1));
                 }
             }
-            elseif($this->ev->get('action') == 'unmore')
+            elseif(M('ev')->get('action') == 'unmore')
             {
-                $ids = $this->ev->get('delids');
+                $ids = M('ev')->get('delids');
                 foreach($ids as $key => $id)
                 {
-                    $this->doc->modifyDoc($key,array('docneedmore' => 0));
+                    M('doc','docs')->modifyDoc($key,array('docneedmore' => 0));
                 }
             }
-            elseif($this->ev->get('action') == 'top')
+            elseif(M('ev')->get('action') == 'top')
             {
-                $ids = $this->ev->get('delids');
+                $ids = M('ev')->get('delids');
                 foreach($ids as $key => $id)
                 {
-                    $this->doc->modifyDoc($key,array('docistop' => 1));
+                    M('doc','docs')->modifyDoc($key,array('docistop' => 1));
                 }
             }
-            elseif($this->ev->get('action') == 'untop')
+            elseif(M('ev')->get('action') == 'untop')
             {
-                $ids = $this->ev->get('delids');
+                $ids = M('ev')->get('delids');
                 foreach($ids as $key => $id)
                 {
-                    $this->doc->modifyDoc($key,array('docistop' => 0));
+                    M('doc','docs')->modifyDoc($key,array('docistop' => 0));
                 }
             }
-            elseif($this->ev->get('action') == 'lock')
+            elseif(M('ev')->get('action') == 'lock')
             {
-                $ids = $this->ev->get('delids');
+                $ids = M('ev')->get('delids');
                 foreach($ids as $key => $id)
                 {
-                    $this->doc->modifyDoc($key,array('docsyslock' => 1));
+                    M('doc','docs')->modifyDoc($key,array('docsyslock' => 1));
                 }
             }
-            elseif($this->ev->get('action') == 'unlock')
+            elseif(M('ev')->get('action') == 'unlock')
             {
-                $ids = $this->ev->get('delids');
+                $ids = M('ev')->get('delids');
                 foreach($ids as $key => $id)
                 {
-                    $this->doc->modifyDoc($key,array('docsyslock' => 0));
+                    M('doc','docs')->modifyDoc($key,array('docsyslock' => 0));
                 }
             }
 			else
 			{
-				$ids = $this->ev->get('ids');
+				$ids = M('ev')->get('ids');
 				foreach($ids as $key => $id)
 				{
-					$this->doc->modifyDoc($key,array('docsequence' => $id));
+					M('doc','docs')->modifyDoc($key,array('docsequence' => $id));
 				}
 			}
 			$message = array(
@@ -292,15 +292,15 @@ class action extends app
 			);
 			\PHPEMS\ginkgo::R($message);
 		}
-		elseif($this->ev->get('movecategory'))
+		elseif(M('ev')->get('movecategory'))
 		{
-			$docids = explode(',',$this->ev->get('docids'));
-			$targetcatid = $this->ev->get('targetcatid');
+			$docids = explode(',',M('ev')->get('docids'));
+			$targetcatid = M('ev')->get('targetcatid');
 			if($targetcatid)
 			{
 				foreach($docids as $key => $id)
 				{
-					if($id)$this->doc->modifyDoc($id,array('doccatid' => $targetcatid));
+					if($id)M('doc','docs')->modifyDoc($id,array('doccatid' => $targetcatid));
 				}
 				$message = array(
 					'statusCode' => 200,
@@ -328,16 +328,16 @@ class action extends app
 
 	private function index()
 	{
-		$search = $this->ev->get('search');
-		$catid = intval($this->ev->get('catid'));
-		$page = intval($this->ev->get('page'));
+		$search = M('ev')->get('search');
+		$catid = intval(M('ev')->get('catid'));
+		$page = intval(M('ev')->get('page'));
 		$page = $page?$page:1;
 		if(!$catid)$catid = $search['doccatid'];
-		$categories = $this->category->getAllCategory();
-		$parentcat = $this->category->getCategoriesByArgs(array(array("AND","catparent = 0"),array("AND","catapp = 'docs'")));
+		$categories = M('category')->getAllCategory();
+		$parentcat = M('category')->getCategoriesByArgs(array(array("AND","catparent = 0"),array("AND","catapp = 'docs'")));
 		if($catid)
 		{
-			$childstring = $this->category->getChildCategoryString($catid);
+			$childstring = M('category')->getChildCategoryString($catid);
 			$args = array(array("AND","find_in_set(doccatid,:doccatid)",'doccatid',$childstring));
 		}
 		else $args = array();
@@ -373,18 +373,18 @@ class action extends app
         $catlevel = 1;
         if($catid)
         {
-            $pos = $this->category->getCategoryPos($catid);
+            $pos = M('category')->getCategoryPos($catid);
             if(count($pos))
                 $catlevel = count($pos) + 1;
         }
-        $this->tpl->assign('catlevel',$catlevel);
-		$docs = $this->doc->getDocList($args,$page,10);
-		$this->tpl->assign('catid',$catid);
-		$this->tpl->assign('docs',$docs);
-		$this->tpl->assign('parentcat',$parentcat);
-		$this->tpl->assign('categories',$categories);
-		$this->tpl->assign('page',$page);
-		$this->tpl->display('docs');
+        M('tpl')->assign('catlevel',$catlevel);
+		$docs = M('doc','docs')->getDocList($args,$page,10);
+		M('tpl')->assign('catid',$catid);
+		M('tpl')->assign('docs',$docs);
+		M('tpl')->assign('parentcat',$parentcat);
+		M('tpl')->assign('categories',$categories);
+		M('tpl')->assign('page',$page);
+		M('tpl')->display('docs');
 	}
 }
 

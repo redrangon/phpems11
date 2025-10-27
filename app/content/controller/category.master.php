@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,14 +19,14 @@ class action extends app
 
 	private function add()
 	{
-		if($this->ev->get('addcategory'))
+		if(M('ev')->get('addcategory'))
 		{
-			$args = $this->ev->get('args');
-			$page = $this->ev->get('page');
-			$this->category->addCategory($args);
+			$args = M('ev')->get('args');
+			$page = M('ev')->get('page');
+			M('category')->addCategory($args);
 			if($args['catparent'])
 			{
-				$parent = $this->category->getCategoryById($args['catparent']);
+				$parent = M('category')->getCategoryById($args['catparent']);
 				$parent = intval($parent['catparent']);
 			}
 			else $parent = 0;
@@ -42,25 +42,25 @@ class action extends app
 		}
 		else
 		{
-			$parent = $this->ev->get('parent');
+			$parent = M('ev')->get('parent');
 			$tpls = array();
 			foreach(glob("app/content/tpls/app/category_*.tpl") as $p)
 			{
 				$tpls[] = substr(basename($p),0,-4);
 			}
-			$this->tpl->assign('parent',$parent);
-			$this->tpl->assign('tpls',$tpls);
-			$this->tpl->display('category_add');
+			M('tpl')->assign('parent',$parent);
+			M('tpl')->assign('tpls',$tpls);
+			M('tpl')->display('category_add');
 		}
 	}
 
 	private function lite()
 	{
-		$ids = $this->ev->get('ids');
+		$ids = M('ev')->get('ids');
 		foreach($ids as $key => $p)
 		{
 			$args = array('catlite' => $p);
-			$this->category->modifyCategory($key,$args);
+			M('category')->modifyCategory($key,$args);
 		}
 		$message = array(
 			'statusCode' => 200,
@@ -73,14 +73,14 @@ class action extends app
 
 	private function ajax()
 	{
-		switch($this->ev->url(4))
+		switch(M('ev')->url(4))
 		{
 			case 'getchildcategory':
-			$catid = $this->ev->get('catid');
+			$catid = M('ev')->get('catid');
 			$out = '';
 			if($catid)
 			{
-				$child = $this->category->getCategoriesByArgs(array(array("AND","catparent = :catparent",':catparent',$catid)));
+				$child = M('category')->getCategoriesByArgs(array(array("AND","catparent = :catparent",':catparent',$catid)));
 				foreach($child as $c)
 				{
 					$out .= '<option value="'.$c['catid'].'">'.$c['catname'].'</option>';
@@ -104,12 +104,12 @@ class action extends app
 			break;
 
 			case 'getchilddata':
-			$catid = $this->ev->get('catid');
-			$child = $this->category->getCategoriesByArgs(array(array("AND","catparent = :catparent",':catparent',$catid)));
+			$catid = M('ev')->get('catid');
+			$child = M('category')->getCategoriesByArgs(array(array("AND","catparent = :catparent",':catparent',$catid)));
 			exit(json_encode($child));
-			$this->tpl->assign('child',$child);
-			$this->tpl->assign('catid',$catid);
-			$this->tpl->display('category_ajax_data');
+			M('tpl')->assign('child',$child);
+			M('tpl')->assign('catid',$catid);
+			M('tpl')->display('category_ajax_data');
 			break;
 
 			default:
@@ -119,14 +119,14 @@ class action extends app
 
 	private function edit()
 	{
-		$parent = $this->ev->get('parent');
-		$catid = $this->ev->get('catid');
-		$page = $this->ev->get('page');
-		if($this->ev->get('submit'))
+		$parent = M('ev')->get('parent');
+		$catid = M('ev')->get('catid');
+		$page = M('ev')->get('page');
+		if(M('ev')->get('submit'))
 		{
-			$args = $this->ev->get('args');
-			$cat = $this->category->getCategoryById($catid);
-			$this->category->modifyCategory($catid,$args);
+			$args = M('ev')->get('args');
+			$cat = M('category')->getCategoryById($catid);
+			M('category')->modifyCategory($catid,$args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -137,28 +137,27 @@ class action extends app
 		}
 		else
 		{
-			$category = $this->category->getCategoryById($catid);
+			$category = M('category')->getCategoryById($catid);
 			$tpls = array();
 			foreach(glob("app/content/tpls/app/category_*.tpl") as $p)
 			{
 				$tpls[] = substr(basename($p),0,-4);
 			}
-			$this->tpl->assign('tpls',$tpls);
-			$this->tpl->assign('parent',$parent);
-			$this->tpl->assign('category',$category);
-			$this->tpl->assign('catid',$catid);
-			$this->tpl->assign('page',$page);
-			$this->tpl->display('category_edit');
+			M('tpl')->assign('tpls',$tpls);
+			M('tpl')->assign('parent',$parent);
+			M('tpl')->assign('category',$category);
+			M('tpl')->assign('catid',$catid);
+			M('tpl')->assign('page',$page);
+			M('tpl')->display('category_edit');
 		}
 	}
 
 	private function del()
 	{
-		$catid = $this->ev->get('catid');
-		$page = $this->ev->get('page');
-		$cat = $this->category->getCategoryById($catid);
-		$catstring = $this->category->getChildCategoryString($catid,0);
-		$contents = $this->content->getContentList(array(array("AND","contentcatid = :contentcatid",'contentcatid',$catid)));
+		$catid = M('ev')->get('catid');
+		$cat = M('category')->getCategoryById($catid);
+		$catstring = M('category')->getChildCategoryString($catid,0);
+		$contents = M('content','content')->getContentList(array(array("AND","contentcatid = :contentcatid",'contentcatid',$catid)));
 		if($catstring || $contents['number'])
 		{
 			$message = array(
@@ -167,30 +166,30 @@ class action extends app
 			);
 			\PHPEMS\ginkgo::R($message);
 		}
-		$this->category->delCategory($catid);
+		M('category')->delCategory($catid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
 		    "target" => "",
 		    "rel" => "",
 		    "callbackType" => "forward",
-		    "forwardUrl" => "index.php?content-master-category&parent={$cat['catparent']}&page={$page}"
+		    "forwardUrl" => "reload"
 		);
 		\PHPEMS\ginkgo::R($message);
 	}
 
 	private function index()
 	{
-		$page = intval($this->ev->get('page'));
+		$page = intval(M('ev')->get('page'));
 		$page = $page?$page:1;
-		$parent = intval($this->ev->get('parent'));
-		$categorys = $this->category->getCategoryList(array(array("AND","catparent = :catparent",'catparent',$parent)),$page,5);
-		$categories = $this->category->getAllCategory();
-		$this->tpl->assign('parent',$parent);
-		$this->tpl->assign('categorys',$categorys);
-		$this->tpl->assign('categories',$categories);
-		$this->tpl->assign('page',$page);
-		$this->tpl->display('category');
+		$parent = intval(M('ev')->get('parent'));
+		$categorys = M('category')->getCategoryList(array(array("AND","catparent = :catparent",'catparent',$parent)),$page,5);
+		$categories = M('category')->getAllCategory();
+		M('tpl')->assign('parent',$parent);
+		M('tpl')->assign('categorys',$categorys);
+		M('tpl')->assign('categories',$categories);
+		M('tpl')->assign('page',$page);
+		M('tpl')->display('category');
 	}
 }
 

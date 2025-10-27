@@ -10,8 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$this->html = M('html');
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -20,12 +19,12 @@ class action extends app
 
 	private function password()
 	{
-        if($this->ev->get('modifyuserpassword'))
+        if(M('ev')->get('modifyuserpassword'))
         {
-            $args = $this->ev->get('args');
-            $oldpassword = $this->ev->get('oldpassword');
-            $userid = $this->_user['sessionuserid'];
-            $user = $this->user->getUserById($userid);
+            $args = M('ev')->get('args');
+            $oldpassword = M('ev')->get('oldpassword');
+            $userid = $this->user['userid'];
+            $user = M('user','user')->getUserById($userid);
             if(md5($oldpassword) != $user['userpassword'])
             {
                 $message = array(
@@ -36,7 +35,7 @@ class action extends app
             }
             if($args['password'] == $args['password2'] && $userid)
             {
-                $id = $this->user->modifyUserPassword($userid,$args);
+                $id = M('user','user')->modifyUserPassword($userid,$args);
                 $message = array(
                     'statusCode' => 200,
                     "message" => "操作成功",
@@ -56,20 +55,20 @@ class action extends app
         }
         else
         {
-            $this->tpl->display('modifypassword');
+            M('tpl')->display('modifypassword');
         }
 	}
 
 	private function index()
 	{
-		if($this->ev->get('modifyuserinfo'))
+		if(M('ev')->get('modifyuserinfo'))
 		{
-			$args = $this->ev->get('args');
-			$userid = $this->_user['sessionuserid'];
-			$group = $this->user->getGroupById($this->_user['sessiongroupid']);
-			$args = $this->module->tidyNeedFieldsPars($args,$group['groupmoduleid'],0);
+			$args = M('ev')->get('args');
+			$userid = $this->user['userid'];
+			$group = M('user','user')->getGroupById($this->user['sessiongroupid']);
+			$args = M('module')->tidyNeedFieldsPars($args,$group['groupmoduleid'],0);
 			unset($args['usercoin'],$args['userpassword'],$args['username'],$args['useremail'],$args['usergroupid']);
-			$id = $this->user->modifyUserInfo($userid,$args);
+			$id = M('user','user')->modifyUserInfo($userid,$args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -80,18 +79,18 @@ class action extends app
 		}
 		else
 		{
-			$userid = $this->_user['sessionuserid'];
-			$user = $this->user->getUserById($userid);
-			$group = $this->user->getGroupById($user['usergroupid']);
-			$fields = $this->module->getMoudleFields($group['groupmoduleid'],0);
-			$forms = $this->html->buildHtml($fields,$user);
-			$actors = $this->user->getGroupsByModuleid($group['groupmoduleid']);
-			$this->tpl->assign('moduleid',$group['groupmoduleid']);
-			$this->tpl->assign('fields',$fields);
-			$this->tpl->assign('forms',$forms);
-			$this->tpl->assign('actors',$actors);
-			$this->tpl->assign('user',$user);
-			$this->tpl->display('modifyuser');
+			$userid = $this->user['userid'];
+			$user = M('user','user')->getUserById($userid);
+			$group = M('user','user')->getGroupById($user['usergroupid']);
+			$fields = M('module')->getMoudleFields($group['groupmoduleid'],0);
+			$forms = M('html')->buildHtml($fields,$user);
+			$actors = M('user','user')->getGroupsByModuleid($group['groupmoduleid']);
+			M('tpl')->assign('moduleid',$group['groupmoduleid']);
+			M('tpl')->assign('fields',$fields);
+			M('tpl')->assign('forms',$forms);
+			M('tpl')->assign('actors',$actors);
+			M('tpl')->assign('user',$user);
+			M('tpl')->display('modifyuser');
 		}
 	}
 }

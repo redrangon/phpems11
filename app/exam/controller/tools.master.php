@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,11 +19,11 @@ class action extends app
 
 	private function clearouttimeexamsession()
 	{
-		$search = $this->ev->get('search');
+		$search = M('ev')->get('search');
 		if($search['argsmodel'])
 		{
 			if($search['stime'])$time = strtotime($search['stime']);
-			$this->exam->clearOutTimeExamSession($time);
+			M('exam','exam')->clearOutTimeExamSession($time);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -41,11 +41,11 @@ class action extends app
 
 	private function clearouttimesession()
 	{
-		$search = $this->ev->get('search');
+		$search = M('ev')->get('search');
 		if($search['argsmodel'])
 		{
 			if($search['stime'])$time = strtotime($search['stime']);
-			$this->session->clearOutTimeUser($time);
+			M('session')->clearOutTimeUser($time);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -63,12 +63,12 @@ class action extends app
 
 	private function clearsession()
 	{
-		$this->tpl->display('tools_session');
+		M('tpl')->display('tools_session');
 	}
 
 	private function clearquestionrows()
 	{
-		$search = $this->ev->get('search');
+		$search = M('ev')->get('search');
 		if($search['argsmodel'])
 		{
 			$args = array(array("AND","quest2knows.qkquestionid = questionrows.qrid"));
@@ -105,7 +105,7 @@ class action extends app
 				$tmpknows = '0';
 				if($search['questionsectionid'])
 				{
-					$knows = $this->section->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
+					$knows = M('section','exam')->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
 					foreach($knows as $p)
 					{
 						if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -114,7 +114,7 @@ class action extends app
 				}
 				elseif($search['questionsubjectid'])
 				{
-					$knows = $this->section->getAllKnowsBySubject($search['questionsubjectid']);
+					$knows = M('section','exam')->getAllKnowsBySubject($search['questionsubjectid']);
 					foreach($knows as $p)
 					{
 						if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -122,10 +122,10 @@ class action extends app
 					$args[] = array("AND","find_in_set(quest2knows.qkknowsid,:qkknowsid)","qkknowsid",$tmpknows);
 				}
 			}
-			$questions = $this->exam->getQuestionRowsByArgs($args,'qrid');
+			$questions = M('exam','exam')->getQuestionRowsByArgs($args,'qrid');
 			foreach($questions as $n)
 			{
-				$this->exam->finalDelQuestionRows($n['qrid']);
+				M('exam','exam')->finalDelQuestionRows($n['qrid']);
 			}
 			$message = array(
 				'statusCode' => 200,
@@ -147,7 +147,7 @@ class action extends app
 
 	private function clearhistory()
 	{
-		$search = $this->ev->get('search');
+		$search = M('ev')->get('search');
 		if($search['argsmodel'])
 		{
 			if($search['stime'] || $search['etime'])
@@ -155,7 +155,7 @@ class action extends app
 				$args = array();
 				if($search['stime'])$args[] = array("AND","ehstarttime >= :ehstarttime",'ehstarttime',strtotime($search['stime']));
 				if($search['etime'])$args[] = array("AND","ehstarttime <= :ehendtime",'ehendtime',strtotime($search['etime']));
-				$this->favor->clearExamHistory($args);
+				M('favor','exam')->clearExamHistory($args);
 				$message = array(
 					'statusCode' => 200,
 					"message" => "操作成功",
@@ -174,12 +174,12 @@ class action extends app
 			}
 		}
 		else
-		$this->tpl->display('tools_history');
+		M('tpl')->display('tools_history');
 	}
 
 	private function clearquestions()
 	{
-		$search = $this->ev->get('search');
+		$search = M('ev')->get('search');
 		if($search['argsmodel'])
 		{
 			$args = array(array("AND","quest2knows.qkquestionid = questions.questionid"),array("AND","questions.questionparent = 0"),array("AND","quest2knows.qktype = 0"));
@@ -212,7 +212,7 @@ class action extends app
 				$tmpknows = '0';
 				if($search['questionsectionid'])
 				{
-					$knows = $this->section->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
+					$knows = M('section','exam')->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
 					foreach($knows as $p)
 					{
 						if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -221,7 +221,7 @@ class action extends app
 				}
 				elseif($search['questionsubjectid'])
 				{
-					$knows = $this->section->getAllKnowsBySubject($search['questionsubjectid']);
+					$knows = M('section','exam')->getAllKnowsBySubject($search['questionsubjectid']);
 					foreach($knows as $p)
 					{
 						if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -229,10 +229,10 @@ class action extends app
 					$args[] = array("AND","find_in_set(quest2knows.qkknowsid,:qkknowsid",'qkknowsid',$tmpknows);
 				}
 			}
-			$questions = $this->exam->getQuestionListByArgs($args,'questionid');
+			$questions = M('exam','exam')->getQuestionListByArgs($args,'questionid');
 			foreach($questions as $n)
 			{
-				$this->exam->fanalDelQuestions($n['questionid']);
+				M('exam','exam')->fanalDelQuestions($n['questionid']);
 			}
 			$message = array(
 				'statusCode' => 200,
@@ -254,16 +254,16 @@ class action extends app
 
 	private function index()
 	{
-		$search = $this->ev->get('search');
-		$questypes = $this->basic->getQuestypeList();
-		$subjects = $this->basic->getSubjectList();
-		$sections = $this->section->getSectionListByArgs(array(array("AND","sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$search['questionsubjectid'])));
-		$knows = $this->section->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
-		$this->tpl->assign('subjects',$subjects);
-		$this->tpl->assign('sections',$sections);
-		$this->tpl->assign('knows',$knows);
-		$this->tpl->assign('questypes',$questypes);
-		$this->tpl->display('tools');
+		$search = M('ev')->get('search');
+		$questypes = M('basic','exam')->getQuestypeList();
+		$subjects = M('basic','exam')->getSubjectList();
+		$sections = M('section','exam')->getSectionListByArgs(array(array("AND","sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$search['questionsubjectid'])));
+		$knows = M('section','exam')->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
+		M('tpl')->assign('subjects',$subjects);
+		M('tpl')->assign('sections',$sections);
+		M('tpl')->assign('knows',$knows);
+		M('tpl')->assign('questypes',$questypes);
+		M('tpl')->display('tools');
 	}
 }
 

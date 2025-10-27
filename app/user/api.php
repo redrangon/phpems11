@@ -7,15 +7,15 @@ class app
 	public function __construct()
 	{
 		
-		$this->session = M('session');
-		$this->tpl = M('tpl');
-		$this->ev = M('ev');
-		$this->user = M('user','user');
-		$this->tpl->assign('userhash',$this->ev->get('userhash'));
-		$this->_user = $_user = $this->session->getSessionUser();
+		M('session') = M('session');
+		M('tpl') = M('tpl');
+		M('ev') = M('ev');
+		M('user','user') = M('user','user');
+		M('tpl')->assign('userhash',M('ev')->get('userhash'));
+		$this->user = $_user = M('session')->getSessionUser();
 		if(!$_user['sessionuserid'])
 		{
-			if($this->ev->get('userhash'))
+			if(M('ev')->get('userhash'))
 			exit(json_encode(array(
 				'statusCode' => 301,
 				"message" => "请您重新登录",
@@ -28,7 +28,7 @@ class app
 				exit;
 			}
 		}
-		$this->tpl->assign('_user',$this->user->getUserById($_user['sessionuserid']));
+		M('tpl')->assign('_user',M('user','user')->getUserById($_user['sessionuserid']));
 	}
 }
 

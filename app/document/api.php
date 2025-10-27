@@ -2,34 +2,26 @@
 namespace PHPEMS;
 class app
 {
-	public $G;
-	private $sc = 'testSys&dongao';
+    public $user;
+    public $session;
+    public $allowexts;
 
-	public function __construct()
-	{
-		
-		$this->ev = M('ev');
-		$this->files = M('files');
-		$this->session = M('session');
-		$this->user = M('user','user');
-		$this->apps = M('apps','core');
-		$_user = $this->_user = $this->session->getSessionUser();
-		$group = $this->user->getGroupById($_user['sessiongroupid']);
-		if(!$_user['sessionuserid'])
-		{
+    public function __construct()
+    {
+        $this->session = M('session')->getSessionUser();
+        if(!$this->session['sessionuserid'])
+        {
             $message = array(
                 'statusCode' => 300,
                 "message" => "请您重新登录",
                 "callbackType" => 'forward',
-                "forwardUrl" => "index.php?user-app-login"
+                "forwardUrl" => "index.php?core-master-login"
             );
-            \PHPEMS\ginkgo::R($message);
-		}
-		$this->attach = M('attach','document');
-		$this->allowexts = $this->attach->getAllowAttachExts();
-        $this->forbidden = array('rpm','exe','hta','php','phpx','asp','aspx','jsp');
-		//$this->allowexts = array('zip','jpg','rar','png','gif','mp3','mp4','ogg','webm');
-	}
+            R($message);
+        }
+        $this->user = M('user','user')->getUserById($this->session['sessionuserid']);
+        $this->allowexts = M('attach','document')->getAllowAttachExts();
+    }
 }
 
 ?>

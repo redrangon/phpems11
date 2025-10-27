@@ -3,13 +3,6 @@ namespace PHPEMS\certificate;
 use function \PHPEMS\M;
 class ce
 {
-	public $db;
-
-	public function __construct()
-	{
-		$this->db = M('pepdo');
-	}
-
 	//获取地名列表
 	//参数：无
 	//返回值：地区列表
@@ -20,7 +13,7 @@ class ce
 			'table' => 'certificate',
 			'query' => $args,
 		);
-		$r = $this->db->listElements($page,$number,$data);
+		$r = M('pepdo')->listElements($page,$number,$data);
 		return $r;
 	}
 
@@ -38,7 +31,7 @@ class ce
 			'index' => 'ceqid',
 			'serial' => 'ceqinfo'
 		);
-		$r = $this->db->listElements($page,$number,$data);
+		$r = M('pepdo')->listElements($page,$number,$data);
 		return $r;
 	}
 
@@ -48,8 +41,8 @@ class ce
 	public function getCeById($ceid)
 	{
 		$data = array(false,'certificate',array(array("AND","ceid = :ceid",'ceid',$ceid)));
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql);
 	}
 
 	//修改地名信息
@@ -58,16 +51,16 @@ class ce
 	public function modifyCe($ceid,$args)
 	{
 		$data = array('certificate',$args,array(array("AND","ceid = :ceid",'ceid',$ceid)));
-		$sql = $this->db->makeUpdate($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		M('pepdo')->exec($sql);
 		return true;
 	}
 
 	public function modifyCeQueue($ceqid,$args)
 	{
 		$data = array('cequeue',$args,array(array("AND","ceqid = :ceqid",'ceqid',$ceqid)));
-		$sql = $this->db->makeUpdate($data);
-		$this->db->exec($sql);
+		$sql = M('pepdo')->makeUpdate($data);
+		M('pepdo')->exec($sql);
 		return true;
 	}
 
@@ -77,9 +70,9 @@ class ce
 	public function addCe($args)
 	{
 		$data = array('certificate',$args);
-		$sql = $this->db->makeInsert($data);
-		$this->db->exec($sql);
-		return $this->db->lastInsertId();
+		$sql = M('pepdo')->makeInsert($data);
+		M('pepdo')->exec($sql);
+		return M('pepdo')->lastInsertId();
 	}
 
 	//删除地区
@@ -88,39 +81,39 @@ class ce
 	public function delCe($ceid)
 	{
 		$data = array('certificate',array(array("AND","ceid = :ceid",'ceid',$ceid)));
-		$sql = $this->db->makeDelete($data);
-		$this->db->exec($sql);
-		return $this->db->affectedRows();
+		$sql = M('pepdo')->makeDelete($data);
+		M('pepdo')->exec($sql);
+		return M('pepdo')->affectedRows();
 	}
 
 	public function getCeQueueById($ceqid)
 	{
 		$data = array(false,'cequeue',array(array("AND","ceqid = :ceqid",'ceqid',$ceqid)));
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql,'ceqinfo');
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql,'ceqinfo');
 	}
 
 	public function getCeQueuesByArgs($args)
 	{
 		$data = array(false,'cequeue',$args,false,false,false);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetchAll($sql,NULL,'ceqinfo');
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetchAll($sql,NULL,'ceqinfo');
 	}
 
 	public function getCeQueueByArgs($args)
 	{
 		$args[] = array("AND","ceid = ceqceid");
 		$data = array(false,array('cequeue','certificate'),$args,false,false,1);
-		$sql = $this->db->makeSelect($data);
-		return $this->db->fetch($sql,'ceqinfo');
+		$sql = M('pepdo')->makeSelect($data);
+		return M('pepdo')->fetch($sql,'ceqinfo');
 	}
 
 	public function addCeQueue($args)
 	{
 		$data = array('cequeue',$args);
-		$sql = $this->db->makeInsert($data);
-		$this->db->exec($sql);
-		return $this->db->lastInsertId();
+		$sql = M('pepdo')->makeInsert($data);
+		M('pepdo')->exec($sql);
+		return M('pepdo')->lastInsertId();
 	}
 
 	//删除地区
@@ -129,9 +122,9 @@ class ce
 	public function delCeQueue($ceqid)
 	{
 		$data = array('cequeue',array(array("AND","ceqid = :ceqid",'ceqid',$ceqid)));
-		$sql = $this->db->makeDelete($data);
-		$this->db->exec($sql);
-		return $this->db->affectedRows();
+		$sql = M('pepdo')->makeDelete($data);
+		M('pepdo')->exec($sql);
+		return M('pepdo')->affectedRows();
 	}
 }
 

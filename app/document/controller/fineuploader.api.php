@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -21,12 +21,12 @@ class action extends app
 	{
 		$args = array();
 		$path = 'files/attach/images/content/'.date('Ymd').'/';
-		$upfile = $this->ev->getFile('qqfile');
-		$args['attext'] = $this->files->getFileExtName($upfile['name']);
-		if(!in_array(strtolower($args['attext']),$this->allowexts) || in_array(strtolower($args['attext']),$this->forbidden))
+		$upfile = M('ev')->getFile('qqfile');
+		$args['attext'] = M('files')->getFileExtName($upfile['name']);
+		if(!in_array(strtolower($args['attext']),$this->allowexts) || in_array(strtolower($args['attext']),M('config','document')->forbidden))
 		exit(json_encode(array('status' => 'fail','message' => '上传失败，附件类型不符!')));
 		if($upfile)
-		$fileurl = $this->files->uploadFile($upfile,$path,NULL,NULL,$this->allowexts);
+		$fileurl = M('files')->uploadFile($upfile,$path,NULL,NULL,$this->allowexts);
 		if($fileurl)
 		{
 			$osspath = false;
@@ -39,12 +39,12 @@ class action extends app
 			$args['atttitle'] = $upfile['name'];
 
 			$args['attsize'] = $upfile['size'];
-			$args['attuserid'] = $this->_user['sessionuserid'];
+			$args['attuserid'] = $this->user['userid'];
 			//$args['attcntype'] = $upfile['type'];
-			$this->attach->addAttach($args);
-			if($this->ev->get('imgwidth') || $this->ev->get('imgheight'))
+			M('attach','document')->addAttach($args);
+			if(M('ev')->get('imgwidth') || M('ev')->get('imgheight'))
 			{
-				if($this->files->thumb($fileurl,$fileurl.'.png',$this->ev->get('imgwidth'),$this->ev->get('imgheight')))
+				if(M('files')->thumb($fileurl,$fileurl.'.png',M('ev')->get('imgwidth'),M('ev')->get('imgheight')))
 				$thumb = $fileurl.'.png';
 				else
 				$thumb = $fileurl;

@@ -4,18 +4,11 @@ use function \PHPEMS\M;
 
 class doc
 {
-	public $db;
-
-	public function __construct()
-	{
-		$this->db = M('pepdo');
-	}
-
 	public function getDocNumber($args)
 	{
         $data = array('count(*) as number','docs',$args);
-        $sql = $this->db->makeSelect($data);
-        $r = $this->db->fetch($sql);
+        $sql = M('pepdo')->makeSelect($data);
+        $r = M('pepdo')->fetch($sql);
         return $r['number'];
 	}
 
@@ -27,14 +20,14 @@ class doc
 			'query' => $args,
 			'orderby' => $order
 		);
-		$r = $this->db->listElements($page,$number,$data);
+		$r = M('pepdo')->listElements($page,$number,$data);
 		return $r;
 	}
 
 	public function delDoc($id)
 	{
-        $this->db->delElement(array('table' => 'docs','query' => array(array('AND',"docid = :docid",'docid',$id))));
-        $this->db->delElement(array('table' => 'dochistory','query' => array(array('AND',"dhdocid = :dhdocid",'dhdocid',$id))));
+        M('pepdo')->delElement(array('table' => 'docs','query' => array(array('AND',"docid = :docid",'docid',$id))));
+        M('pepdo')->delElement(array('table' => 'dochistory','query' => array(array('AND',"dhdocid = :dhdocid",'dhdocid',$id))));
 		return true;
 	}
 
@@ -45,24 +38,24 @@ class doc
 			'value' => $args,
 			'query' => array(array('AND',"docid = :docid",'docid',$id))
 		);
-		return $this->db->updateElement($data);
+		return M('pepdo')->updateElement($data);
 	}
 
 	public function addDoc($args)
 	{
-		return $this->db->insertElement(array('table' => 'docs','query' => $args));
+		return M('pepdo')->insertElement(array('table' => 'docs','query' => $args));
 	}
 
 	public function getDocById($id,$withcontent = true)
 	{
 		$data = array(false,'docs',array(array('AND',"docid = :docid",'docid',$id)));
-		$sql = $this->db->makeSelect($data);
-		$r = $this->db->fetch($sql);
+		$sql = M('pepdo')->makeSelect($data);
+		$r = M('pepdo')->fetch($sql);
 		if($r['doccontentid'] && $withcontent)
 		{
 			$data = array(false,'dochistory',array(array('AND',"dhid = :dhid",'dhid',$r['doccontentid'])));
-			$sql = $this->db->makeSelect($data);
-			$rs = $this->db->fetch($sql);
+			$sql = M('pepdo')->makeSelect($data);
+			$rs = M('pepdo')->fetch($sql);
 			$r['content'] = $rs;
         }
 		return $r;
@@ -71,15 +64,15 @@ class doc
     public function getDocHistroyById($dhid)
     {
         $data = array(false,'dochistory',array(array('AND',"dhid = :dhid",'dhid',$dhid)));
-        $sql = $this->db->makeSelect($data);
-        return $this->db->fetch($sql);
+        $sql = M('pepdo')->makeSelect($data);
+        return M('pepdo')->fetch($sql);
     }
 
     public function getDocHistoryByArgs($args)
 	{
         $data = array(false,'dochistory',$args);
-        $sql = $this->db->makeSelect($data);
-        return $this->db->fetch($sql);
+        $sql = M('pepdo')->makeSelect($data);
+        return M('pepdo')->fetch($sql);
 	}
 
 	public function getDocHistoryListByDocid($id,$page,$number = 20,$order = 'dhid DESC')
@@ -90,7 +83,7 @@ class doc
             'query' => array(array("AND","dhdocid = :dhdocid","dhdocid",$id)),
             'orderby' => $order
         );
-        $r = $this->db->listElements($page,$number,$data);
+        $r = M('pepdo')->listElements($page,$number,$data);
         return $r;
 	}
 
@@ -102,13 +95,13 @@ class doc
             'query' => $args,
             'orderby' => $order
         );
-        $r = $this->db->listElements($page,$number,$data);
+        $r = M('pepdo')->listElements($page,$number,$data);
         return $r;
     }
 
     public function delDocHistory($id)
     {
-        $this->db->delElement(array('table' => 'dochistory','query' => array(array('AND',"dhid = :dhid",'dhid',$id),array('AND',"dhstatus = 2"))));
+        M('pepdo')->delElement(array('table' => 'dochistory','query' => array(array('AND',"dhid = :dhid",'dhid',$id),array('AND',"dhstatus = 2"))));
         return true;
     }
 
@@ -119,12 +112,12 @@ class doc
             'value' => $args,
             'query' => array(array('AND',"dhid = :dhid",'dhid',$id))
         );
-        return $this->db->updateElement($data);
+        return M('pepdo')->updateElement($data);
     }
 
     public function addDocHistory($args)
     {
-        return $this->db->insertElement(array('table' => 'dochistory','query' => $args));
+        return M('pepdo')->insertElement(array('table' => 'dochistory','query' => $args));
     }
 }
 

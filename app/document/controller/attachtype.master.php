@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,9 +19,9 @@ class action extends app
 
 	private function del()
 	{
-		$page = $this->ev->get('page');
-		$atid = $this->ev->get('atid');
-		$this->attach->delAttachtypeById($atid);
+		$page = M('ev')->get('page');
+		$atid = M('ev')->get('atid');
+		M('attach','document')->delAttachtypeById($atid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -33,10 +33,10 @@ class action extends app
 
 	private function batdel()
 	{
-		$page = $this->ev->get('page');
-		$delids = $this->ev->get('delids');
+		$page = M('ev')->get('page');
+		$delids = M('ev')->get('delids');
 		foreach($delids as $atid)
-		$this->attach->delAttachtypeById($atid);
+		M('attach','document')->delAttachtypeById($atid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -48,12 +48,12 @@ class action extends app
 
 	private function modify()
 	{
-		$page = $this->ev->get('page');
-		$atid = $this->ev->get('atid');
-		if($this->ev->get('modifyattachtype'))
+		$page = M('ev')->get('page');
+		$atid = M('ev')->get('atid');
+		if(M('ev')->get('modifyattachtype'))
 		{
-			$args = $this->ev->get('args');
-			$this->attach->modifyAttachtypeById($args,$atid);
+			$args = M('ev')->get('args');
+			M('attach','document')->modifyAttachtypeById($args,$atid);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -64,18 +64,18 @@ class action extends app
 		}
 		else
 		{
-			$attachtype = $this->attach->getAttachtypeById($atid);
-			$this->tpl->assign('attachtype',$attachtype);
-			$this->tpl->display('types_modify');
+			$attachtype = M('attach','document')->getAttachtypeById($atid);
+			M('tpl')->assign('attachtype',$attachtype);
+			M('tpl')->display('types_modify');
 		}
 	}
 
 	private function add()
 	{
-		if($this->ev->get('inserttype'))
+		if(M('ev')->get('inserttype'))
 		{
-			$args = $this->ev->get('args');
-			$id = $this->attach->addAttachtype($args);
+			$args = M('ev')->get('args');
+			$id = M('attach','document')->addAttachtype($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -86,15 +86,15 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->display('types_add');
+			M('tpl')->display('types_add');
 		}
 	}
 
 	private function index()
 	{
-		$types = $this->attach->getAttachtypeList();
-		$this->tpl->assign('types',$types);
-		$this->tpl->display('types');
+		$types = M('attach','document')->getAttachtypeList();
+		M('tpl')->assign('types',$types);
+		M('tpl')->display('types');
 	}
 }
 

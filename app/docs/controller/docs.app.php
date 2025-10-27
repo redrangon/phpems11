@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,39 +19,39 @@ class action extends app
 
     private function history()
 	{
-        $docid = $this->ev->get('docid');
-        $page = $this->ev->get('page');
-        $doc = $this->doc->getDocById($docid,false);
+        $docid = M('ev')->get('docid');
+        $page = M('ev')->get('page');
+        $doc = M('doc','docs')->getDocById($docid,false);
         $args = array();
         $args[] = array("AND","dhstatus = 1");
         $args[] = array("AND","dhdocid = :dhdocid","dhdocid",$docid);
-        $histories = $this->doc->getDocHistoryListByArgs($args,$page);
-        $this->tpl->assign('doc',$doc);
-        $this->tpl->assign('histories',$histories);
-		$this->tpl->display('history');
+        $histories = M('doc','docs')->getDocHistoryListByArgs($args,$page);
+        M('tpl')->assign('doc',$doc);
+        M('tpl')->assign('histories',$histories);
+		M('tpl')->display('history');
 	}
 
     private function viewhistory()
 	{
-        $dhid = $this->ev->get('dhid');
-        $history = $this->doc->getDocHistroyById($dhid);
-        $doc = $this->doc->getDocById($history['dhdocid']);
+        $dhid = M('ev')->get('dhid');
+        $history = M('doc','docs')->getDocHistroyById($dhid);
+        $doc = M('doc','docs')->getDocById($history['dhdocid']);
         $doc['content'] = $history;
-        $this->tpl->assign('doc',$doc);
-        $this->tpl->display('history_view');
+        M('tpl')->assign('doc',$doc);
+        M('tpl')->display('history_view');
     }
 
 	private function index()
 	{
-		$docid = $this->ev->get('docid');
-		$doc = $this->doc->getDocById($docid);
-		$catbread = $this->category->getCategoryPos($doc['doccatid']);
-		$cat = $this->category->getCategoryById($doc['doccatid']);
+		$docid = M('ev')->get('docid');
+		$doc = M('doc','docs')->getDocById($docid);
+		$catbread = M('category')->getCategoryPos($doc['doccatid']);
+		$cat = M('category')->getCategoryById($doc['doccatid']);
 		$template = 'doc_default';
-		$this->tpl->assign('cat',$cat);
-		$this->tpl->assign('catbread',$catbread);
-		$this->tpl->assign('doc',$doc);
-		$this->tpl->display($template);
+		M('tpl')->assign('cat',$cat);
+		M('tpl')->assign('catbread',$catbread);
+		M('tpl')->assign('doc',$doc);
+		M('tpl')->display($template);
 	}
 }
 

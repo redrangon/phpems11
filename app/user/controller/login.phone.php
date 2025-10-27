@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,7 +19,7 @@ class action extends app
 
 	private function index()
 	{
-		if($this->_user['sessionuserid'])
+		if($this->user['userid'])
 		{
             $message = array(
                 'statusCode' => 200,
@@ -30,10 +30,10 @@ class action extends app
 		}
 		$appid = 'user';
 		$app = M('apps','core')->getApp($appid);
-		$this->tpl->assign('app',$app);
-		if($this->ev->get('userlogin'))
+		M('tpl')->assign('app',$app);
+		if(M('ev')->get('userlogin'))
 		{
-			$tmp = $this->session->getSessionValue();
+			$tmp = M('session')->getSessionValue();
 			if(TIME - $tmp['sessionlasttime'] < 1)
 			{
 				$message = array(
@@ -42,8 +42,8 @@ class action extends app
 				);
 				\PHPEMS\ginkgo::R($message);
 			}
-			$args = $this->ev->get('args');
-			$user = $this->user->getUserByUserName($args['username']);
+			$args = M('ev')->get('args');
+			$user = M('user','user')->getUserByUserName($args['username']);
 			if($user['userdisable'] == 1)
 			{
 				$message = array(
@@ -58,10 +58,10 @@ class action extends app
 				{
 					if($app['appsetting']['loginmodel'] == 1)
 					{
-						$this->session->offOnlineUser($user['userid']);
+						M('session')->offOnlineUser($user['userid']);
                     }
-					$this->session->setSessionUser(array('sessionuserid'=>$user['userid'],'sessionpassword'=>$user['userpassword'],'sessionip'=>$this->ev->getClientIp(),'sessiongroupid'=>$user['usergroupid'],'sessionlogintime'=>TIME,'sessionusername'=>$user['username']));
-					$this->user->insertUserLog(array('uluserid'=>$user['userid'],'ulcliect'=>'mobile'));
+					M('session')->setSessionUser(array('sessionuserid'=>$user['userid'],'sessionpassword'=>$user['userpassword'],'sessionip'=>M('ev')->getClientIp(),'sessiongroupid'=>$user['usergroupid'],'sessionlogintime'=>TIME,'sessionusername'=>$user['username']));
+					M('user','user')->insertUserLog(array('uluserid'=>$user['userid'],'ulcliect'=>'mobile'));
 					$message = array(
 						'statusCode' => 201,
 						"message" => "操作成功",
@@ -92,7 +92,7 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->display('login');
+			M('tpl')->display('login');
 		}
 	}
 }

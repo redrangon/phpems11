@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -19,15 +19,15 @@ class action extends app
 
 	private function index()
 	{
-		$page = $this->ev->get('page');
+		$page = M('ev')->get('page');
 		$page = $page < 1?1:$page;
-		$scores = $this->favor->getExamScoreListByBasicId($this->data['currentbasic']['basicid'],$page);
-		$s = $this->favor->getUserTopScore($this->data['currentbasic']['basicid'],$this->_user['sessionuserid']);
-		$scores = $this->favor->getExamScoreListByBasicId($this->data['currentbasic']['basicid'],$page);
-		$this->tpl->assign('s',$s);
-		$this->tpl->assign('page',$page);
-		$this->tpl->assign('scores',$scores);
-		$this->tpl->display('scores');
+		$scores = M('favor','exam')->getExamScoreListByBasicId($this->data['currentbasic']['basicid'],$page);
+		$s = M('favor','exam')->getUserTopScore($this->data['currentbasic']['basicid'],$this->user['userid']);
+		$scores = M('favor','exam')->getExamScoreListByBasicId($this->data['currentbasic']['basicid'],$page);
+		M('tpl')->assign('s',$s);
+		M('tpl')->assign('page',$page);
+		M('tpl')->assign('scores',$scores);
+		M('tpl')->display('scores');
 	}
 }
 

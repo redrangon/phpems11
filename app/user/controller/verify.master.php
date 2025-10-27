@@ -11,8 +11,8 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
-		$this->search = $this->ev->get('search');
+		$action = M('ev')->url(3);
+		$this->search = M('ev')->get('search');
 		$this->u = '';
 		if($this->search)
 		{
@@ -20,9 +20,9 @@ class action extends app
 			{
 				$this->u .= "&search[{$key}]={$arg}";
 			}
-			$this->tpl->assign('u',$this->u);
+			M('tpl')->assign('u',$this->u);
 		}
-		$this->tpl->assign('search',$this->search);
+		M('tpl')->assign('search',$this->search);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -31,20 +31,20 @@ class action extends app
 
 	private function batverify()
 	{
-		$page = $this->ev->get('page');
-		$ids = $this->ev->get('ids');
-		if($this->ev->get('action') == 'isverify')
+		$page = M('ev')->get('page');
+		$ids = M('ev')->get('ids');
+		if(M('ev')->get('action') == 'isverify')
 		{
 			foreach($ids as $userid => $p)
 			{
-				$this->user->modifyUserInfo($userid,array('userstatus'=>3));
+				M('user','user')->modifyUserInfo($userid,array('userstatus'=>3));
 			}
 		}
-		if($this->ev->get('action') == 'passverify')
+		if(M('ev')->get('action') == 'passverify')
 		{
 			foreach($ids as $userid => $p)
 			{
-				$this->user->modifyUserInfo($userid,array('userstatus'=>2));
+				M('user','user')->modifyUserInfo($userid,array('userstatus'=>2));
 			}
 		}
 		$message = array(
@@ -58,11 +58,11 @@ class action extends app
 
 	private function verify()
 	{
-		$verify = $this->ev->get('verify');
-		$userid = $this->ev->get('userid');
+		$verify = M('ev')->get('verify');
+		$userid = M('ev')->get('userid');
 		if($verify == 'isverify')
 		{
-			$this->user->modifyUserInfo($userid,array('userstatus'=>3));
+			M('user','user')->modifyUserInfo($userid,array('userstatus'=>3));
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -73,7 +73,7 @@ class action extends app
 		}
 		if ($verify == 'passverify')
 		{
-			$this->user->modifyUserInfo($userid,array('userstatus'=>2));
+			M('user','user')->modifyUserInfo($userid,array('userstatus'=>2));
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -86,16 +86,16 @@ class action extends app
 
 	private function index()
 	{
-		$page = $this->ev->get('page')?$this->ev->get('page'):1;
+		$page = M('ev')->get('page')?M('ev')->get('page'):1;
 		$args = array();
 		if(!$this->search['userstatus'])$args[] = array('AND',"userstatus > :userstatus",'userstatus',0);
 		if($this->search['userstatus'] == '1')$args[] = array('AND',"userstatus = :userstatus",'userstatus',1);
 		if($this->search['userstatus'] == '2')$args[] = array('AND',"userstatus = :userstatus",'userstatus',2);
 		if($this->search['userstatus'] == '3')$args[] = array('AND',"userstatus = :userstatus",'userstatus',3);
-		$users = $this->user->getUserList($args,$page,10);
-		$this->tpl->assign('users',$users);
-		$this->tpl->assign('page',$page);
-		$this->tpl->display('verify');
+		$users = M('user','user')->getUserList($args,$page,10);
+		M('tpl')->assign('users',$users);
+		M('tpl')->assign('page',$page);
+		M('tpl')->display('verify');
 	}
 }
 

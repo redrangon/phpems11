@@ -11,8 +11,7 @@ class action extends app
 	public function display()
 	{
         $this->wxpay = M('wxpay');
-        $this->login = M('login','weixin');
-	    $action = $this->ev->url(3);
+        $action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -22,24 +21,24 @@ class action extends app
 	private function items()
     {
         $this->item = M('item','weixin');
-        $ids = $this->ev->get('itemids');
+        $ids = M('ev')->get('itemids');
         $ids = explode(',',$ids);
         $items = $this->item->getItemsByArgs(array(array("AND","itemid IN (:itemid)","itemid",$ids)));
-        $this->tpl->assign("items",$items);
-        $this->tpl->display('items');
+        M('tpl')->assign("items",$items);
+        M('tpl')->display('items');
     }
 
 	private function pclogin()
     {
         if(!$_SESSION['autosessionid'])
         {
-            $sessionid = $this->ev->get('sessionid');
+            $sessionid = M('ev')->get('sessionid');
             $_SESSION['autosessionid'] = $sessionid;
         }
         else
         $sessionid = $_SESSION['autosessionid'];
         $openid = $this->wxpay->getwxopenid(true);
-        $user = $this->user->getUserByOpenId($openid);
+        $user = M('user','user')->getUserByOpenId($openid);
         if($user)
         {
             $args = array(
@@ -48,7 +47,7 @@ class action extends app
                 'wxtime' => TIME,
                 'wxtoken' => md5($sessionid.CS)
             );
-            $this->login->addLogin($args);
+            M('login','weixin')->addLogin($args);
         }
         else
         {
@@ -56,7 +55,7 @@ class action extends app
             {
                 $wxuser = $this->wxpay->getUserInfo();
                 $username = 'wx_'.uniqid();
-                $defaultgroup = $this->user->getDefaultGroup();
+                $defaultgroup = M('user','user')->getDefaultGroup();
                 $args = array(
                     'useropenid' => $openid,
                     'usertruename' => $wxuser['nickname'],
@@ -66,15 +65,15 @@ class action extends app
                     'userpassword' => md5($username),
                     'userphoto' => $wxuser['headimgurl']
                 );
-                $this->user->insertUser($args);
-                $user = $this->user->getUserByOpenId($openid);
+                M('user','user')->insertUser($args);
+                $user = M('user','user')->getUserByOpenId($openid);
                 $args = array(
                     'wxsid' => $sessionid,
                     'wxinfo' => $user,
                     'wxtime' => TIME,
                     'wxtoken' => md5($sessionid.CS)
                 );
-                $this->login->addLogin($args);
+                M('login','weixin')->addLogin($args);
             }
             else
             {
@@ -85,15 +84,15 @@ class action extends app
             }
         }
         $_SESSION['autosessionid'] = null;
-        $this->tpl->assign("user",$user);
-        $this->tpl->display('pclogin');
+        M('tpl')->assign("user",$user);
+        M('tpl')->display('pclogin');
     }
 
     private function bindlogin()
     {
-        if($this->ev->get('userlogin'))
+        if(M('ev')->get('userlogin'))
         {
-            $tmp = $this->session->getSessionValue();
+            $tmp = M('session')->getSessionValue();
             if(TIME - $tmp['sessionlasttime'] < 1)
             {
                 $message = array(
@@ -102,13 +101,13 @@ class action extends app
                 );
                 \PHPEMS\ginkgo::R($message);
             }
-            $args = $this->ev->get('args');
-            $user = $this->user->getUserByUserName($args['username']);
+            $args = M('ev')->get('args');
+            $user = M('user','user')->getUserByUserName($args['username']);
             if($user['userid'])
             {
                 if($user['userpassword'] == md5($args['userpassword']))
                 {
-                    $this->user->modifyUserInfo($user['userid'],array('useropenid' => $_SESSION['bindopenid']));
+                    M('user','user')->modifyUserInfo($user['userid'],array('useropenid' => $_SESSION['bindopenid']));
                     if($_SESSION['bindtype'] == 'pc')
                     {
                         $args = array(
@@ -117,18 +116,18 @@ class action extends app
                             'wxtime' => TIME,
                             'wxtoken' => md5($_SESSION['autosessionid'].CS)
                         );
-                        $this->login->addLogin($args);
+                        M('login','weixin')->addLogin($args);
                         $_SESSION['bindopenid'] = null;
                         $_SESSION['bindtype'] = null;
                         $_SESSION['autosessionid'] = null;
-                        $this->tpl->assign("user",$user);
-                        $this->tpl->display('pclogin');
+                        M('tpl')->assign("user",$user);
+                        M('tpl')->display('pclogin');
                     }
                     else
                     {
                         $app = M('apps','core')->getApp('user');
-                        if($app['appsetting']['loginmodel'] == 1)$this->session->offOnlineUser($user['userid']);
-                        $this->session->setSessionUser(array('sessionuserid'=>$user['userid'],'sessionpassword'=>$user['userpassword'],'sessionip'=>$this->ev->getClientIp(),'sessiongroupid'=>$user['usergroupid'],'sessionlogintime'=>TIME,'sessionusername'=>$user['username']));
+                        if($app['appsetting']['loginmodel'] == 1)M('session')->offOnlineUser($user['userid']);
+                        M('session')->setSessionUser(array('sessionuserid'=>$user['userid'],'sessionpassword'=>$user['userpassword'],'sessionip'=>M('ev')->getClientIp(),'sessiongroupid'=>$user['usergroupid'],'sessionlogintime'=>TIME,'sessionusername'=>$user['username']));
                         $_SESSION['bindopenid'] = null;
                         $_SESSION['bindtype'] = null;
                         $message = array(
@@ -162,7 +161,7 @@ class action extends app
         }
         else
         {
-            $this->tpl->display('login');
+            M('tpl')->display('login');
         }
     }
 
@@ -170,7 +169,7 @@ class action extends app
     {
         $appid = 'user';
         $app = M('apps','core')->getApp($appid);
-        $this->tpl->assign('app',$app);
+        M('tpl')->assign('app',$app);
         $fields = array();
         $tpfields = explode(',',$app['appsetting']['regfields']);
         foreach($tpfields as $f)
@@ -181,7 +180,7 @@ class action extends app
                 $fields[$tf['fieldid']] = $tf;
             }
         }
-        if($this->ev->get('userregister'))
+        if(M('ev')->get('userregister'))
         {
             if($app['appsetting']['closeregist'])
             {
@@ -192,8 +191,8 @@ class action extends app
                 \PHPEMS\ginkgo::R($message);
             }
             $fob = array('admin','管理员','站长');
-            $args = $this->ev->get('args');
-            $defaultgroup = $this->user->getDefaultGroup();
+            $args = M('ev')->get('args');
+            $defaultgroup = M('user','user')->getDefaultGroup();
             if(!$defaultgroup['groupid'] || !trim($args['username']))
             {
                 $message = array(
@@ -204,7 +203,7 @@ class action extends app
             }
             if($app['appsetting']['emailverify'])
             {
-                $randcode = $this->ev->get('randcode');
+                $randcode = M('ev')->get('randcode');
                 if((!$randcode) || ($randcode != $_SESSION['phonerandcode']['reg']))
                 {
                     $message = array(
@@ -230,7 +229,7 @@ class action extends app
                     \PHPEMS\ginkgo::R($message);
                 }
             }
-            $user = $this->user->getUserByUserName($username);
+            $user = M('user','user')->getUserByUserName($username);
             if($user)
             {
                 $message = array(
@@ -240,7 +239,7 @@ class action extends app
                 \PHPEMS\ginkgo::R($message);
             }
             $email = $args['useremail'];
-            $user = $this->user->getUserByEmail($email);
+            $user = M('user','user')->getUserByEmail($email);
             if($user)
             {
                 $message = array(
@@ -256,8 +255,8 @@ class action extends app
                 $fargs[$p['field']] = $args[$p['field']];
             }
             $fargs['useropenid'] = $_SESSION['bindopenid'];
-            $id = $this->user->insertUser($fargs);
-            $user = $this->user->getUserById($id);
+            $id = M('user','user')->insertUser($fargs);
+            $user = M('user','user')->getUserById($id);
             if($_SESSION['bindtype'] == 'pc')
             {
                 $args = array(
@@ -266,16 +265,16 @@ class action extends app
                     'wxtime' => TIME,
                     'wxtoken' => md5($_SESSION['autosessionid'].CS)
                 );
-                $this->login->addLogin($args);
+                M('login','weixin')->addLogin($args);
                 $_SESSION['bindopenid'] = null;
                 $_SESSION['bindtype'] = null;
                 $_SESSION['autosessionid'] = null;
-                $this->tpl->assign("user",$user);
-                $this->tpl->display('pclogin');
+                M('tpl')->assign("user",$user);
+                M('tpl')->display('pclogin');
             }
             else
             {
-                $this->session->setSessionUser(array('sessionuserid'=>$user['userid'],'sessionpassword'=>$user['userpassword'],'sessionip'=>$this->ev->getClientIp(),'sessiongroupid'=>$user['usergroupid'],'sessionlogintime'=>TIME,'sessionusername'=>$user['username']));
+                M('session')->setSessionUser(array('sessionuserid'=>$user['userid'],'sessionpassword'=>$user['userpassword'],'sessionip'=>M('ev')->getClientIp(),'sessiongroupid'=>$user['usergroupid'],'sessionlogintime'=>TIME,'sessionusername'=>$user['username']));
                 $_SESSION['bindopenid'] = null;
                 $_SESSION['bindtype'] = null;
                 $message = array(
@@ -291,27 +290,27 @@ class action extends app
         {
             $this->html = M('html');
             $forms = $this->html->buildHtml($fields);
-            $this->tpl->assign('forms',$forms);
-            $this->tpl->display('register');
+            M('tpl')->assign('forms',$forms);
+            M('tpl')->display('register');
         }
     }
 
 	private function getopenid()
     {
-        if($this->_user['sessionuserid'])
+        if($this->user['userid'])
         {
             header("location:index.php");
             exit;
         }
         $openid = $this->wxpay->getwxopenid();
-        $user = $this->user->autoLoginWxUser($openid);
+        $user = M('user','user')->autoLoginWxUser($openid);
         if(!$user)
         {
             if(WXAUTOREG)
             {
                 $wxuser = $this->wxpay->getUserInfo();
                 $username = 'wx_'.uniqid();
-                $defaultgroup = $this->user->getDefaultGroup();
+                $defaultgroup = M('user','user')->getDefaultGroup();
                 $args = array(
                     'useropenid' => $openid,
                     'usertruename' => $wxuser['nickname'],
@@ -321,8 +320,8 @@ class action extends app
                     'userpassword' => md5($username),
                     'userphoto' => $wxuser['headimgurl']
                 );
-                $this->user->insertUser($args);
-                $user = $this->user->autoLoginWxUser($openid);
+                M('user','user')->insertUser($args);
+                $user = M('user','user')->autoLoginWxUser($openid);
             }
             else
             {

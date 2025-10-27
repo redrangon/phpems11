@@ -23,13 +23,7 @@
 					<h4 class="title" style="padding:10px;">
                         {x2;$module['modulename']}
 						<span class="pull-right">
-							<a data-toggle="dropdown" class="btn btn-primary dropdown-toggle" href="#">添加字段&nbsp;<strong class="caret"></strong></a>
-							<ul class="dropdown-menu">
-								<li><a href="index.php?{x2;$_app}-master-module-preview&moduleid={x2;$moduleid}">模型预览</a></li>
-								<li class="divider"></li>
-								<li><a href="index.php?{x2;$_app}-master-module-addfield&moduleid={x2;$moduleid}">添加模型字段</a></li>
-								<li><a href="index.php?{x2;$_app}-master-module-addfield&moduleid={x2;$moduleid}&fieldpublic=1">添加公共字段</a></li>
-							</ul>
+							<a href="index.php?{x2;$_app}-master-module-addfield&moduleid={x2;$moduleid}&fieldpublic=1" class="btn btn-primary">添加字段</a>
 						</span>
 					</h4>
 					<form action="index.php?{x2;$_app}-master-module-fields" method="post">

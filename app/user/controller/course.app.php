@@ -10,8 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$this->course = M('course','course');
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -20,11 +19,11 @@ class action extends app
 
 	public function index()
 	{
-		$page = $this->ev->get('page');
-		$contents = $this->course->getOpenCourseListByUserid($this->_user['sessionuserid'],$page);
-		$this->tpl->assign('contents',$contents);
-		$this->tpl->assign('page',$page);
-		$this->tpl->display('course');
+		$page = M('ev')->get('page');
+		$contents = M('course','course')->getOpenCourseListByUserid($this->user['userid'],$page);
+		M('tpl')->assign('contents',$contents);
+		M('tpl')->assign('page',$page);
+		M('tpl')->display('course');
 	}
 }
 

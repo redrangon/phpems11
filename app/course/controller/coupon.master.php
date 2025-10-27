@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		$this->coupon = M('coupon','bank');
 		if(!method_exists($this,$action))
 		$action = "index";
@@ -20,10 +20,10 @@ class action extends app
 
 	private function outcoupon()
 	{
-		if($this->ev->get('outcoupon'))
+		if(M('ev')->get('outcoupon'))
 		{
-			$stime = strtotime($this->ev->get('stime'));
-			$etime = strtotime($this->ev->get('etime'));
+			$stime = strtotime(M('ev')->get('stime'));
+			$etime = strtotime(M('ev')->get('etime'));
 			if($stime < $etime)
 			{
 				$fname = 'data/coupon/'.$stime.'-'.$etime.'-coupon.csv';
@@ -50,16 +50,16 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->display('outcoupon');
+			M('tpl')->display('outcoupon');
 		}
 	}
 
 	private function batadd()
 	{
-		if($this->ev->get('addcoupon'))
+		if(M('ev')->get('addcoupon'))
 		{
-			$number = $this->ev->get('createnumber');
-			$value = $this->ev->get('couponvalue');
+			$number = M('ev')->get('createnumber');
+			$value = M('ev')->get('couponvalue');
 			if($number > 0)
 			{
 				if($number > 99 )$number = 99;
@@ -85,25 +85,25 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->display('addcoupon');
+			M('tpl')->display('addcoupon');
 		}
 	}
 
 	private function index()
 	{
-		$search = $this->ev->get('search');
-		$page = intval($this->ev->get('page'));
+		$search = M('ev')->get('search');
+		$page = intval(M('ev')->get('page'));
 		$u = '';
 		if($search)
 		{
-			$this->tpl->assign('search',$search);
+			M('tpl')->assign('search',$search);
 			foreach($search as $key => $arg)
 			{
 				$u .= "&search[{$key}]={$arg}";
 			}
 		}
-		$this->tpl->assign('u',$u);
-		$this->tpl->assign('page',$page);
+		M('tpl')->assign('u',$u);
+		M('tpl')->assign('page',$page);
 		if($search)
 		{
 			$args = array();
@@ -111,8 +111,8 @@ class action extends app
 		else
 		$args = 1;
 		$coupons = $this->coupon->getCouponList($args,$page);
-		$this->tpl->assign('coupons',$coupons);
-		$this->tpl->display('coupon');
+		M('tpl')->assign('coupons',$coupons);
+		M('tpl')->display('coupon');
 	}
 }
 

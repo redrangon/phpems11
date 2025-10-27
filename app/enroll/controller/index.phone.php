@@ -10,8 +10,8 @@ class action extends app
 {
     public function display()
     {
-        $this->enroll = M('enroll','enroll');
-        $action = $this->ev->url(3);
+        M('enroll','enroll') = M('enroll','enroll');
+        $action = M('ev')->url(3);
         if(!method_exists($this,$action))
             $action = "index";
         $this->$action();
@@ -20,14 +20,14 @@ class action extends app
 
     public function index()
     {
-        $page = $this->ev->get('page');
+        $page = M('ev')->get('page');
         $args = array();
         //$args[] = array("AND","enbstarttime <= :stime","stime",TIME);
         //$args[] = array("AND","enbendtime >= :etime","etime",TIME);
-        $enbats = $this->enroll->getEnrollBatsList($args,$page,20);
-        $this->tpl->assign('page',$page);
-        $this->tpl->assign('enbats',$enbats);
-        $this->tpl->display('index');
+        $enbats = M('enroll','enroll')->getEnrollBatsList($args,$page,20);
+        M('tpl')->assign('page',$page);
+        M('tpl')->assign('enbats',$enbats);
+        M('tpl')->display('index');
     }
 }
 

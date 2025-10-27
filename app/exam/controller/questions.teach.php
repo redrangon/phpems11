@@ -10,7 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -20,12 +20,12 @@ class action extends app
 	private function filebataddquestion()
 	{
 		setlocale(LC_ALL,'zh_CN');
-		if($this->ev->get('insertquestion'))
+		if(M('ev')->get('insertquestion'))
 		{
-			$page = $this->ev->get('page');
-			$uploadfile = $this->ev->get('uploadfile');
-			$knowsid = trim($this->ev->get('knowsid'));
-			$this->exam->importQuestionBat($uploadfile,$knowsid);
+			$page = M('ev')->get('page');
+			$uploadfile = M('ev')->get('uploadfile');
+			$knowsid = trim(M('ev')->get('knowsid'));
+			M('exam','exam')->importQuestionBat($uploadfile,$knowsid);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -35,42 +35,42 @@ class action extends app
 			\PHPEMS\ginkgo::R($message);
 		}
 		else
-		$this->tpl->display('question_filebatadd');
+		M('tpl')->display('question_filebatadd');
 	}
 
 	private function addquestion()
 	{
-		if($this->ev->get('insertquestion'))
+		if(M('ev')->get('insertquestion'))
 		{
-			$type = $this->ev->get('type');
-			$questionparent = $this->ev->get('questionparent');
+			$type = M('ev')->get('type');
+			$questionparent = M('ev')->get('questionparent');
 			//批量添加
 			if($type)
 			{
-				$page = $this->ev->get('page');
-				$content = $this->ev->get('content');
-				$this->exam->insertQuestionBat($content,$questionparent);
+				$page = M('ev')->get('page');
+				$content = M('ev')->get('content');
+				M('exam','exam')->insertQuestionBat($content,$questionparent);
 			}
 			//单个添加
 			else
 			{
-				$args = $this->ev->get('args');
-				$targs = $this->ev->get('targs');
+				$args = M('ev')->get('args');
+				$targs = M('ev')->get('targs');
 				if(!$questionparent)$questionparent = $args['questionparent'];
-				$questype = $this->basic->getQuestypeById($args['questiontype']);
-				$args['questionuserid'] = $this->_user['userid'];
+				$questype = M('basic','exam')->getQuestypeById($args['questiontype']);
+				$args['questionuserid'] = $this->user['userid'];
 				if($questype['questsort'])$choice = 0;
 				else $choice = $questype['questchoice'];
 				$args['questionanswer'] = $targs['questionanswer'.$choice];
 				if(is_array($args['questionanswer']))$args['questionanswer'] = implode('',$args['questionanswer']);
-				$page = $this->ev->get('page');
+				$page = M('ev')->get('page');
 				$args['questioncreatetime'] = TIME;
-				$args['questionusername'] = $this->_user['username'];
-				$this->exam->addQuestions($args);
+				$args['questionusername'] = $this->user['username'];
+				M('exam','exam')->addQuestions($args);
 			}
 			if($questionparent)
 			{
-				$this->exam->resetRowsQuestionNumber($questionparent);
+				M('exam','exam')->resetRowsQuestionNumber($questionparent);
 				$message = array(
 					'statusCode' => 200,
 					"message" => "操作成功",
@@ -89,26 +89,26 @@ class action extends app
 		}
 		else
 		{
-			$search = $this->ev->get('search');
-			$questypes = $this->basic->getQuestypeList();
-			$subjects = $this->basic->getSubjectList(array(array('AND','find_in_set(subjectid,:subjectid)','subjectid',$this->teachsubjects)));
-			$sections = $this->section->getSectionListByArgs(array(array('AND',"sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$search['questionsubjectid'])));
-			$knows = $this->section->getKnowsListByArgs(array(array('AND',"knowsstatus = 1"),array('AND',"knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
-			$this->tpl->assign('subjects',$subjects);
-			$this->tpl->assign('sections',$sections);
-			$this->tpl->assign('knows',$knows);
-			$this->tpl->assign('questypes',$questypes);
-			$this->tpl->display('question_add');
+			$search = M('ev')->get('search');
+			$questypes = M('basic','exam')->getQuestypeList();
+			$subjects = M('basic','exam')->getSubjectList(array(array('AND','find_in_set(subjectid,:subjectid)','subjectid',$this->teachsubjects)));
+			$sections = M('section','exam')->getSectionListByArgs(array(array('AND',"sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$search['questionsubjectid'])));
+			$knows = M('section','exam')->getKnowsListByArgs(array(array('AND',"knowsstatus = 1"),array('AND',"knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
+			M('tpl')->assign('subjects',$subjects);
+			M('tpl')->assign('sections',$sections);
+			M('tpl')->assign('knows',$knows);
+			M('tpl')->assign('questypes',$questypes);
+			M('tpl')->display('question_add');
 		}
 	}
 
 	private function bataddquestion()
 	{
-		if($this->ev->get('insertquestion'))
+		if(M('ev')->get('insertquestion'))
 		{
-			$page = $this->ev->get('page');
-			$content = $this->ev->get('content');
-			$this->exam->insertQuestionBat($content);
+			$page = M('ev')->get('page');
+			$content = M('ev')->get('content');
+			M('exam','exam')->insertQuestionBat($content);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -119,16 +119,16 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->display('question_batadd');
+			M('tpl')->display('question_batadd');
 		}
 	}
 
     private function batdel()
     {
-        $page = $this->ev->get('page');
-        $delids = $this->ev->get('delids');
+        $page = M('ev')->get('page');
+        $delids = M('ev')->get('delids');
         foreach($delids as $questionid => $p)
-            $this->exam->delQuestions($questionid);
+            M('exam','exam')->delQuestions($questionid);
         $message = array(
             'statusCode' => 200,
             "message" => "操作成功",
@@ -140,10 +140,10 @@ class action extends app
 
 	private function delquestion()
 	{
-		$page = $this->ev->get('page');
-		$questionid = $this->ev->get('questionid');
-		$questionparent = $this->ev->get('questionparent');
-		$this->exam->delQuestions($questionid);
+		$page = M('ev')->get('page');
+		$questionid = M('ev')->get('questionid');
+		$questionparent = M('ev')->get('questionparent');
+		M('exam','exam')->delQuestions($questionid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -155,9 +155,9 @@ class action extends app
 
 	private function backquestion()
 	{
-		$page = $this->ev->get('page');
-		$questionid = $this->ev->get('questionid');
-		$questions = $this->exam->backQuestions($questionid);
+		$page = M('ev')->get('page');
+		$questionid = M('ev')->get('questionid');
+		$questions = M('exam','exam')->backQuestions($questionid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -169,18 +169,18 @@ class action extends app
 
 	private function modifyquestion()
 	{
-		if($this->ev->get('modifyquestion'))
+		if(M('ev')->get('modifyquestion'))
 		{
-			$page = $this->ev->get('page');
-			$args = $this->ev->get('args');
-			$questionid = $this->ev->get('questionid');
-			$targs = $this->ev->get('targs');
-			$questype = $this->basic->getQuestypeById($args['questiontype']);
+			$page = M('ev')->get('page');
+			$args = M('ev')->get('args');
+			$questionid = M('ev')->get('questionid');
+			$targs = M('ev')->get('targs');
+			$questype = M('basic','exam')->getQuestypeById($args['questiontype']);
 			if($questype['questsort'])$choice = 0;
 			else $choice = $questype['questchoice'];
 			$args['questionanswer'] = $targs['questionanswer'.$choice];
 			if(is_array($args['questionanswer']))$args['questionanswer'] = implode('',$args['questionanswer']);
-			$this->exam->modifyQuestions($questionid,$args);
+			M('exam','exam')->modifyQuestions($questionid,$args);
 			if($args['questionparent'])
 			$message = array(
 				'statusCode' => 200,
@@ -199,39 +199,39 @@ class action extends app
 		}
 		else
 		{
-			$page = $this->ev->get('page');
-			$questionparent = $this->ev->get('questionparent');
-			$knowsid = $this->ev->get('knowsid');
-			$questionid = $this->ev->get('questionid');
-			$questypes = $this->basic->getQuestypeList();
-			$question = $this->exam->getQuestionByArgs(array(array('AND',"questionid = :questionid",'questionid',$questionid)));
-			$subjects = $this->basic->getSubjectList(array(array('AND','find_in_set(subjectid,:subjectid)','subjectid',$this->teachsubjects)));
+			$page = M('ev')->get('page');
+			$questionparent = M('ev')->get('questionparent');
+			$knowsid = M('ev')->get('knowsid');
+			$questionid = M('ev')->get('questionid');
+			$questypes = M('basic','exam')->getQuestypeList();
+			$question = M('exam','exam')->getQuestionByArgs(array(array('AND',"questionid = :questionid",'questionid',$questionid)));
+			$subjects = M('basic','exam')->getSubjectList(array(array('AND','find_in_set(subjectid,:subjectid)','subjectid',$this->teachsubjects)));
 			foreach($question['questionknowsid'] as $key => $p)
 			{
-				$knows = $this->section->getKnowsByArgs(array(array('AND',"knowsid = :knowsid",'knowsid',$p['knowsid'])));
+				$knows = M('section','exam')->getKnowsByArgs(array(array('AND',"knowsid = :knowsid",'knowsid',$p['knowsid'])));
 				$question['questionknowsid'][$key]['knows'] = $knows['knows'];
 			}
-			$this->tpl->assign('subjects',$subjects);
-			$this->tpl->assign('questionparent',$questionparent);
-			$this->tpl->assign('questypes',$questypes);
-			$this->tpl->assign('page',$page);
-			$this->tpl->assign('knowsid',$knowsid);
-			$this->tpl->assign('question',$question);
+			M('tpl')->assign('subjects',$subjects);
+			M('tpl')->assign('questionparent',$questionparent);
+			M('tpl')->assign('questypes',$questypes);
+			M('tpl')->assign('page',$page);
+			M('tpl')->assign('knowsid',$knowsid);
+			M('tpl')->assign('question',$question);
 			if($questionparent)
-			$this->tpl->display('questionchildrows_modify');
+			M('tpl')->display('questionchildrows_modify');
 			else
-			$this->tpl->display('questions_modify');
+			M('tpl')->display('questions_modify');
 		}
 	}
 
 	private function ajax()
 	{
-		switch($this->ev->url(4))
+		switch(M('ev')->url(4))
 		{
 			//根据章节获取知识点信息
 			case 'getknowsbysectionid':
-			$sectionid = $this->ev->get('sectionid');
-			$aknows = $this->section->getKnowsListByArgs(array(array('AND',"knowssectionid = :knowssectionid",'knowssectionid',$sectionid),array('AND',"knowsstatus = 1")));
+			$sectionid = M('ev')->get('sectionid');
+			$aknows = M('section','exam')->getKnowsListByArgs(array(array('AND',"knowssectionid = :knowssectionid",'knowssectionid',$sectionid),array('AND',"knowsstatus = 1")));
 			$data = array(array("",'选择知识点'));
 			foreach($aknows as $knows)
 			{
@@ -246,8 +246,8 @@ class action extends app
 
 			//根据科目获取章节信息
 			case 'getsectionsbysubjectid':
-			$esid = $this->ev->get('subjectid');
-			$aknows = $this->section->getSectionListByArgs(array(array('AND',"sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$esid)));
+			$esid = M('ev')->get('subjectid');
+			$aknows = M('section','exam')->getSectionListByArgs(array(array('AND',"sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$esid)));
 			$data = array(array(0,'选择章节'));
 			foreach($aknows as $knows)
 			{
@@ -266,35 +266,35 @@ class action extends app
 
 	private function detail()
 	{
-		$questionid = $this->ev->get('questionid');
-		$questionparent = $this->ev->get('questionparent');
+		$questionid = M('ev')->get('questionid');
+		$questionparent = M('ev')->get('questionparent');
 		if($questionparent)
 		{
-			$questions = $this->exam->getQuestionByArgs(array(array('AND',"questionparent = :questionparent",'questionparent',$questionparent)));
+			$questions = M('exam','exam')->getQuestionByArgs(array(array('AND',"questionparent = :questionparent",'questionparent',$questionparent)));
 		}
 		else
 		{
-			$question = $this->exam->getQuestionByArgs(array(array('AND',"questionid = :questionid",'questionid',$questionid)));
+			$question = M('exam','exam')->getQuestionByArgs(array(array('AND',"questionid = :questionid",'questionid',$questionid)));
 			$sections = array();
 			foreach($question['questionknowsid'] as $key => $p)
 			{
-				$knows = $this->section->getKnowsByArgs(array(array('AND',"knowsid = :knowsid",'knowsid',$p['knowsid'])));
+				$knows = M('section','exam')->getKnowsByArgs(array(array('AND',"knowsid = :knowsid",'knowsid',$p['knowsid'])));
 				$question['questionknowsid'][$key]['knows'] = $knows['knows'];
-				$sections[] = $this->section->getSectionByArgs(array(array('AND',"sectionid = :sectionid",'sectionid',$knows['knowssectionid'])));
+				$sections[] = M('section','exam')->getSectionByArgs(array(array('AND',"sectionid = :sectionid",'sectionid',$knows['knowssectionid'])));
 			}
-			$subject = $this->basic->getSubjectById($sections[0]['sectionsubjectid']);
+			$subject = M('basic','exam')->getSubjectById($sections[0]['sectionsubjectid']);
 		}
-		$this->tpl->assign("subject",$subject);
-		$this->tpl->assign("sections",$sections);
-		$this->tpl->assign("question",$question);
-		$this->tpl->assign("questions",$questions);
-		$this->tpl->display('question_detail');
+		M('tpl')->assign("subject",$subject);
+		M('tpl')->assign("sections",$sections);
+		M('tpl')->assign("question",$question);
+		M('tpl')->assign("questions",$questions);
+		M('tpl')->display('question_detail');
 	}
 
 	private function index()
 	{
-		$search = $this->ev->get('search');
-		$page = $this->ev->get('page');
+		$search = M('ev')->get('search');
+		$page = M('ev')->get('page');
 		$page = $page > 0?$page:1;
 		$args = array(array('AND',"quest2knows.qkquestionid = questions.questionid"),array('AND',"questions.questionstatus = '1'"),array('AND',"questions.questionparent = 0"),array('AND',"quest2knows.qktype = 0") );
 		if($search['questionid'])
@@ -338,7 +338,7 @@ class action extends app
 			$tmpknows = '0';
 			if($search['questionsectionid'])
 			{
-				$knows = $this->section->getKnowsListByArgs(array(array('AND',"knowsstatus = 1"),array('AND',"knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
+				$knows = M('section','exam')->getKnowsListByArgs(array(array('AND',"knowsstatus = 1"),array('AND',"knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
 				foreach($knows as $p)
 				{
 					if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -347,7 +347,7 @@ class action extends app
 			}
 			elseif($search['questionsubjectid'])
 			{
-				$knows = $this->section->getAllKnowsBySubject($search['questionsubjectid']);
+				$knows = M('section','exam')->getAllKnowsBySubject($search['questionsubjectid']);
 				foreach($knows as $p)
 				{
 					if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -356,7 +356,7 @@ class action extends app
 			}
 			else
 			{
-				$knows = $this->section->getAllKnowsBySubjects($this->teachsubjects);
+				$knows = M('section','exam')->getAllKnowsBySubjects($this->teachsubjects);
 				foreach($knows as $p)
 				{
 					if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -364,17 +364,17 @@ class action extends app
 				$args[] = array('AND',"find_in_set(quest2knows.qkknowsid,:qkknowsid)",'qkknowsid',$tmpknows);
 			}
 		}
-		$questypes = $this->basic->getQuestypeList();
-		$questions = $this->exam->getQuestionsList($page,50,$args);
-		$subjects = $this->basic->getSubjectList(array(array('AND','find_in_set(subjectid,:subjectid)','subjectid',$this->teachsubjects)));
-		$sections = $this->section->getSectionListByArgs(array(array('AND',"sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$search['questionsubjectid'])));
-		$knows = $this->section->getKnowsListByArgs(array(array('AND',"knowsstatus = 1"),array('AND',"knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
-		$this->tpl->assign('subjects',$subjects);
-		$this->tpl->assign('sections',$sections);
-		$this->tpl->assign('knows',$knows);
-		$this->tpl->assign('questypes',$questypes);
-		$this->tpl->assign('questions',$questions);
-		$this->tpl->display('questions');
+		$questypes = M('basic','exam')->getQuestypeList();
+		$questions = M('exam','exam')->getQuestionsList($page,50,$args);
+		$subjects = M('basic','exam')->getSubjectList(array(array('AND','find_in_set(subjectid,:subjectid)','subjectid',$this->teachsubjects)));
+		$sections = M('section','exam')->getSectionListByArgs(array(array('AND',"sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$search['questionsubjectid'])));
+		$knows = M('section','exam')->getKnowsListByArgs(array(array('AND',"knowsstatus = 1"),array('AND',"knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
+		M('tpl')->assign('subjects',$subjects);
+		M('tpl')->assign('sections',$sections);
+		M('tpl')->assign('knows',$knows);
+		M('tpl')->assign('questypes',$questypes);
+		M('tpl')->assign('questions',$questions);
+		M('tpl')->display('questions');
 	}
 }
 

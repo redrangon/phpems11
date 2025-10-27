@@ -11,7 +11,7 @@ class action extends app
 {
 	public function display()
 	{
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -20,13 +20,13 @@ class action extends app
 
 	public function index()
 	{
-		$page = intval($this->ev->get('page'));
+		$page = intval(M('ev')->get('page'));
 		$args = array();
 		$args[] = array("AND","svystime <= :svystime","svystime",TIME);
 		$args[] = array("AND","svyendtime >= :syendtime","syendtime",TIME);
-		$surveies = $this->survey->getSurveyList($args,$page);
-		$this->tpl->assign('surveies',$surveies);
-		$this->tpl->display('index');
+		$surveies = M('survey','survey')->getSurveyList($args,$page);
+		M('tpl')->assign('surveies',$surveies);
+		M('tpl')->display('index');
 	}
 }
 

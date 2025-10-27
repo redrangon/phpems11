@@ -15,7 +15,7 @@ class action extends app
 			header("location:index.php?exam-app-lesson");
 			exit;
 		}
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -24,8 +24,8 @@ class action extends app
 
 	private function getknowsbysectionid()
 	{
-		$sectionid = $this->ev->get('sectionid');
-		$aknows = $this->section->getKnowsListByArgs(array(array("AND","knowssectionid = :knowssectionid",'knowssectionid',$sectionid),array("AND","knowsstatus = 1")));
+		$sectionid = M('ev')->get('sectionid');
+		$aknows = M('section','exam')->getKnowsListByArgs(array(array("AND","knowssectionid = :knowssectionid",'knowssectionid',$sectionid),array("AND","knowsstatus = 1")));
 		$data = array(array("",'选择知识点'));
 		foreach($aknows as $knows)
 		{
@@ -39,56 +39,56 @@ class action extends app
 
 	private function detail()
 	{
-		$questionid = $this->ev->get('questionid');
-		$questionparent = $this->ev->get('questionparent');
+		$questionid = M('ev')->get('questionid');
+		$questionparent = M('ev')->get('questionparent');
 		if($questionparent)
 		{
-			$questions = $this->exam->getQuestionByArgs(array(array("AND","questionparent = :questionparent",'questionparent',$questionparent)));
+			$questions = M('exam','exam')->getQuestionByArgs(array(array("AND","questionparent = :questionparent",'questionparent',$questionparent)));
 		}
 		else
 		{
-			$question = $this->exam->getQuestionByArgs(array(array("AND","questionid = :questionid",'questionid',$questionid)));
+			$question = M('exam','exam')->getQuestionByArgs(array(array("AND","questionid = :questionid",'questionid',$questionid)));
 			$sections = array();
 			foreach($question['questionknowsid'] as $key => $p)
 			{
-				$knows = $this->section->getKnowsByArgs(array(array("AND","knowsid = :knowsid",'knowsid',$p['knowsid'])));
+				$knows = M('section','exam')->getKnowsByArgs(array(array("AND","knowsid = :knowsid",'knowsid',$p['knowsid'])));
 				$question['questionknowsid'][$key]['knows'] = $knows['knows'];
-				$sections[] = $this->section->getSectionByArgs(array(array("AND","sectionid = :sectionid",'sectionid',$knows['knowssectionid'])));
+				$sections[] = M('section','exam')->getSectionByArgs(array(array("AND","sectionid = :sectionid",'sectionid',$knows['knowssectionid'])));
 			}
-			$subject = $this->basic->getSubjectById($sections[0]['sectionsubjectid']);
+			$subject = M('basic','exam')->getSubjectById($sections[0]['sectionsubjectid']);
 		}
-		$this->tpl->assign("subject",$subject);
-		$this->tpl->assign("sections",$sections);
-		$this->tpl->assign("question",$question);
-		$this->tpl->assign("questions",$questions);
-		$this->tpl->display('question_detail');
+		M('tpl')->assign("subject",$subject);
+		M('tpl')->assign("sections",$sections);
+		M('tpl')->assign("question",$question);
+		M('tpl')->assign("questions",$questions);
+		M('tpl')->display('question_detail');
 	}
 
 	private function rowsdetail()
 	{
-		$questionid = $this->ev->get('questionid');
-		$question = $this->exam->getQuestionRowsByArgs(array(array("AND","qrid = :qrid",'qrid',$questionid)));
+		$questionid = M('ev')->get('questionid');
+		$question = M('exam','exam')->getQuestionRowsByArgs(array(array("AND","qrid = :qrid",'qrid',$questionid)));
 		$sections = array();
 		foreach($question['qrknowsid'] as $key => $p)
 		{
-			$knows = $this->section->getKnowsByArgs(array(array("AND","knowsid = :knowsid",'knowsid',$p['knowsid'])));
+			$knows = M('section','exam')->getKnowsByArgs(array(array("AND","knowsid = :knowsid",'knowsid',$p['knowsid'])));
 			$question['qrknowsid'][$key]['knows'] = $knows['knows'];
-			$sections[] = $this->section->getSectionByArgs(array(array("AND","sectionid = :sectionid",'sectionid',$knows['knowssectionid'])));
+			$sections[] = M('section','exam')->getSectionByArgs(array(array("AND","sectionid = :sectionid",'sectionid',$knows['knowssectionid'])));
 		}
-		$subject = $this->basic->getSubjectById($sections[0]['sectionsubjectid']);
-		$this->tpl->assign("subject",$subject);
-		$this->tpl->assign("sections",$sections);
-		$this->tpl->assign("question",$question);
-		$this->tpl->display('questionrows_detail');
+		$subject = M('basic','exam')->getSubjectById($sections[0]['sectionsubjectid']);
+		M('tpl')->assign("subject",$subject);
+		M('tpl')->assign("sections",$sections);
+		M('tpl')->assign("question",$question);
+		M('tpl')->display('questionrows_detail');
 	}
 
 	private function questionrows()
 	{
-		$page = $this->ev->get('page');
+		$page = M('ev')->get('page');
 		$page = $page > 0?$page:1;
-		$questypes = $this->basic->getQuestypeList();
+		$questypes = M('basic','exam')->getQuestypeList();
 		$basic = $this->data['currentbasic'];
-		$search = $this->ev->get('search');
+		$search = M('ev')->get('search');
 		$args = array(array("AND","quest2knows.qkquestionid = questionrows.qrid"),array("AND","quest2knows.qktype = 1"),array("AND","questionrows.qrstatus = '1'"));
 		if($search['questionid'])
 		{
@@ -115,7 +115,7 @@ class action extends app
 			$tmpknows = '0';
 			if($search['questionsectionid'])
 			{
-				$knows = $this->section->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
+				$knows = M('section','exam')->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
 				foreach($knows as $p)
 				{
 					if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -124,7 +124,7 @@ class action extends app
 			}
 			else
 			{
-				$knows = $this->section->getAllKnowsBySubject($basic['basicsubjectid']);
+				$knows = M('section','exam')->getAllKnowsBySubject($basic['basicsubjectid']);
 				foreach($knows as $p)
 				{
 					if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -132,25 +132,25 @@ class action extends app
 				$args[] = array("AND","find_in_set(quest2knows.qkknowsid,:qkknowsid)",'qkknowsid',$tmpknows);
 			}
 		}
-		$questions = $this->exam->getQuestionrowsList($page,10,$args);
-		$subjects = $this->basic->getSubjectList();
-		$sections = $this->section->getSectionListByArgs(array(array("AND","sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$basic['basicsubjectid'])));
-		$knows = $this->section->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
-		$this->tpl->assign('search',$search);
-		$this->tpl->assign('subjects',$subjects);
-		$this->tpl->assign('sections',$sections);
-		$this->tpl->assign('knows',$knows);
-		$this->tpl->assign('questypes',$questypes);
-		$this->tpl->assign('questions',$questions);
-		$this->tpl->display('questionrows');
+		$questions = M('exam','exam')->getQuestionrowsList($page,10,$args);
+		$subjects = M('basic','exam')->getSubjectList();
+		$sections = M('section','exam')->getSectionListByArgs(array(array("AND","sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$basic['basicsubjectid'])));
+		$knows = M('section','exam')->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
+		M('tpl')->assign('search',$search);
+		M('tpl')->assign('subjects',$subjects);
+		M('tpl')->assign('sections',$sections);
+		M('tpl')->assign('knows',$knows);
+		M('tpl')->assign('questypes',$questypes);
+		M('tpl')->assign('questions',$questions);
+		M('tpl')->display('questionrows');
 	}
 
 	private function index()
 	{
-		$page = $this->ev->get('page');
-		$search = $this->ev->get('search');
+		$page = M('ev')->get('page');
+		$search = M('ev')->get('search');
 		$basic = $this->data['currentbasic'];
-		$sections = $this->section->getSectionListByArgs(array(array("AND","sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$basic['basicsubjectid'])));
+		$sections = M('section','exam')->getSectionListByArgs(array(array("AND","sectionsubjectid = :sectionsubjectid",'sectionsubjectid',$basic['basicsubjectid'])));
 		$args = array(array("AND","quest2knows.qkquestionid = questions.questionid"),array("AND","questions.questionstatus = '1'"),array("AND","questions.questionparent = 0"),array("AND","quest2knows.qktype = 0") );
 		if($search['questionid'])
 		{
@@ -177,7 +177,7 @@ class action extends app
 			$tmpknows = '0';
 			if($search['questionsectionid'])
 			{
-				$knows = $this->section->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
+				$knows = M('section','exam')->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
 				foreach($knows as $p)
 				{
 					if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -186,7 +186,7 @@ class action extends app
 			}
 			else
 			{
-				$knows = $this->section->getAllKnowsBySubject($basic['basicsubjectid']);
+				$knows = M('section','exam')->getAllKnowsBySubject($basic['basicsubjectid']);
 				foreach($knows as $p)
 				{
 					if($p['knowsid'])$tmpknows .= ','.$p['knowsid'];
@@ -194,16 +194,16 @@ class action extends app
 				$args[] = array("AND","find_in_set(quest2knows.qkknowsid,:qkknowsid)",'qkknowsid',$tmpknows);
 			}
 		}
-		$questions = $this->exam->getQuestionsList($page,10,$args);
-		$knows = $this->section->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
-        $questypes = $this->basic->getQuestypeList();
-		$this->tpl->assign('questypes',$questypes);
-		$this->tpl->assign('knows',$knows);
-		$this->tpl->assign('questions',$questions);
-		$this->tpl->assign('sections',$sections);
-		$this->tpl->assign('search',$search);
-		$this->tpl->assign('page',$page);
-		$this->tpl->display('questions');
+		$questions = M('exam','exam')->getQuestionsList($page,10,$args);
+		$knows = M('section','exam')->getKnowsListByArgs(array(array("AND","knowsstatus = 1"),array("AND","knowssectionid = :knowssectionid",'knowssectionid',$search['questionsectionid'])));
+        $questypes = M('basic','exam')->getQuestypeList();
+		M('tpl')->assign('questypes',$questypes);
+		M('tpl')->assign('knows',$knows);
+		M('tpl')->assign('questions',$questions);
+		M('tpl')->assign('sections',$sections);
+		M('tpl')->assign('search',$search);
+		M('tpl')->assign('page',$page);
+		M('tpl')->display('questions');
 	}
 }
 

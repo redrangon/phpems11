@@ -2,50 +2,33 @@
 namespace PHPEMS;
 class app
 {
-	public $G;
+    public $user;
+    public $session;
 
 	public function __construct()
 	{
-		
-		
-		$this->ev = M('ev');
-		$this->session = M('session');
-		$this->tpl = M('tpl');
-        $this->ask = M('ask','ask');
-		$this->apps = M('apps','core');
-		$this->user = M('user','user');
-		$this->_user = $_user = $this->session->getSessionUser();
-		$group = $this->user->getGroupById($_user['sessiongroupid']);
-		if($group['groupid'] != 1)
+        $this->session = M('session')->getSessionUser();
+        $this->user = M('user','user')->getUserById($this->session['sessionuserid']);
+		if($this->user['groupid'] != 1)
 		{
-			if($this->ev->get('userhash'))
-			exit(json_encode(array(
-				'statusCode' => 300,
-				"message" => "请您重新登录",
-			    "callbackType" => 'forward',
-			    "forwardUrl" => "index.php?core-master-login"
-			)));
-			else
-			{
-				header("location:index.php?core-master-login");
-				exit;
-			}
+            $message = array(
+                'statusCode' => 300,
+                "message" => "请您重新登录",
+                "callbackType" => 'forward',
+                "forwardUrl" => "index.php?core-master-login"
+            );
+            R($message);
 		}
-		$localapps = $this->apps->getLocalAppList();
-		$apps = $this->apps->getAppList();
-		$this->tpl->assign('localapps',$localapps);
-		$this->tpl->assign('apps',$apps);
-		$groups = $this->user->getUserGroups();
-		$user = $this->user->getUserById($_user['sessionuserid']);
-		$user['manager_apps'] = unserialize($user['manager_apps']);
-		$this->tpl->assign('_user',$user);
-		if(!in_array(\PHPEMS\ginkgo::$app,$user['manager_apps']) && $apps['user']['appsetting']['managemodel'])
-		{
-			header("location:index.php?core-master");
-			exit();
-		}
-		$this->tpl->assign('groups',$groups);
-		$this->tpl->assign('userhash',$this->ev->get('userhash'));
+		$localapps = M('apps','core')->getLocalAppList();
+		$apps = M('apps','core')->getAppList();
+        if(!in_array(ginkgo::$app,$this->user['manager_apps']) && $apps['user']['appsetting']['managemodel'])
+        {
+            header("location:index.php?core-master");
+            exit();
+        }
+		M('tpl')->assign('localapps',$localapps);
+		M('tpl')->assign('apps',$apps);
+		M('tpl')->assign('_user',$this->user);
 	}
 }
 

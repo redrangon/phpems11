@@ -38,7 +38,7 @@
 										<th width="80">ID</th>
 										<th width="80">缩略图</th>
 										<th>分类名称</th>
-										<th width="180">操作</th>
+										<th width="240">操作</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -50,10 +50,10 @@
 										<td><span>{x2;v:category['catname']}</span></td>
 										<td>
 											<div class="btn-group">
-												<a class="btn" href="index.php?{x2;$_app}-master-category-add&parent={x2;v:category['catid']}{x2;$u}"><em class="glyphicon glyphicon-plus"></em></a>
-												<a class="btn" href="index.php?{x2;$_app}-master-category&parent={x2;v:category['catid']}{x2;$u}"><em class="glyphicon glyphicon-list"></em></a>
-												<a class="btn" href="index.php?{x2;$_app}-master-category-edit&page={x2;$page}&catid={x2;v:category['catid']}{x2;$u}"><em class="glyphicon glyphicon-edit"></em></a>
-												<a class="btn confirm" href="index.php?{x2;$_app}-master-category-del&catid={x2;v:category['catid']}&page={x2;$page}{x2;$u}"><em class="glyphicon glyphicon-remove"></em></a>
+												<a class="btn" href="index.php?{x2;$_app}-master-category-add&parent={x2;v:category['catid']}{x2;$u}">添加</a>
+												<a class="btn" href="index.php?{x2;$_app}-master-category&parent={x2;v:category['catid']}{x2;$u}">子类</a>
+												<a class="btn" href="index.php?{x2;$_app}-master-category-edit&page={x2;$page}&catid={x2;v:category['catid']}{x2;$u}">修改</a>
+												<a class="btn confirm" href="index.php?{x2;$_app}-master-category-del&catid={x2;v:category['catid']}{x2;$u}">删除</a>
 											</div>
 										</td>
 									</tr>

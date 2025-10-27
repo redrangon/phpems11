@@ -12,7 +12,7 @@ class action extends app
 	public function display()
 	{
         $this->pdo = M('pepdo');
-	    $action = $this->ev->url(3);
+	    $action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();

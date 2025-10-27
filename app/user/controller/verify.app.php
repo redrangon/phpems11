@@ -10,8 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-		$this->basic = M('basic','exam');
-		$action = $this->ev->url(3);
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 			$action = "index";
 		$this->$action();
@@ -20,13 +19,13 @@ class action extends app
 
 	public function index()
 	{
-		$user = $this->user->getUserById($this->_user['sessionuserid']);
-		if($this->ev->get('verify'))
+		$user = M('user','user')->getUserById($this->user['userid']);
+		if(M('ev')->get('verify'))
 		{
-			$args = $this->ev->get('args');
+			$args = M('ev')->get('args');
 			$args['userstatus'] = 1;
 			$args['userverifytime'] = TIME;
-			$this->user->modifyUserInfo($this->_user['sessionuserid'],$args);
+			M('user','user')->modifyUserInfo($this->user['userid'],$args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "实名认证申请已提交，请耐心等待审核！",
@@ -35,8 +34,8 @@ class action extends app
 			);
 			\PHPEMS\ginkgo::R($message);
 		}
-		$this->tpl->assign('user',$user);
-		$this->tpl->display('verify');
+		M('tpl')->assign('user',$user);
+		M('tpl')->display('verify');
 	}
 }
 

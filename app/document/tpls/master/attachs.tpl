@@ -77,8 +77,8 @@
 							<table class="table table-hover table-bordered">
 								<thead>
 									<tr class="info">
-					                    <th><input type="checkbox" class="checkall" target="delids"/></th>
-					                    <th>ID</th>
+					                    <th width="80"><input type="checkbox" class="checkall" target="delids"/></th>
+					                    <th width="120">ID</th>
 								        <th>文件名</th>
 								        <th>真实路径</th>
 								        <th>录入时间</th>
@@ -103,8 +103,7 @@
 										</td>
 										<td>
 											<div class="btn-group">
-					                    		<a class="btn" href="index.php?document-master-files-modify&page={x2;$page}&attid={x2;v:attach['attid']}{x2;$u}" title="修改"><em class="glyphicon glyphicon-edit"></em></a>
-												<a class="btn confirm" href="index.php?document-master-files-del&page={x2;$page}&attid={x2;v:attach['attid']}{x2;$u}" title="删除"><em class="glyphicon glyphicon-remove"></em></a>
+					                    		<a class="btn confirm" href="index.php?document-master-files-del&page={x2;$page}&attid={x2;v:attach['attid']}{x2;$u}" title="删除">删除</a>
 					                    	</div>
 										</td>
 							        </tr>

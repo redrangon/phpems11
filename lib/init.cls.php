@@ -1,10 +1,6 @@
 <?php
 
 namespace PHPEMS;
-
-ini_set("display_errors","on");
-error_reporting(E_ERROR || E_PARSE);
-
 class ginkgo
 {
     static $G = array();
@@ -16,8 +12,9 @@ class ginkgo
 
     static function loadMoudle()
     {
+        spl_autoload_register([self::class, 'autoLoadClass']);
         include PEPATH.'/lib/config.inc.php';
-        header('Content-Type: text/html; charset=utf-8');
+		header('Content-Type: text/html; charset=utf-8');
 		header('X-Frame-Options:SAMEORIGIN');
 		header('X-XSS-Protection:1;mode=block');
 		header('X-Content-Type-Options: nosniff');
@@ -30,17 +27,66 @@ class ginkgo
             include_once $path;
         }
     }
+
+    static public function autoLoadClass($class)
+    {
+        $class = explode('\\',$class);
+        if($class[0] == 'PHPEMS')
+        {
+            $number = count($class);
+            if ($number >= 2 && $number <= 3 )
+            {
+                if ($number == 2)
+                {
+                    $class = $class[1];
+                    $path = PEPATH . '/lib/' . $class . '.cls.php';
+                }
+                else
+                {
+                    unset($class[0]);
+                    $path = PEPATH . '/app/' . $class[1] . '/cls/'.$class[2].'.cls.php';
+                }
+                if (file_exists($path)) {
+                    include $path;
+                }
+            }
+        }
+    }
+
+    static public function make($G,$app = NULL,$param = 'default')
+    {
+        if($app)
+        {
+            if(!isset(self::$L[$app][$G][$param]))
+            {
+                $o = $app.'\\'.$G;
+                $clsname = '\\PHPEMS\\'.$o;
+                self::$L[$app][$G][$param] = new $clsname($param);
+            }
+            return self::$L[$app][$G][$param];
+        }
+        else
+        {
+            if(!isset(self::$G[$G][$param]))
+            {
+                $clsname = '\\PHPEMS\\'.$G;
+                self::$G[$G][$param] = new $clsname($param);
+            }
+            return self::$G[$G][$param];
+        }
+
+    }
 	
     /**
      * @param $G
      * @param null $app
      * @return static
      */
-	static public function make($G,$app = NULL,$parm = 'default')
+	static public function make2($G,$app = NULL,$param = 'default')
 	{
 		if($app)
         {
-            if(!isset(self::$L[$app][$G][$parm]))
+            if(!isset(self::$L[$app][$G][$param]))
             {
                 $fl = PEPATH.'/app/'.$app.'/cls/'.$G.'.cls.php';
                 if(file_exists($fl))
@@ -50,13 +96,13 @@ class ginkgo
                 else return false;
                 $o = $app.'\\'.$G;
                 $clsname = '\\PHPEMS\\'.$o;
-                self::$L[$app][$G][$parm] = new $clsname($parm);
+                self::$L[$app][$G][$param] = new $clsname($param);
             }
-            return self::$L[$app][$G][$parm];
+            return self::$L[$app][$G][$param];
         }
 		else
 		{
-			if(!isset(self::$G[$G][$parm]))
+			if(!isset(self::$G[$G][$param]))
 			{
 				if(file_exists(PEPATH.'/lib/'.$G.'.cls.php'))
 				{
@@ -64,9 +110,9 @@ class ginkgo
 				}
 				else return false;
 				$clsname = '\\PHPEMS\\'.$G;
-                self::$G[$G][$parm] = new $clsname($parm);
+                self::$G[$G][$param] = new $clsname($param);
 			}
-			return self::$G[$G][$parm];
+			return self::$G[$G][$param];
 		}
 
 	}
@@ -87,12 +133,13 @@ class ginkgo
 		include PEPATH.'/app/'.self::$app.'/'.self::$module.'.php';
 		
 		$modulefile = PEPATH.'/app/'.self::$app.'/controller/'.self::$method.'.'.self::$module.'.php';
-		if(file_exists($modulefile))
+        if(file_exists($modulefile))
 		{			
 			include $modulefile;			
 			$tpl = self::make('tpl');
 			$tpl->assign('_app',self::$app);
 			$tpl->assign('method',self::$method);
+            $tpl->assign('userhash',$ev->get('userhash'));
 			$run = new action();
 			$run->display();
 		}
@@ -112,15 +159,25 @@ class ginkgo
             {
                 exit(header("location:index.php?user-app-login"));
             }
+            if($message['forwardUrl'] == 'reload')
+            {
+                if($ev->server['HTTP_REFERER'])
+                {
+                    $message['forwardUrl'] = $ev->server['HTTP_REFERER'];
+                }
+                else $message['forwardUrl'] = 'index.php';
+            }
+            if($message['forwardUrl'] && !$message['message'])
+            {
+                exit(header("location:{$message['forwardUrl']}"));
+            }
             $tpl = clone M('tpl');
             $tpl->setDir();
             $tpl->assign('message',$message);
             $tpl->display('error');
+			exit;
 		}
 	}
 }
 
-function M($G,$app = NULL,$parm = 'default'){
-    return ginkgo::make($G,$app,$parm);
-}
 ?>

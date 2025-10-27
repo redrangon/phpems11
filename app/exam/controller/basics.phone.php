@@ -10,8 +10,7 @@ class action extends app
 {
 	public function display()
 	{
-        $this->area = M('area','exam');
-		$action = $this->ev->url(3);
+        $action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -20,8 +19,8 @@ class action extends app
 
 	private function openit()
 	{
-		$basicid = $this->ev->get('basicid');
-		$basic = $this->basic->getBasicById($basicid);
+		$basicid = M('ev')->get('basicid');
+		$basic = M('basic','exam')->getBasicById($basicid);
 		if(!$basic)
 		{
 			$message = array(
@@ -30,7 +29,7 @@ class action extends app
 			);
 			\PHPEMS\ginkgo::R($message);
 		}
-		if((!$basic['basicexam']['allowgroup']) || (strpos(','.$basic['basicexam']['allowgroup'].',',",{$this->_user['sessiongroupid']},") !== false))
+		if((!$basic['basicexam']['allowgroup']) || (strpos(','.$basic['basicexam']['allowgroup'].',',",{$this->user['sessiongroupid']},") !== false))
 		$allowopen = 1;
 		if(!$allowopen)
 		{
@@ -40,8 +39,8 @@ class action extends app
 			);
 			\PHPEMS\ginkgo::R($message);
 		}
-		$userid = $this->_user['sessionuserid'];
-		if($this->basic->getOpenBasicByUseridAndBasicid($userid,$basicid))
+		$userid = $this->user['userid'];
+		if(M('basic','exam')->getOpenBasicByUseridAndBasicid($userid,$basicid))
 		{
 			$message = array(
 				'statusCode' => 300,
@@ -54,7 +53,7 @@ class action extends app
 		}
 		else
 		{
-			$opentype = intval($this->ev->get('opentype'));
+			$opentype = intval(M('ev')->get('opentype'));
 			$price = 0;
 			if(trim($basic['basicprice']))
 			{
@@ -74,7 +73,7 @@ class action extends app
 			$t = $price[$opentype];
 			$time = $t['time']*24*3600;
 			$score = $t['price'];
-			$user = $this->user->getUserById($this->_user['sessionuserid']);
+			$user = M('user','user')->getUserById($this->user['userid']);
 			if($user['usercoin'] < $score)
 			{
 				$message = array(
@@ -86,12 +85,12 @@ class action extends app
 			else
 			{
 				$args = array("usercoin" => $user['usercoin'] - $score);
-				$this->user->modifyUserInfo($this->_user['sessionuserid'],$args);
-                M('consume','bank')->addConsumeLog(array('conluserid' => $this->_user['sessionuserid'],'conlcost' => $score,'conltype' => 1,'conltime' => TIME,'conlinfo' => '开通考场'.$basic['basic']."{$t['time']}天"));
+				M('user','user')->modifyUserInfo($this->user['userid'],$args);
+                M('consume','bank')->addConsumeLog(array('conluserid' => $this->user['userid'],'conlcost' => $score,'conltype' => 1,'conltime' => TIME,'conlinfo' => '开通考场'.$basic['basic']."{$t['time']}天"));
 			}
 		}
 		$args = array('obuserid'=>$userid,'obbasicid'=>$basicid,'obendtime'=>TIME + $time);
-		$this->basic->openBasic($args);
+		M('basic','exam')->openBasic($args);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -103,10 +102,10 @@ class action extends app
 
 	private function coupon()
 	{
-		if($this->ev->get('coupon'))
+		if(M('ev')->get('coupon'))
 		{
-			$couponsn = strtoupper($this->ev->get('couponsn'));
-			$r = M('coupon','bank')->useCouponById($couponsn,$this->_user['sessionuserid']);
+			$couponsn = strtoupper(M('ev')->get('couponsn'));
+			$r = M('coupon','bank')->useCouponById($couponsn,$this->user['userid']);
 			if(!$r)
 			$message = array(
 				'statusCode' => 300,
@@ -140,11 +139,10 @@ class action extends app
 
 	private function detail()
 	{
-		$this->basic->delOpenPassBasic($this->_user['sessionuserid']);
-		$this->area = M('area','exam');
-		$basicid = $this->ev->get('basicid');
-		$basic = $this->basic->getBasicById($basicid);
-		$areas = $this->area->getAreaList();
+		M('basic','exam')->delOpenPassBasic($this->user['userid']);
+		$basicid = M('ev')->get('basicid');
+		$basic = M('basic','exam')->getBasicById($basicid);
+		$areas = M('area','exam')->getAreaList();
 		$price = 0;
 		if(trim($basic['basicprice']))
 		{
@@ -158,18 +156,18 @@ class action extends app
 					$price[] = array('time'=>$p[0],'price'=>$p[1]);
 				}
 			}
-			$this->tpl->assign('price',$price);
+			M('tpl')->assign('price',$price);
 		}
-		if((!$basic['basicexam']['allowgroup']) || (strpos(','.$basic['basicexam']['allowgroup'].',',",{$this->_user['sessiongroupid']},") !== false))
+		if((!$basic['basicexam']['allowgroup']) || (strpos(','.$basic['basicexam']['allowgroup'].',',",{$this->user['sessiongroupid']},") !== false))
 		$allowopen = 1;
-		$isopen = $this->basic->getOpenBasicByUseridAndBasicid($this->_user['sessionuserid'],$basicid);
-        $subject = $this->basic->getSubjectById($basic['basicsubjectid']);
-        $this->tpl->assign('subject',$subject);
-		$this->tpl->assign('isopen',$isopen);
-		$this->tpl->assign('areas',$areas);
-		$this->tpl->assign('allowopen',$allowopen);
-		$this->tpl->assign('basic',$basic);
-		$this->tpl->display('basics_detail');
+		$isopen = M('basic','exam')->getOpenBasicByUseridAndBasicid($this->user['userid'],$basicid);
+        $subject = M('basic','exam')->getSubjectById($basic['basicsubjectid']);
+        M('tpl')->assign('subject',$subject);
+		M('tpl')->assign('isopen',$isopen);
+		M('tpl')->assign('areas',$areas);
+		M('tpl')->assign('allowopen',$allowopen);
+		M('tpl')->assign('basic',$basic);
+		M('tpl')->display('basics_detail');
 	}
 
 	private function page()
@@ -183,32 +181,32 @@ class action extends app
             );
             \PHPEMS\ginkgo::R($message);
 		}
-		$this->tpl->display('basics_page');
+		M('tpl')->display('basics_page');
 	}
 
     private function index()
     {
-        $search = $this->ev->get('search');
-        $page = $this->ev->get('page');
+        $search = M('ev')->get('search');
+        $page = M('ev')->get('page');
         $page = $page > 1?$page:1;
-        $subjects = $this->basic->getSubjectList();
+        $subjects = M('basic','exam')->getSubjectList();
         $args = array();
         if($search['basicdemo'])$args[] = array("AND","basicdemo = :basicdemo",'basicdemo',$search['basicdemo']);
         if($search['keyword'])$args[] = array("AND","basic LIKE :basic",'basic',"%{$search['keyword']}%");
         if($search['basicareaid'])$args[] = array("AND","basicareaid = :basicareaid","basicareaid",$search['basicareaid']);
         if($search['basicsubjectid'])$args[] = array("AND","basicsubjectid = :basicsubjectid",'basicsubjectid',$search['basicsubjectid']);
         if($search['basicapi'])$args[] = array("AND","basicapi = :basicapi",'basicapi',$search['basicapi']);
-        $basics = $this->basic->getBasicList($args,$page,15);
-        $areas = $this->area->getAreaList();
+        $basics = M('basic','exam')->getBasicList($args,$page,15);
+        $areas = M('area','exam')->getAreaList();
         $args = array();
         $args[] = array("AND","basictop = 1");
-        $news = $this->basic->getBasicsByArgs($args,5);
-        $this->tpl->assign('news',$news);
-        $this->tpl->assign('search',$search);
-        $this->tpl->assign('areas',$areas);
-        $this->tpl->assign('subjects',$subjects);
-        $this->tpl->assign('basics',$basics);
-        $this->tpl->display('basics');
+        $news = M('basic','exam')->getBasicsByArgs($args,5);
+        M('tpl')->assign('news',$news);
+        M('tpl')->assign('search',$search);
+        M('tpl')->assign('areas',$areas);
+        M('tpl')->assign('subjects',$subjects);
+        M('tpl')->assign('basics',$basics);
+        M('tpl')->display('basics');
     }
 }
 

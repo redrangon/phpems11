@@ -10,21 +10,19 @@ class action extends app
 {
 	public function display()
 	{
-		$modules = M('module')->getModulesByApp('enroll');
-		$this->tpl->assign('modules',$modules);
-		$this->enroll = M('enroll','enroll');
-		$this->search = $this->ev->get('search');
+		$this->search = M('ev')->get('search');
 		if($this->search)
 		{
 			$this->u = '';
-			$this->tpl->assign('search',$this->search);
+			M('tpl')->assign('search',$this->search);
 			foreach($this->search as $key => $arg)
 			{
 				$this->u .= "&search[{$key}]={$arg}";
 			}
-			$this->tpl->assign('u',$this->u);
+			M('tpl')->assign('u',$this->u);
 		}
-		$action = $this->ev->url(3);
+		M('tpl')->assign('modules',M('module')->getModulesByApp('enroll'));
+		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -33,11 +31,11 @@ class action extends app
 
 	public function bulk()
 	{
-		$enbid = $this->ev->get('enbid');
-		$enbat = $this->enroll->getEnrollBatById($enbid);
-		if($this->ev->get('batopen'))
+		$enbid = M('ev')->get('enbid');
+		$enbat = M('enroll','enroll')->getEnrollBatById($enbid);
+		if(M('ev')->get('batopen'))
 		{
-			if($this->ev->get('days') < 1)
+			if(M('ev')->get('days') < 1)
 			{
 				$message = array(
 					'statusCode' => 300,
@@ -45,19 +43,19 @@ class action extends app
 				);
 				ginkgo::R($message);
 			}
-			$items = $this->ev->get('items');
+			$items = M('ev')->get('items');
 			$items = explode(',',$items);
-			$time = $this->ev->get('days') * 3600 * 24;
+			$time = M('ev')->get('days') * 3600 * 24;
 			if($items)
 			{
 				$args = array();
 				$args[] = array("AND","enrollbatid = :enrollbatid","enrollbatid",$enbid);
-				if($this->ev->get('opentype'))
+				if(M('ev')->get('opentype'))
 				{
 					$args[] = array("AND","enrollverify = 2");
 				}
-				$enrolls = $this->enroll->getEnrolls($args,'enrollid desc','enrolluserid');
-				if($this->ev->type == 'course')
+				$enrolls = M('enroll','enroll')->getEnrolls($args,'enrollid desc','enrolluserid');
+				if(M('ev')->type == 'course')
 				{
 					foreach($items as $item)
 					{
@@ -68,7 +66,7 @@ class action extends app
 						}
 					}
 				}
-				elseif($this->ev->type == 'exam')
+				elseif(M('ev')->type == 'exam')
 				{
 					foreach($items as $item)
 					{
@@ -91,61 +89,61 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->assign('enbat',$enbat);
-			$this->tpl->display('enroll_bulk');
+			M('tpl')->assign('enbat',$enbat);
+			M('tpl')->display('enroll_bulk');
 		}
 	}
 
 	public function mlite()
 	{
-		switch ($this->ev->get('action'))
+		switch (M('ev')->get('action'))
 		{
 			case 'delete':
-				$delids = $this->ev->get('delids');
+				$delids = M('ev')->get('delids');
 				foreach($delids as $id => $p)
 				{
-					$enroll = $this->enroll->getEnrollById($id);
+					$enroll = M('enroll','enroll')->getEnrollById($id);
 					if(!$enroll['enrollverify'])
 					{
-						$this->enroll->delEnroll($id);
+						M('enroll','enroll')->delEnroll($id);
 					}
 				}
 				break;
 
 			case 'verify':
-				$delids = $this->ev->get('delids');
+				$delids = M('ev')->get('delids');
 				foreach($delids as $id => $p)
 				{
-					$this->enroll->modifyEnroll($id,array('enrollverify' => 2));
+					M('enroll','enroll')->modifyEnroll($id,array('enrollverify' => 2));
 				}
 				break;
 
 			case 'unverify':
-				$delids = $this->ev->get('delids');
+				$delids = M('ev')->get('delids');
 				foreach($delids as $id => $p)
 				{
-					$this->enroll->modifyEnroll($id,array('enrollverify' => 1));
+					M('enroll','enroll')->modifyEnroll($id,array('enrollverify' => 1));
 				}
 				break;
 			
 			case 'passverify':
-				$delids = $this->ev->get('delids');
+				$delids = M('ev')->get('delids');
 				foreach($delids as $id => $p)
 				{
-					$this->enroll->modifyEnroll($id,array('enrollverify' => 0));
+					M('enroll','enroll')->modifyEnroll($id,array('enrollverify' => 0));
 				}
 				break;
 
 			case 'offline':
 				$this->order = M('orders','bank');
-				$delids = $this->ev->get('delids');
+				$delids = M('ev')->get('delids');
 				foreach($delids as $id => $p)
 				{
-					$enroll = $this->enroll->getEnrollById($id);
+					$enroll = M('enroll','enroll')->getEnrollById($id);
 					if(!$enroll['enrollstatus'] && $enroll['enrollverify'])
 					{
 						$this->order->payforOrder($enroll['enrollordersn'],'handle');
-						$this->enroll->modifyEnroll($id,array('enrollstatus' => 1));
+						M('enroll','enroll')->modifyEnroll($id,array('enrollstatus' => 1));
 					}
 				}
 				break;
@@ -159,13 +157,13 @@ class action extends app
 			"callbackType" => 'forward',
 			"forwardUrl" => "reload"
 		);
-		\PHPEMS\ginkgo::R($message);
+		R($message);
 	}
 
 	public function delenroll()
 	{
-		$enrollid = $this->ev->get('enrollid');
-		$this->enroll->delEnroll($enrollid);
+		$enrollid = M('ev')->get('enrollid');
+		M('enroll','enroll')->delEnroll($enrollid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -177,14 +175,14 @@ class action extends app
 
 	public function outmember()
 	{
-		$enbid = $this->ev->get('enbid');
-		$enbat = $this->enroll->getEnrollBatById($enbid);
+		$enbid = M('ev')->get('enbid');
+		$enbat = M('enroll','enroll')->getEnrollBatById($enbid);
 		$args = array();
 		$args[] = array("AND","enrollbatid = :enrollbatid","enrollbatid",$enbid);
 		if($this->search['enrolltruename'])$args[] = array("AND","enrolltruename = :enrolltruename","enrolltruename",$this->search['enrolltruename']);
 		if($this->search['enrollpassport'])$args[] = array("AND","enrollpassport = :enrollpassport","enrollpassport",$this->search['enrollpassport']);
 		if($this->search['enrollphone'])$args[] = array("AND","enrollphone = :enrollphone","enrollphone",$this->search['enrollphone']);
-		$enrolls = $this->enroll->getEnrolls($args);
+		$enrolls = M('enroll','enroll')->getEnrolls($args);
 		$rs = array();
 		$fields = M('module')->getMoudleFields($enbat['enbmoduleid'],1);
 		$rt = array('报名批次','姓名','身份证号','手机号');
@@ -232,30 +230,30 @@ class action extends app
 
 	public function member()
 	{
-		$enbid = $this->ev->get('enbid');
-		$page = intval($this->ev->get('page'));
+		$enbid = M('ev')->get('enbid');
+		$page = intval(M('ev')->get('page'));
 		$page = $page >=1?$page:1;
-		$enbat = $this->enroll->getEnrollBatById($enbid);
+		$enbat = M('enroll','enroll')->getEnrollBatById($enbid);
 		$args = array();
 		$args[] = array("AND","enrollbatid = :enrollbatid","enrollbatid",$enbid);
 		if($this->search['enrolltruename'])$args[] = array("AND","enrolltruename = :enrolltruename","enrolltruename",$this->search['enrolltruename']);
 		if($this->search['enrollpassport'])$args[] = array("AND","enrollpassport = :enrollpassport","enrollpassport",$this->search['enrollpassport']);
 		if($this->search['enrollphone'])$args[] = array("AND","enrollphone = :enrollphone","enrollphone",$this->search['enrollphone']);
-		$enrolls = $this->enroll->getEnrollList($args,$page);
-		$this->tpl->assign('enbat',$enbat);
-		$this->tpl->assign('enrolls',$enrolls);
-		$this->tpl->display('enroll_members');
+		$enrolls = M('enroll','enroll')->getEnrollList($args,$page);
+		M('tpl')->assign('enbat',$enbat);
+		M('tpl')->assign('enrolls',$enrolls);
+		M('tpl')->display('enroll_members');
 	}
 
 	public function lite()
 	{
-		switch ($this->ev->get('action'))
+		switch (M('ev')->get('action'))
 		{
 			case 'delete':
-				$delids = $this->ev->get('delids');
+				$delids = M('ev')->get('delids');
 				foreach($delids as $id => $p)
 				{
-					$this->enroll->delEnrollBat($id);
+					M('enroll','enroll')->delEnrollBat($id);
 				}
 				break;
 
@@ -268,13 +266,13 @@ class action extends app
 			"callbackType" => 'forward',
 			"forwardUrl" => "reload"
 		);
-		\PHPEMS\ginkgo::R($message);
+		R($message);
 	}
 
 	public function del()
 	{
-		$enbid = $this->ev->get('enbid');
-		$this->enroll->delEnrollBat($enbid);
+		$enbid = M('ev')->get('enbid');
+		M('enroll','enroll')->delEnrollBat($enbid);
 		$message = array(
 			'statusCode' => 200,
 			"message" => "操作成功",
@@ -286,14 +284,14 @@ class action extends app
 
 	public function modify()
 	{
-		$enbid = $this->ev->get('enbid');
-		$enbat = $this->enroll->getEnrollBatById($enbid);
-		if($this->ev->get('submit'))
+		$enbid = M('ev')->get('enbid');
+		$enbat = M('enroll','enroll')->getEnrollBatById($enbid);
+		if(M('ev')->get('submit'))
 		{
-			$args = $this->ev->get('args');
+			$args = M('ev')->get('args');
 			$args['enbstarttime'] = strtotime($args['enbstarttime']);
 			$args['enbendtime'] = strtotime($args['enbendtime']);
-			$this->enroll->modifyEnrollBat($enbid,$args);
+			M('enroll','enroll')->modifyEnrollBat($enbid,$args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -304,20 +302,20 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->assign('enbat',$enbat);
-			$this->tpl->display('enroll_modify');
+			M('tpl')->assign('enbat',$enbat);
+			M('tpl')->display('enroll_modify');
 		}
 	}
 
 	public function add()
 	{
-		if($this->ev->get('submit'))
+		if(M('ev')->get('submit'))
 		{
-			$args = $this->ev->get('args');
+			$args = M('ev')->get('args');
 			$args['enbstarttime'] = strtotime($args['enbstarttime']);
 			$args['enbendtime'] = strtotime($args['enbendtime']);
 			$args['enbtime'] = TIME;
-			$this->enroll->addEnrollBat($args);
+			M('enroll','enroll')->addEnrollBat($args);
 			$message = array(
 				'statusCode' => 200,
 				"message" => "操作成功",
@@ -328,22 +326,22 @@ class action extends app
 		}
 		else
 		{
-			$this->tpl->display('enroll_add');
+			M('tpl')->display('enroll_add');
 		}
 	}
 
 	public function index()
 	{
-		$page = intval($this->ev->get('page'));
+		$page = intval(M('ev')->get('page'));
 		$page = $page >=1?$page:1;
 		$args = array();
 		if($this->search['enbid'])$args[] = array("AND","enbid = :enbid","enbid",$this->search['enbid']);
 		if($this->search['keyword'])$args[] = array("AND","enbname like :enbname","enbname","%{$this->search['keyword']}%");
 		if($this->search['stime'])$args[] = array("AND","enbstarttime >= :stime","stime",strtotime($this->search['stime']));
 		if($this->search['etime'])$args[] = array("AND","enbstarttime <= :etime","etime",strtotime($this->search['etime']));
-		$enbats = $this->enroll->getEnrollBatsList($args,$page);
-		$this->tpl->assign('enbats',$enbats);
-		$this->tpl->display('enroll');
+		$enbats = M('enroll','enroll')->getEnrollBatsList($args,$page);
+		M('tpl')->assign('enbats',$enbats);
+		M('tpl')->display('enroll');
 	}
 }
 

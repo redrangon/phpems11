@@ -9,6 +9,7 @@ class ev
 	public $get;
 	public $file;
 	public $url;
+	public $server;
 	private $e;
 
 	public function __construct()
@@ -17,10 +18,12 @@ class ev
 			$get    = $this->stripSlashes($_REQUEST);
 			$post   = $this->stripSlashes($_POST);
 			$this->cookie = $this->stripSlashes($_COOKIE);
+			$this->server = $this->stripSlashes($_SERVER);
 		} else {
 			$get    = $_REQUEST;
 			$post   = $_POST;
 			$this->cookie = $_COOKIE;
+			$this->server = $_SERVER;
 		}
 
 		$this->file = $_FILES;
@@ -28,11 +31,13 @@ class ev
 		$this->post = $this->initData($post);
 		$this->url = $this->parseUrl();
 		$this->cookie = $this->initData($this->cookie);
+		$this->server = $this->initData($this->server);
     }
 	
 	static function isApp()
     {
-        $agent = strtolower($_SERVER['HTTP_APP_AGENT']);
+        if(!isset($_SERVER['HTTP_APP_AGENT']))return false;
+		$agent = strtolower($_SERVER['HTTP_APP_AGENT']);
         if(strpos($agent, 'phpemsapkinterface') === false)
         {
             return false;
@@ -122,10 +127,12 @@ class ev
         {
             $r[0] = \PHPEMS\ginkgo::$defaultApp;
         }
+		if(!isset($r[1]))$r[1] = 'app';
 		if(!file_exists('app/'.$r[0].'/'.$r[1].'.php') || $r[1] == 'auto')
 		{
 			$r[1] = 'app';
 		}
+		if(!isset($r[2]))$r[2] = 'index';
 		if(!file_exists('app/'.$r[0].'/controller/'.$r[2].'.'.$r[1].'.php'))
 		{
 			$r[2] = 'index';
@@ -206,7 +213,7 @@ class ev
 		{
 			if(is_numeric($data))
 			{
-				if($data[0] === 0)return $this->addSlashes($data);
+				if(substr($data,0,1) === 0)return $this->addSlashes((string) $data);
 				if(strlen($data) >= 11)return $this->addSlashes($data);
 				if(strpos($data,'.'))return floatval($data);
 				else return $data;

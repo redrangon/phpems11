@@ -11,8 +11,7 @@ class action extends app
 {
 	public function display()
 	{
-        $this->wechat = M('wechat');
-	    $action = $this->ev->url(3);
+        $action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
 		$this->$action();
@@ -21,7 +20,7 @@ class action extends app
 
 	public function index()
 	{
-		$rev = $this->wechat->getRev();
+		$rev = M('wechat')->getRev();
 		$type = strtolower($rev->getRevType());
 		switch($type)
 		{
@@ -42,7 +41,7 @@ class action extends app
 			}
 			else
 			{
-				exit($this->wechat->text("未搜索到商品")->reply());
+				exit(M('wechat')->text("未搜索到商品")->reply());
 			}
 			break;
 
@@ -73,10 +72,10 @@ class action extends app
 			break;
 
 			default:
-			$this->wechat->text("信息已接收")->reply();
+			M('wechat')->text("信息已接收")->reply();
 			return false;
 		}
-		$this->wechat->news($info)->reply();
+		M('wechat')->news($info)->reply();
 	}
 }
 
