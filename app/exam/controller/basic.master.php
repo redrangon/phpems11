@@ -275,7 +275,7 @@ class action extends app
 			$start = $page - 1;
 			$start = $start >= 0?$start:0;
 			$tmp = array_slice($stats,$start * 20,20);
-			$pages = $this->pg->outPage($this->pg->getPagesNumber(count($stats),20),$page);
+			$pages = M('pg')->outPage(M('pg')->getPagesNumber(count($stats),20),$page);
 			M('tpl')->assign('stats',array('data' => $tmp,'pages' => $pages));
 			M('tpl')->assign('basicid',$basicid);
 			M('tpl')->display('basic_stats');
@@ -323,7 +323,7 @@ class action extends app
 			$start = $page - 1;
 			$start = $start >= 0?$start:0;
 			$tmp = array_slice($stats,$start * 20,20);
-			$pages = $this->pg->outPage($this->pg->getPagesNumber(count($stats),20),$page);
+			$pages = M('pg')->outPage(M('pg')->getPagesNumber(count($stats),20),$page);
 			M('tpl')->assign('stats',array('data' => $tmp,'pages' => $pages));
 			M('tpl')->assign('basicid',$basicid);
 			M('tpl')->display('basic_knowsstats');
@@ -764,7 +764,7 @@ class action extends app
 		$target = M('ev')->get('target');
 		$page = M('ev')->get('page');
 		$page = $page > 0?$page:1;
-		$this->pg->setUrlTarget('modal-body" class="ajax');
+		M('pg')->setUrlTarget('modal-body" class="ajax');
 		$args = array();
 		$actors = M('user','user')->getUserGroupList($args,$page,10);
 		M('tpl')->assign('page',$page);

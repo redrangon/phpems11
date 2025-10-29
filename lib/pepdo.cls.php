@@ -9,7 +9,7 @@
  class pepdo
  {
  	private $queryid = 0;
-	private $linkid = 0;
+	private $linkid;
 	private $log = SQLDEBUG;
 	private $tablepre = DTH;
 	private $mostlimits = 512;
@@ -66,7 +66,7 @@
 			$tsql = "TRUNCATE TABLE ";
 			foreach($table as $t)
 			{
-			$tsql .= "`$this->tablepre`.`$t`,";
+				$tsql .= "`$this->tablepre`.`$t`,";
 			}
 			return trim($tsql,",");
 		}
@@ -297,7 +297,7 @@
 			$db_tables = array();
 			foreach($tables as $p)
 			{
-			$db_tables[] = "{$tb_pre}{$p} AS $p";
+				$db_tables[] = "{$tb_pre}{$p} AS $p";
 			}
 			$db_tables = implode(',',$db_tables);
 		}
@@ -634,7 +634,7 @@
 		if(!is_array($sql))return false;
 		if(!$this->linkid)$this->connect();
 		$query = $this->linkid->prepare($sql['sql']);
-		$rs = $query->execute($sql['v']);
+		$rs = $query->execute(isset($sql['v'])?$sql['v']:[]);
 		$this->_log($sql,$query);
 		if ($rs) {
 			$query->setFetchMode(\PDO::FETCH_ASSOC);
@@ -757,35 +757,16 @@
 		return $this->fetchAll($sql,$args['index'],$args['serial']);
 	}
 
-	public function listElements2($page = 1,$number = 20,$args = [],$tablepre = DTH)
-	{
-		if(!is_array($args))return false;
-		$pg = M('pg');
-		$page = $page > 0?$page:1;
-		$r = array();
-		$data = array($args['select'],$args['table'],$args['query'],$args['groupby'],$args['orderby'],array(intval($page-1)*$number,$number));
-		$sql = $this->makeSelect($data,$tablepre);
-		$r['data'] = $this->fetchAll($sql,$args['index'],$args['serial']);
-		$data = array('count(*) AS number',$args['table'],$args['query']);
-		$sql = $this->makeSelect($data,$tablepre);
-		$t = $this->fetch($sql);
-		$pages = $pg->outPage($pg->getPagesNumber($t['number'],$number),$page);
-		$r['pages'] = $pages;
-		$r['number'] = $t['number'];
-		return $r;
-	}
-
 	public function listElements($page = 1,$number = 20,$args = [])
 	{
 		if(!is_array($args))return false;
-		$pg = M('pg');
 		$page = $page > 0?$page:1;
 		$r = array();
 		$data = array($args['select'],$args['table'],$args['query'],isset($args['groupby'])?$args['groupby']:false,isset($args['orderby'])?$args['orderby']:false,array(intval($page-1)*$number,$number));
 		$sql = $this->makeSelect($data,true);
 		$r['data'] = $this->fetchAll($sql,isset($args['index'])?$args['index']:false,isset($args['serial'])?$args['serial']:false);
 		$total = $this->query('SELECT FOUND_ROWS()')->fetchColumn();
-		$pages = $pg->outPage($pg->getPagesNumber($total,$number),$page);
+		$pages = M('pg')->outPage(M('pg')->getPagesNumber($total,$number),$page);
 		$r['pages'] = $pages;
 		$r['number'] = $total;
 		return $r;

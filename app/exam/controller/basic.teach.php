@@ -224,7 +224,7 @@ class action extends app
         $target = M('ev')->get('target');
         $page = M('ev')->get('page');
         $page = $page > 0?$page:1;
-        $this->pg->setUrlTarget('modal-body" class="ajax');
+        M('pg')->setUrlTarget('modal-body" class="ajax');
         $args = 1;
         $actors = M('user','user')->getUserGroupList($args,$page,10);
         M('tpl')->assign('page',$page);

@@ -10,7 +10,6 @@ class app
 
 	public function __construct()
 	{
-
         $this->session = M('session')->getSessionUser();
         if(!$this->session['sessionuserid'])
         {

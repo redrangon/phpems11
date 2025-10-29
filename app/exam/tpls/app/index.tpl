@@ -40,9 +40,9 @@
 					</div>
 					<div class="col-xs-3 nopadding">
 						<div class="content-box padding">
-							<form action="index.php" method="get" class="dxform">
-								<input class="form-control pull-left" type="text" name="search[keyword]" placeholder="考场关键词" style="width: 75%;height: 40px;" value="{x2;$search['keyword']}" />
-								<button class="btn btn-primary pull-left" type="submit" style="width:25%;">搜索</button>
+							<form action="index.php" method="get" class="dxform text-center">
+								<input class="form-control pull-left" type="text" name="search[keyword]" placeholder="考场关键词" style="width: 72%;height: 40px;" value="{x2;$search['keyword']}" />
+								<button class="btn btn-primary pull-left" type="submit" style="width:25%;margin-left: 5px;">搜索</button>
 								<input type="hidden" name="route" value="exam-app">
 							</form>
 						</div>

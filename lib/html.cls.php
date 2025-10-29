@@ -456,8 +456,6 @@ EOF;
 			}
 		}
     	$str = '';
-    	if($args['default'] != NULL)
-    	$args['default'] = unserialize($args['default']);
     	foreach($args['values'] as $p)
     	{
 			$tmp = $args;

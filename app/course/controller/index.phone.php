@@ -38,8 +38,8 @@ class action extends app
 
     private function index()
     {
-        $this->pg->isPhone = 1;
-        $this->pg->target = 'class="ajax" data-target="course" data-page="course" ';
+        M('pg')->isPhone = 1;
+        M('pg')->target = 'class="ajax" data-target="course" data-page="course" ';
     	$page = M('ev')->get('page');
         $contents = M('course','course')->getOpenCourseListByUserid($this->user['userid'],$page);
         M('tpl')->assign('contents',$contents);

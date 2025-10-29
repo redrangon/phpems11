@@ -131,7 +131,7 @@ class action extends app
 			$start = $page - 1;
 			$start = $start >= 0?$start:0;
 			$tmp = array_slice($stats,$start * 20,20);
-			$pages = $this->pg->outPage($this->pg->getPagesNumber(count($stats),20),$page);
+			$pages = M('pg')->outPage(M('pg')->getPagesNumber(count($stats),20),$page);
 			M('tpl')->assign('stats',array('data' => $tmp,'pages' => $pages));
 			M('tpl')->assign('basicid',$basicid);
 			M('tpl')->display('users_stats');
@@ -179,7 +179,7 @@ class action extends app
 			$start = $page - 1;
 			$start = $start >= 0?$start:0;
 			$tmp = array_slice($stats,$start * 20,20);
-			$pages = $this->pg->outPage($this->pg->getPagesNumber(count($stats),20),$page);
+			$pages = M('pg')->outPage(M('pg')->getPagesNumber(count($stats),20),$page);
 			M('tpl')->assign('stats',array('data' => $tmp,'pages' => $pages));
 			M('tpl')->assign('basicid',$basicid);
 			M('tpl')->display('users_knowsstats');

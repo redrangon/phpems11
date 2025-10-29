@@ -24,7 +24,7 @@ class action extends app
 		$target = M('ev')->get('target');
 		$page = M('ev')->get('page');
 		$page = $page > 0?$page:1;
-		$this->pg->setUrlTarget('modal-body" class="ajax');
+		M('pg')->setUrlTarget('modal-body" class="ajax');
 		$args = array();
 		if($search)
 		{
@@ -321,7 +321,7 @@ class action extends app
 		$search = M('ev')->get('search');
 		$page = M('ev')->get('page');
 		$page = $page > 0?$page:1;
-		$this->pg->setUrlTarget('modal-body" class="ajax');
+		M('pg')->setUrlTarget('modal-body" class="ajax');
 		if(!$search['questionisrows'])
 		{
 			$args = array(array("AND","quest2knows.qkquestionid = questions.questionid"),array("AND","questions.questionstatus = '1'"),array("AND","questions.questionparent = 0"),array("AND","quest2knows.qktype = 0") );

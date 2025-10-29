@@ -6,14 +6,12 @@ class app
 {
     public $user;
     public $session;
-    public $setting;
-    public $data = array();
 
     public function __construct()
     {
 
         $this->session = M('session')->getSessionUser();
-        if($this->session['sessionuserid'])
+        if(isset($this->session['sessionuserid']) && $this->session['sessionuserid'])
         {
             $this->user = M('user','user')->getUserById($this->session['sessionuserid']);
             switch(M('ev')->url(2))

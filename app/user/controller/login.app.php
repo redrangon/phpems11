@@ -47,7 +47,7 @@ class action extends app
 			{
 				if($user['userpassword'] == md5($args['userpassword']))
 				{
-                    if($_SESSION['openid'] && USEWX)
+                    if(isset($_SESSION['openid']) && $_SESSION['openid'] && USEWX)
                     {
                         M('user','user')->modifyUserInfo($user['userid'],array('useropenid' => $_SESSION['openid']));
                     }

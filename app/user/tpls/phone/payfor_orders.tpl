@@ -27,7 +27,7 @@
 						<li class="unstyled">
 							<h4 class="bigtitle">
 								{x2;v:order['ordersn']}
-								<span class="pull-right" style="font-weight: normal;font-size: 0.28rem;">
+								<span class="pull-right" style="font-weight: normal;font-size: 0.16rem;">
 									{x2;$orderstatus[v:order['orderstatus']]}
 								</span>
 							</h4>
@@ -51,7 +51,7 @@
 											{x2;v:field['fieldtitle']}:{x2;v:cart[v:field['field']]}&nbsp;
 											{x2;endif}
 											{x2;endtree}
-											</span>
+										</span>
 									</p>
 
 								</div>

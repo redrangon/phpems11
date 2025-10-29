@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=375,maximum-scale=1.2,user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
-    <meta name=”apple-itunes-app” content=”app-id=myAppStoreID, affiliate-data=myAffiliateData, app-argument=myURL”>
+    <meta name="apple-itunes-app" content="app-id=myAppStoreID, affiliate-data=myAffiliateData, app-argument=myURL">
     <link rel="stylesheet" type="text/css" href="files/public/css/font-awesome.css">
     <link rel="stylesheet/less" type="text/css" href="files/public/css/pe.mobile.less" />
     <link rel="stylesheet" type="text/css" href="files/public/css/animations.css">

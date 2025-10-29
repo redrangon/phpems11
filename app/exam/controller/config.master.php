@@ -43,7 +43,7 @@ class action extends app
 		}
 		else
 		{
-			$app = $this->apps->getApp($appid);
+			$app = M('apps','core')->getApp($appid);
 			M('tpl')->assign('appid',$appid);
 			M('tpl')->assign('app',$app);
 			M('tpl')->display('config');

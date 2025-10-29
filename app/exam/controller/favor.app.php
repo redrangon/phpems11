@@ -23,13 +23,14 @@ class action extends app
 		{
 			//添加一个收藏
 			case 'addfavor':
-			$questionid = M('ev')->get('questionid');
-			if(!is_numeric($questionid))
+			$questionid = intval(M('ev')->get('questionid'));
+			if(!$questionid)
 			{
 				$message = array(
 					'statusCode' => 300,
-					"message" => "即时组卷试题不能收藏！"
+					"message" => "该试题不能收藏！"
 				);
+				\PHPEMS\ginkgo::R($message);
 			}
 			if(M('favor','exam')->getFavorByQuestionAndUserId($questionid,$this->user['userid']))
 			{

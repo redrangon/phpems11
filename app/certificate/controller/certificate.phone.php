@@ -134,8 +134,8 @@ class action extends app
 
 	private function index()
 	{
-        $this->pg->isPhone = 1;
-        $this->pg->target = 'class="ajax" data-target="certificate-list" data-page="certificate-list" ';
+        M('pg')->isPhone = 1;
+        M('pg')->target = 'class="ajax" data-target="certificate-list" data-page="certificate-list" ';
 		$page = intval(M('ev')->get('page'));
 		$certificates = M('ce','certificate')->getCeList(array(),$page,10);
 		M('tpl')->assign('certificates',$certificates);

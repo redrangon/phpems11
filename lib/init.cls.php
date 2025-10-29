@@ -76,46 +76,6 @@ class ginkgo
         }
 
     }
-	
-    /**
-     * @param $G
-     * @param null $app
-     * @return static
-     */
-	static public function make2($G,$app = NULL,$param = 'default')
-	{
-		if($app)
-        {
-            if(!isset(self::$L[$app][$G][$param]))
-            {
-                $fl = PEPATH.'/app/'.$app.'/cls/'.$G.'.cls.php';
-                if(file_exists($fl))
-                {
-                    include_once $fl;
-                }
-                else return false;
-                $o = $app.'\\'.$G;
-                $clsname = '\\PHPEMS\\'.$o;
-                self::$L[$app][$G][$param] = new $clsname($param);
-            }
-            return self::$L[$app][$G][$param];
-        }
-		else
-		{
-			if(!isset(self::$G[$G][$param]))
-			{
-				if(file_exists(PEPATH.'/lib/'.$G.'.cls.php'))
-				{
-					include_once PEPATH.'/lib/'.$G.'.cls.php';
-				}
-				else return false;
-				$clsname = '\\PHPEMS\\'.$G;
-                self::$G[$G][$param] = new $clsname($param);
-			}
-			return self::$G[$G][$param];
-		}
-
-	}
 
 	//执行页面
 	static function run()

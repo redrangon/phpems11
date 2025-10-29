@@ -181,7 +181,7 @@ class session
     {
         if($this->sessionuser)return $this->sessionuser;
         $cookie = M("strings")->decode(M("ev")->getCookie($this->sessionname));
-        if($cookie['sessionuserid'])
+        if(isset($cookie['sessionuserid']) && $cookie['sessionuserid'])
         {
             $user = $this->getSessionValue();
             if($cookie['sessionuserid'] == $user['sessionuserid'] && $cookie['sessionpassword'] == $user['sessionpassword'] && $cookie['sessionip'] == $user['sessionip'])

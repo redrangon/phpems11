@@ -549,7 +549,8 @@ function submitAjax(parms,page,ispre){
             pep.ajaxSending = true;
             if(parms.target){
                 pep.mask.remove();
-                pep.mask.show('loading');
+                console.log(parms.target);
+                //pep.mask.show('loading');
             }
         },
         'error':function(){

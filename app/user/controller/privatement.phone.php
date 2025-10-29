@@ -74,8 +74,8 @@ class action extends app
 	private function comment()
 	{
 		$page = M('ev')->get('page');
-		$this->pg->setUrlTarget('modal-body" data-target="page6" class="ajax');
-		$this->pg->setPageType('wap');
+		M('pg')->setUrlTarget('modal-body" data-target="page6" class="ajax');
+		M('pg')->setPageType('wap');
 		$comments = $this->comment->getCommentList($page,$this->user['userid']);
 		M('tpl')->assign('comments',$comments);
 		M('tpl')->assign('page',$page);
