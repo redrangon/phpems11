@@ -9,7 +9,7 @@ class app
     {
         $this->session = M('session')->getSessionUser();
         $this->user = M('user','user')->getUserById($this->session['sessionuserid']);
-        if($this->user['groupid'] != 1)
+        if($this->user['groupid'] != 1 && M('ev')->url(2) != 'login')
         {
             $message = array(
                 'statusCode' => 300,

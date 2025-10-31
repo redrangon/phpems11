@@ -10,8 +10,6 @@ class action extends app
 {
 	public function display()
 	{
-		M('config','user') = M('config','certificate');
-		M('ce','certificate') = M('ce','certificate');
 		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";

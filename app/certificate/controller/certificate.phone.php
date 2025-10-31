@@ -1,17 +1,15 @@
 <?php
- namespace PHPEMS;
+namespace PHPEMS;
 /*
  * Created on 2016-5-19
  *
  * To change the template for this generated file go to
  * Window - Preferences - PHPeclipse - PHP - Code Templates
  */
-
 class action extends app
 {
 	public function display()
 	{
-		$this->gd = M('gd');
 		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))
 		$action = "index";
@@ -39,7 +37,7 @@ class action extends app
 			$s = explode(',',$s);
 			$imgsetting[] = $s;
 		}
-		$this->gd->creatCertImg($ce['cetpl'],$imgsetting);
+		M('gd')->creatCertImg($ce['cetpl'],$imgsetting);
 	}
 
 	public function detail()

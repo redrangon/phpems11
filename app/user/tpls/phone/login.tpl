@@ -43,7 +43,7 @@
 					<input type="hidden" name="userlogin" value="1">
 					<button class="primary block">登录</button>
 				</div>
-				{x2;if:USEWX && v:this->ev->isWeixin()}
+				{x2;if:USEWX && \PHPEMS\M('ev')->isWeixin()}
 				<div class="form-group">
 					<a href="index.php?weixin-phone-index-getopenid" class="btn success block"><i class="fa fa-wechat-fill"></i> 微信一键登录</a>
 				</div>

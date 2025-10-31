@@ -64,7 +64,8 @@ class user
     public function getUserById($id)
     {
 		$args = array(
-			array("AND","userid = :userid","userid",$id)
+			array("AND","userid = :userid","userid",$id),
+			array("AND","groupid = usergroupid")
 		);
 		return $this->getUserByArgs($args);
     }

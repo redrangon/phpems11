@@ -12,7 +12,7 @@ class action extends app
 	public function display()
 	{
 		$this->gd = M('gd');
-		$new = M('ce','certificate')->getCeQueueList($args,1,10);
+		$new = M('ce','certificate')->getCeQueueList(array(),1,10);
 		M('tpl')->assign('news',$new['data']);
 		$action = M('ev')->url(3);
 		if(!method_exists($this,$action))

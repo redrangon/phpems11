@@ -13,7 +13,7 @@
                     {x2;tree:$topimgs['data'],content,cid}
 					<div class="swiper-slide">
 						<a class="ajax" href="index.php?content-phone-content&contentid={x2;v:content['pccontentid']}">
-							<img src="{x2;v:content['pcthumb']}" style="max-width: 100%;height:350px;"/>
+							<img src="{x2;v:content['pcthumb']}" style="max-width: 100%;height:1.75rem;"/>
 						</a>
 					</div>
                     {x2;endif}
@@ -335,7 +335,7 @@
 							</div>
 						</a>
 					</li>
-                    {x2;if:$_user['useropenid'] && USEWX && v:this->ev->isWeixin()}
+                    {x2;if:$_user['useropenid'] && USEWX && \PHPEMS\M('ev')->isWeixin()}
 					<li class="unstyled">
 						<a href="index.php?user-phone-privatement-unbind" class="ajax">
 							<div class="rows info">
