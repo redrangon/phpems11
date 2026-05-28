@@ -334,7 +334,7 @@ class action extends app
 		$basicid = M('ev')->get('basicid');
 		if($basicid)
 		{
-			$fname = 'data/score/'.TIME.'-'.$basicid.'-score.csv';
+			$fname = 'data/score/'.TIME.'-'.$basicid.'-score.xlsx';
 			$args[] =  array('AND',"ehbasicid = :ehbasicid",'ehbasicid',$basicid);
 			$args[] =  array('AND',"ehneedresit = 0");
 			$args[] =  array('AND',"ehtype > 0");
@@ -384,11 +384,11 @@ class action extends app
 				$tmp = array('ehusername' => iconv("UTF-8","GBK",$p['ehusername']),'ehscore' => $p['ehscore'],'ehtime' => $p['ehtime'],'ehstrattime' => date('Y-m-d H:i:s',$p['ehstarttime']));
 				foreach($fields as $ps)
 				{
-					$tmp[$ps['field']] = iconv("UTF-8","GBK",$p[$ps['field']]);
+					$tmp[$ps['field']] = $p[$ps['field']];
 				}
 				$r[] = $tmp;
 			}
-			if($this->files->outCsv($fname,$r))
+			if(M('xlsx')->putExcelContent(PEPATH.'/'.$fname,$r))
 			$message = array(
 				'statusCode' => 200,
 				"message" => "成绩导出成功，转入下载页面，如果浏览器没有相应，请<a href=\"{$fname}\">点此下载</a>",
