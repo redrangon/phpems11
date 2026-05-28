@@ -381,7 +381,7 @@ class action extends app
 			$r = array();
 			foreach($rs as $p)
 			{
-				$tmp = array('ehusername' => iconv("UTF-8","GBK",$p['ehusername']),'ehscore' => $p['ehscore'],'ehtime' => $p['ehtime'],'ehstrattime' => date('Y-m-d H:i:s',$p['ehstarttime']));
+				$tmp = array('ehusername' => $p['ehusername'],'ehscore' => $p['ehscore'],'ehtime' => $p['ehtime'],'ehstrattime' => date('Y-m-d H:i:s',$p['ehstarttime']));
 				foreach($fields as $ps)
 				{
 					$tmp[$ps['field']] = $p[$ps['field']];
